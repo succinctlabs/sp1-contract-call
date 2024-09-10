@@ -10,20 +10,20 @@ use rsp_rpc_db::RpcDb;
 
 use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
 
-/// An executor that fetches data from a [Provider].
+/// An executor that fetches data from a [`Provider`].
 ///
 /// This executor keeps track of the state being accessed, and eventually compresses it into an
-/// [EVMStateSketch].
+/// [`EVMStateSketch`].
 #[derive(Debug, Clone)]
 pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> {
-    /// The state root of the block we want to execute our view functions on.
+    /// The state root of the block to execute our view functions on.
     pub header: Header,
-    /// The [RpcDb] we use to back the Evm.
+    /// The [`RpcDb`] used to back the EVM.
     pub rpc_db: RpcDb<T, P>,
 }
 
 impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
-    /// Create a new [`HostExecutor`] with a specific [Provider] and [BlockNumberOrTag].
+    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
     pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
         let current_block = provider
             .get_block_by_number(block_number, true)
@@ -35,7 +35,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
         Ok(Self { header: current_block.header, rpc_db })
     }
 
-    /// Executes the smart contract call with the given [ContractInput].
+    /// Executes the smart contract call with the given [`ContractInput`].
     pub async fn execute<C: SolCall>(&mut self, call: ContractInput<C>) -> eyre::Result<C::Return> {
         let cache_db = CacheDB::new(&self.rpc_db);
         let mut evm = new_evm(cache_db, &self.header, U256::ZERO, call);
@@ -47,7 +47,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
         Ok(result)
     }
 
-    /// Returns the cumulative [EVMStateSketch] after executing some smart contracts.
+    /// Returns the cumulative [`EVMStateSketch`] after executing some smart contracts.
     pub async fn finalize(&self) -> EVMStateSketch {
         let account_proofs = self.rpc_db.fetch_used_accounts_and_proofs().await;
         let block_hashes = self.rpc_db.block_hashes.borrow().clone();

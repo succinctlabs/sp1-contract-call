@@ -1,11 +1,26 @@
-# SP1 Contract Calls (under construction)
+# SP1 Contract Calls
 
-This library allows you to make view calls to Ethereum chains, verifiable through SP1. Define your Solidity method and arguments, and get some data back. 
+Generates zero-knowledge proofs of Ethereum smart contract execution. 
 
-TODO (more)
+> [!CAUTION]
+>
+> This repository is not meant for production usage.
 
-## Running
+## Getting Started
 
-The code in `examples/erc20/client` and `examples/erc20/host` give an example -- we query the balance of a particular account's USDT. 
+To use SP1-contract-call, you must first have Rust installed and SP1 installed to build the client programs. Then, from the root directory of the repository, run 
 
-run `RUST_LOG=info cargo run --release` to see how much USDT the account at `9737100D2F42a196DE56ED0d1f6fF598a250E7E4` has on Sepolia. 
+```RUST_LOG=info cargo run --bin [example] --release``` 
+
+where \[example\] is one of the following
+* `uniswap`
+    * Fetches the price of the UNI / WETH pair on Uniswap V3
+* `multiplexer`
+    * Calls a contract that fetches the prices of many different collateral assets.
+    * The source code of this contract is found in `examples/multiplexer/ZkOracleHelper.sol`
+
+
+## Acknowledgments
+
+* [Unstable.Money](https://www.unstable.money/): Developed the smart contract featured in the `multiplexer` example.
+* [SP1](https://github.com/succinctlabs/sp1): A fast, feature-complete zkVM for developers that can prove the execution of arbitrary Rust (or any LLVM-compiled) program.
