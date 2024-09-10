@@ -1,0 +1,106 @@
+[workspace]
+members = [
+    "examples/uniswap/host",
+    "examples/multiplexer/host",
+    "crates/client-executor",
+    "crates/host-executor",
+]
+exclude = []
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = ["yuwen01"]
+exclude = ["**/target"]
+version = "0.1.0"
+
+[workspace.dependencies]
+eyre = "0.6"
+tracing = { version = "0.1.40", default-features = false }
+tokio = { version = "1.21", default-features = false, features = [
+    "rt",
+    "rt-multi-thread",
+] }
+serde_json = "1.0.94"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+url = "2.3"
+hex-literal = "0.4.1"
+bincode = "1.3.3"
+
+# workspace
+sp1-cc-client-executor = {path = "./crates/client-executor"}
+sp1-cc-host-executor = {path = "./crates/host-executor"}
+
+# rsp
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp" , rev = "5868063"}
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp" , rev = "5868063"}
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp" , rev = "5868063"}
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp" , rev = "5868063"}
+
+# rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
+# rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
+# rsp-primitives = { path = "../rsp/crates/primitives"}
+# rsp-client-executor = {path = "../rsp/crates/executor/client"}
+
+# reth
+reth-primitives = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+    "alloy-compat",
+    "optimism",
+    "std",
+] }
+reth-codecs = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-consensus = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-evm = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-revm = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+    "std",
+] }
+reth-evm-ethereum = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+    "std",
+] }
+reth-storage-errors = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+    "std",
+] }
+reth-trie = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-trie-common = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-chainspec = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-execution-errors = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-execution-types = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-db = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-errors = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-ethereum-consensus = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+
+# revm
+revm = { version = "14.0.0", features = [
+    "optimism",
+    "std",
+    "serde",
+    "kzg-rs",
+], default-features = false }
+revm-primitives = { version = "9.0.0", features = [
+    "std",
+    "serde",
+], default-features = false }
+
+# alloy
+alloy-primitives = "0.8"
+alloy-provider = { version = "0.3", default-features = false, features = [
+    "reqwest",
+    "reqwest-rustls-tls",
+] }
+alloy-rpc-types = { version = "0.3", default-features = false, features = [
+    "eth",
+] }
+alloy-rlp = "0.3.4"
+alloy-transport = { version = "0.3" }
+
+alloy-sol-types = { version = "0.8" }
+alloy-sol-macro = { version = "0.8" }
+alloy = { version = "0.3" }
+
+[workspace.lints]
+rust.missing_debug_implementations = "warn"
+rust.unreachable_pub = "warn"
+rust.unused_must_use = "deny"
+rust.rust_2018_idioms = { level = "deny", priority = -1 }
+rustdoc.all = "warn"

@@ -1,0 +1,97 @@
+#![feature(stmt_expr_attributes)]
+
+pub mod io;
+use alloy_sol_types::SolCall;
+use eyre::OptionExt;
+use io::EVMStateSketch;
+use reth_evm::ConfigureEvmEnv;
+use reth_primitives::Header;
+use revm::{db::CacheDB, Database, Evm, EvmBuilder};
+use revm_primitives::{Address, BlockEnv, CfgEnvWithHandlerCfg, SpecId, TxKind, U256};
+// use rsp_client_executor::io::ClientExecutorInput;
+use reth_chainspec::MAINNET;
+use reth_evm_ethereum::EthEvmConfig;
+use rsp_witness_db::WitnessDb;
+
+// /// Chain ID for Ethereum Sepolia.
+// pub const CHAIN_ID_ETH_SEPOLIA: u64 = 11155111;
+
+/// Input to a contract call.
+/// TODO move this to common?
+#[derive(Debug, Clone)]
+pub struct ContractInput<C: SolCall> {
+    /// The address of the contract to call.
+    pub contract_address: Address,
+    /// The address of the caller.
+    pub caller_address: Address,
+    /// The calldata to pass to the contract.
+    pub calldata: C,
+}
+
+/// An executor that executes smart contract calls inside a zkVM.
+#[derive(Debug)]
+pub struct ClientExecutor {
+    /// The databse that the executor uses to access state.
+    pub witness_db: WitnessDb,
+    /// TODO BETTER DOCS but this is like random stuff for setting up the client evm
+    pub header: Header,
+}
+
+impl ClientExecutor {
+    /// Instantiates a new [ClientExecutor]
+    pub fn new(mut state_sketch: EVMStateSketch) -> eyre::Result<Self> {
+        // let header = state_sketch.header.clone();
+        Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
+    }
+
+    /// Executes the smart contract call with the given [ContractInput] in SP1.
+    /// Validates storage accesses against the `witness_db`'s state root.
+    pub fn execute<C: SolCall>(&self, call: ContractInput<C>) -> eyre::Result<C::Return> {
+        let cache_db = CacheDB::new(&self.witness_db);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, call);
+        let tx_output = evm.transact()?;
+        let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
+        let result = C::abi_decode_returns(tx_output_bytes, true)?;
+        Ok(result)
+    }
+}
+
+/// TODO move this to common maybe ...
+/// TODO add other chains?
+/// Instantiates a new EVM, ready to run `call`.
+pub fn new_evm<'a, D, C>(
+    db: D,
+    header: &Header,
+    total_difficulty: U256,
+    call: ContractInput<C>,
+) -> Evm<'a, (), D>
+where
+    D: Database,
+    C: SolCall,
+{
+    let mut cfg_env = CfgEnvWithHandlerCfg::new_with_spec_id(Default::default(), SpecId::LATEST);
+    let mut block_env = BlockEnv::default();
+
+    EthEvmConfig::default().fill_cfg_and_block_env(
+        &mut cfg_env,
+        &mut block_env,
+        &MAINNET,
+        header,
+        total_difficulty,
+    );
+    let mut evm = EvmBuilder::default()
+        .with_db(db)
+        .with_cfg_env_with_handler_cfg(cfg_env)
+        .modify_block_env(|evm_block_env| *evm_block_env = block_env)
+        .build();
+
+    let tx_env = evm.tx_mut();
+    // tx_env.caller = self.caller_address;
+    tx_env.data = call.calldata.abi_encode().into();
+    tx_env.gas_limit = header.gas_limit;
+    tx_env.gas_price = U256::from(header.base_fee_per_gas.unwrap()); // TODO i can see this causing issues ...
+    tx_env.transact_to = TxKind::Call(call.contract_address);
+    tx_env.value = U256::ZERO;
+
+    evm
+}
