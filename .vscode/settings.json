@@ -23,8 +23,4 @@
         "Cargo.toml",
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
-<<<<<<< HEAD
-=======
-    "solidity.compileUsingRemoteVersion": "latest"
->>>>>>> main
 }
