@@ -5,7 +5,6 @@ use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_types::SolCall;
 use alloy_transport::Transport;
 use eyre::{eyre, OptionExt};
-// use mpt::generate_tries;
 use reth_primitives::{Block, Header};
 use revm::db::CacheDB;
 use revm_primitives::{B256, U256};

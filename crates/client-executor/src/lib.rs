@@ -24,7 +24,7 @@ pub struct ContractInput<C: SolCall> {
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
 pub struct ClientExecutor {
-    /// The databse that the executor uses to access state.
+    /// The database that the executor uses to access state.
     pub witness_db: WitnessDb,
     /// The block header.
     pub header: Header,
