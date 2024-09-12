@@ -26,9 +26,9 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Commit the sketch's state root.
-    let state_root = state_sketch.header.state_root;
-    sp1_zkvm::io::commit(&state_root);
+    // Commit the sketch's block hash.
+    let block_hash = state_sketch.header.hash_slow();
+    sp1_zkvm::io::commit(&block_hash);
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.

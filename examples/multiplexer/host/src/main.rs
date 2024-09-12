@@ -53,8 +53,8 @@ async fn main() -> eyre::Result<()> {
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. We'll later validate the client's execution against this.
-    let state_root = host_executor.block.header.state_root;
+    // Keep track of the block hash. We'll later validate the client's execution against this.
+    let block_hash = host_executor.block.header.hash_slow();
 
     // Describes the call to the getRates function.
     let call = ContractInput {
@@ -88,9 +88,9 @@ async fn main() -> eyre::Result<()> {
 
     println!("generated proof");
 
-    // Read the state root, and verify it
-    let client_state_root = proof.public_values.read::<B256>();
-    assert_eq!(client_state_root, state_root);
+    // Read the block hash, and verify that it's the same as the one inputted.
+    let client_block_hash = proof.public_values.read::<B256>();
+    assert_eq!(client_block_hash, block_hash);
 
     // Read the output, in the form of a bunch of exchange rates.
     //
