@@ -46,7 +46,7 @@ async fn main() -> eyre::Result<()> {
     utils::setup_logger();
 
     // Which block transactions are executed on.
-    let block_number = BlockNumberOrTag::Number(20729012);
+    let block_number = BlockNumberOrTag::Latest;
 
     // Prepare the host executor.
     //
@@ -55,7 +55,7 @@ async fn main() -> eyre::Result<()> {
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. We'll later validate the client's execution against this.
+    // Keep track of the state root. Later, the client's execution will be validated against this.
     let state_root = host_executor.header.state_root;
 
     // Describes the call to the getRates function.
@@ -68,8 +68,7 @@ async fn main() -> eyre::Result<()> {
     // Call getRates from the host executor.
     let _rates = host_executor.execute(call).await?._0;
 
-    // Now that we've executed all of the calls, we can get the `EVMStateSketch` from the host
-    // executor.
+    // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let input = host_executor.finalize().await?;
 
     // Feed the sketch into the client.

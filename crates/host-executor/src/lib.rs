@@ -25,7 +25,7 @@ pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone
     pub header: Header,
     /// The [`RpcDb`] used to back the EVM.
     pub rpc_db: RpcDb<T, P>,
-    /// The provider we use to fetch data.
+    /// The provider used to fetch data.
     pub provider: P,
 }
 
@@ -38,8 +38,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
             .map(|block| Block::try_from(block.inner))
             .ok_or(eyre!("couldn't fetch block: {}", block_number))??;
 
-        // TODO
-        let rpc_db = RpcDb::new(provider.clone(), block_number.as_number().unwrap());
+        let rpc_db = RpcDb::new(provider.clone(), block.header.number);
         Ok(Self { header: block.header, rpc_db, provider })
     }
 
@@ -59,7 +58,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
     pub async fn finalize(&self) -> eyre::Result<EVMStateSketch> {
         let block_number = self.header.number;
 
-        // For every account we touched, fetch the storage proofs for all the slots we touched.
+        // For every account touched, fetch the storage proofs for all the slots touched.
         let state_requests = self.rpc_db.get_state_requests();
         tracing::info!("fetching storage proofs");
         let mut storage_proofs = Vec::new();

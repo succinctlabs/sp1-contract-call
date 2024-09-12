@@ -34,10 +34,7 @@ impl ClientExecutor {
     /// Instantiates a new [`ClientExecutor`]
     pub fn new(state_sketch: EVMStateSketch) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
-        Ok(Self {
-            witness_db: state_sketch.redirect_witness_db().unwrap(),
-            header: state_sketch.header,
-        })
+        Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
