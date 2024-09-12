@@ -30,25 +30,16 @@ async fn main() -> eyre::Result<()> {
     // Setup logging.
     utils::setup_logger();
 
-<<<<<<< HEAD
     // Which block we execute transactions on.
     let block_number = BlockNumberOrTag::Latest;
 
-    // Prepare the host executor.
-    //
-    // Use `RPC_URL` to get all of the necessary state for our
+    // Prepare the host executor: we'll use [RPC_URL] to get all of the necessary state for our
     // smart contract call.
     let provider = ReqwestProvider::new_http(Url::parse(RPC_URL)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
     // Keep track of the state root. We'll later validate the client's execution against this.
     let state_root = host_executor.header.state_root;
-=======
-    // Prepare the host executor: we'll use [RPC_URL] to get all of the necessary state for our
-    // smart contract call.
-    let provider = ReqwestProvider::new_http(Url::parse(RPC_URL)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), BlockNumberOrTag::Latest).await?;
->>>>>>> 99088cf (Initial Commit)
 
     // Make the call to the slot0 function.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
@@ -61,7 +52,8 @@ async fn main() -> eyre::Result<()> {
         .await?
         .sqrtPriceX96;
 
-    // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
+    // Now that we've executed all of the calls, we can get the [EVMStateSketch] from the host
+    // executor.
     let input = host_executor.finalize().await;
 
     // Feed the sketch into the client.
@@ -79,9 +71,10 @@ async fn main() -> eyre::Result<()> {
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
     let mut proof = client.prove(&pk, stdin).run().unwrap();
+
     println!("generated proof");
 
-    // Read the state root, and verify it.
+    // Read the state root, and verify it
     let client_state_root = proof.public_values.read::<B256>();
     assert_eq!(client_state_root, state_root);
 
@@ -94,8 +87,9 @@ async fn main() -> eyre::Result<()> {
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);
 
-    // Verify proof and public values.
+    // Verify proof and public values
     client.verify(&proof, &vk).expect("verification failed");
+
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }
