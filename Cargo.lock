@@ -3364,7 +3364,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "multiplexer-host"
+name = "multiplexer"
 version = "0.1.0"
 dependencies = [
  "alloy",
@@ -7334,7 +7334,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "229730647fbc343e3a80e463c1db7f78f3855d3f3739bee0dda773c9a037c90a"
 
 [[package]]
-name = "uniswap-host"
+name = "uniswap"
 version = "0.1.0"
 dependencies = [
  "alloy",

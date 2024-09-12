@@ -47,7 +47,7 @@ async fn main() -> eyre::Result<()> {
     // Setup logging.
     utils::setup_logger();
 
-    // Which block we execute transactions on.
+    // Which block transactions are executed on.
     let block_number = BlockNumberOrTag::Latest;
 
     // Prepare the host executor: we'll use [RPC_URL] to get all of the necessary state for our

@@ -16,9 +16,9 @@ use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
 /// [EVMStateSketch].
 #[derive(Debug, Clone)]
 pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> {
-    /// The state root of the block we want to execute our view functions on.
+    /// The state root of the block to execute our view functions on.
     pub header: Header,
-    /// The [RpcDb] we use to back the Evm.
+    /// The [RpcDb] used to back the Evm.
     pub rpc_db: RpcDb<T, P>,
 }
 

@@ -52,8 +52,7 @@ async fn main() -> eyre::Result<()> {
         .await?
         .sqrtPriceX96;
 
-    // Now that we've executed all of the calls, we can get the [EVMStateSketch] from the host
-    // executor.
+    // Now that we've executed all of the calls, get the [EVMStateSketch] from the host executor.
     let input = host_executor.finalize().await;
 
     // Feed the sketch into the client.

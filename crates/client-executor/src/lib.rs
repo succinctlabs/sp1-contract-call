@@ -10,7 +10,6 @@ use revm_primitives::{Address, BlockEnv, CfgEnvWithHandlerCfg, SpecId, TxKind, U
 use rsp_witness_db::WitnessDb;
 
 /// Input to a contract call.
-/// TODO refactor this into a `common` crate
 #[derive(Debug, Clone)]
 pub struct ContractInput<C: SolCall> {
     /// The address of the contract to call.
@@ -50,9 +49,8 @@ impl ClientExecutor {
     }
 }
 
-/// TODO refactor this into a `common` crate
-/// TODO add support for other chains
-/// Instantiates a new EVM, who is ready to run `call`.
+/// TODO Add support for other chains besides Ethereum Mainnet.
+/// Instantiates a new EVM, which is ready to run `call`.
 pub fn new_evm<'a, D, C>(
     db: D,
     header: &Header,
@@ -83,7 +81,7 @@ where
     tx_env.caller = call.caller_address;
     tx_env.data = call.calldata.abi_encode().into();
     tx_env.gas_limit = header.gas_limit;
-    // TODO make this an argument
+    // TODO Make the gas price configurable. Right now, it's always set to the base fee.
     tx_env.gas_price = U256::from(header.base_fee_per_gas.unwrap());
     tx_env.transact_to = TxKind::Call(call.contract_address);
 
