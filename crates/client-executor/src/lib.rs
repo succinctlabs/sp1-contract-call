@@ -25,18 +25,18 @@ pub struct ContractInput<C: SolCall> {
 pub struct ClientExecutor {
     /// The databse that the executor uses to access state.
     pub witness_db: WitnessDb,
-    /// The block header
+    /// The block header.
     pub header: Header,
 }
 
 impl ClientExecutor {
-    /// Instantiates a new [ClientExecutor]
+    /// Instantiates a new [`ClientExecutor`]
     pub fn new(mut state_sketch: EVMStateSketch) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
         Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
     }
 
-    /// Executes the smart contract call with the given [ContractInput] in SP1.
+    /// Executes the smart contract call with the given [`ContractInput`] in SP1.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute<C: SolCall>(&self, call: ContractInput<C>) -> eyre::Result<C::Return> {

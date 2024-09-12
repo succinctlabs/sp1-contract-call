@@ -19,7 +19,7 @@ pub struct EVMStateSketch {
 }
 
 impl EVMStateSketch {
-    /// Creates a [WitnessDb] from an [EVMStateSketch]. To do so, it verifies the used storage
+    /// Creates a [`WitnessDb`] from an [`EVMStateSketch`]. To do so, it verifies the used storage
     /// proofs and constructs the account and storage values.
     ///
     /// Note: This mutates the input and takes ownership of used storage proofs and block hashes

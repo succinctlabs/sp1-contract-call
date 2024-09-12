@@ -50,7 +50,7 @@ async fn main() -> eyre::Result<()> {
     // Which block transactions are executed on.
     let block_number = BlockNumberOrTag::Latest;
 
-    // Prepare the host executor: we'll use [RPC_URL] to get all of the necessary state for our
+    // Prepare the host executor: we'll use `RPC_URL` to get all of the necessary state for our
     // smart contract call.
     let provider = ReqwestProvider::new_http(Url::parse(RPC_URL)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
@@ -68,7 +68,7 @@ async fn main() -> eyre::Result<()> {
     // Call getRates from the host executor.
     let _rates = host_executor.execute(call).await?._0;
 
-    // Now that we've executed all of the calls, we can get the [EVMStateSketch] from the host
+    // Now that we've executed all of the calls, we can get the `EVMStateSketch` from the host
     // executor.
     let input = host_executor.finalize().await;
 
@@ -87,10 +87,9 @@ async fn main() -> eyre::Result<()> {
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
     let mut proof = client.prove(&pk, stdin).run().unwrap();
-
     println!("generated proof");
 
-    // Read the state root, and verify it
+    // Read the state root, and verify it.
     let client_state_root = proof.public_values.read::<B256>();
     assert_eq!(client_state_root, state_root);
 
@@ -101,9 +100,8 @@ async fn main() -> eyre::Result<()> {
     let result = proof.public_values.read::<Vec<U256>>();
     println!("Got these rates: \n{:?}%", result);
 
-    // Verify proof and public values
+    // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");
-
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }
