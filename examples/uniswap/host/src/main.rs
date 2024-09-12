@@ -35,12 +35,11 @@ async fn main() -> eyre::Result<()> {
 
     // Prepare the host executor.
     //
-    // Use `RPC_URL` to get all of the necessary state for our
-    // smart contract call.
+    // Use `RPC_URL` to get all of the necessary state for the smart contract call.
     let provider = ReqwestProvider::new_http(Url::parse(RPC_URL)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. We'll later validate the client's execution against this.
+    // Keep track of the state root. Later, validate the client's execution against this.
     let state_root = host_executor.header.state_root;
 
     // Make the call to the slot0 function.
