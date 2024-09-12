@@ -12,12 +12,12 @@ To use SP1-contract-call, you must first have Rust installed and SP1 installed t
 
 ```RUST_LOG=info cargo run --bin [example] --release``` 
 
-where \[example\] is one of the following
+where `[example]` is one of the following
 * `uniswap`
-    * Fetches the price of the UNI / WETH pair on Uniswap V3
+    * Fetches the price of the UNI / WETH pair on Uniswap V3.
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
-    * The source code of this contract is found in `examples/multiplexer/ZkOracleHelper.sol`
+    * The source code of this contract is found in `examples/multiplexer/ZkOracleHelper.sol`.
 
 
 ## Acknowledgments
