@@ -5,15 +5,17 @@ use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_types::SolCall;
 use alloy_transport::Transport;
 use eyre::{eyre, OptionExt};
+// use mpt::generate_tries;
 use reth_primitives::Block;
 use revm::db::CacheDB;
 use revm_primitives::{B256, U256};
-use rsp_client_executor::io::ClientExecutorInput;
 use rsp_mpt::EthereumState;
 use rsp_primitives::account_proof::eip1186_proof_to_account_proof;
 use rsp_rpc_db::RpcDb;
 
-use sp1_cc_client_executor::{new_evm, ContractInput};
+use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
+
+// pub mod mpt;
 
 /// An executor that fetches data from a [Provider].
 ///
@@ -56,7 +58,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
     }
 
     /// Returns the cumulative [EVMStateSketch] after executing some smart contracts.
-    pub async fn finalize(&self) -> eyre::Result<ClientExecutorInput> {
+    pub async fn finalize(&self) -> eyre::Result<EVMStateSketch> {
         let block_number = self.block.header.number;
 
         // For every account we touched, fetch the storage proofs for all the slots we touched.
@@ -80,11 +82,10 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
             storage_proofs.push(eip1186_proof_to_account_proof(storage_proof));
         }
 
-        let state = EthereumState::from_proofs(
-            self.block.state_root,
-            &storage_proofs.iter().map(|item| (item.address, item.clone())).collect(),
-            &storage_proofs.iter().map(|item| (item.address, item.clone())).collect(),
-        )?;
+        let storage_proofs_by_address =
+            storage_proofs.iter().map(|item| (item.address, item.clone())).collect();
+        let state =
+            EthereumState::from_proofs(self.block.header.state_root, &storage_proofs_by_address)?;
 
         // Fetch the parent headers needed to constrain the BLOCKHASH opcode.
         let oldest_ancestor = *self.rpc_db.oldest_ancestor.borrow();
@@ -95,10 +96,10 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
             ancestor_headers.push(block.inner.header.try_into()?);
         }
 
-        Ok(ClientExecutorInput {
-            current_block: self.block.clone(),
+        Ok(EVMStateSketch {
+            header: self.block.header.clone(),
             ancestor_headers,
-            parent_state: state,
+            state,
             state_requests,
             bytecodes: self.rpc_db.get_bytecodes(),
         })

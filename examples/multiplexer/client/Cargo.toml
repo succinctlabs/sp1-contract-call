@@ -9,7 +9,7 @@ edition = "2021"
 sp1-cc-client-executor = { path = "../../../crates/client-executor" }
 
 # rsp 
-rsp-client-executor = {path = "../../../../rsp/crates/executor/client"}
+# rsp-client-executor = {path = "../../../../rsp/crates/executor/client"}
 
 # alloy
 alloy-primitives = { version = "0.8" }

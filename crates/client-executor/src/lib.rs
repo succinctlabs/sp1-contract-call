@@ -1,12 +1,12 @@
 pub mod io;
 use alloy_sol_types::SolCall;
 use eyre::OptionExt;
+use io::EVMStateSketch;
 use reth_evm::ConfigureEvmEnv;
 use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
 use revm::{db::CacheDB, Database, Evm, EvmBuilder};
 use revm_primitives::{Address, BlockEnv, CfgEnvWithHandlerCfg, SpecId, TxKind, U256};
-use rsp_client_executor::io::ClientExecutorInput;
 use rsp_witness_db::WitnessDb;
 
 /// Input to a contract call.
@@ -32,12 +32,9 @@ pub struct ClientExecutor {
 
 impl ClientExecutor {
     /// Instantiates a new [ClientExecutor]
-    pub fn new(mut state_sketch: ClientExecutorInput) -> eyre::Result<Self> {
+    pub fn new(mut state_sketch: EVMStateSketch) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
-        Ok(Self {
-            witness_db: state_sketch.witness_db().unwrap(),
-            header: state_sketch.current_block.header,
-        })
+        Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
     }
 
     /// Executes the smart contract call with the given [ContractInput] in SP1.

@@ -3002,6 +3002,7 @@ dependencies = [
  "alloy-rlp",
  "alloy-sol-types",
  "eyre",
+ "itertools 0.13.0",
  "reth-chainspec",
  "reth-errors",
  "reth-ethereum-consensus",
@@ -3429,7 +3430,6 @@ dependencies = [
  "alloy-sol-types",
  "bincode",
  "revm",
- "rsp-client-executor",
  "sp1-cc-client-executor",
  "sp1-zkvm",
 ]

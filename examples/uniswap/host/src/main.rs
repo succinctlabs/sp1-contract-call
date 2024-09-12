@@ -74,7 +74,7 @@ async fn main() -> eyre::Result<()> {
 
     // Read the state root, and verify it
     let client_state_root = proof.public_values.read::<B256>();
-    assert_eq!(client_state_root, state_root);
+    assert_eq!(client_state_root, state_root, "Client used a different block hash than provided");
 
     // Read the output, and then calculate the uniswap exchange rate.
     //
