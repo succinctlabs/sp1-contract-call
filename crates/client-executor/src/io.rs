@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 /// Information about how the contract executions accessed state, which is needed to execute the
 /// contract in SP1.
 ///
-/// Instead of passing in the entire state, we only pass in the state roots along with merkle proofs
-/// for the storage slots that were modified and accessed.
+/// Instead of passing in the entire state, only the state roots and merkle proofs
+/// for the storage slots that were modified and accessed are passed in.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EVMStateSketch {
     /// The current block header.
@@ -30,7 +30,7 @@ pub struct EVMStateSketch {
 }
 
 impl EVMStateSketch {
-    /// Creates a [WitnessDb] from a [EVMStateSketch]. To do so, it verifies the used storage
+    /// Creates a [`WitnessDb`] from an [`EVMStateSketch`]. To do so, it verifies the used storage
     /// proofs and constructs the account and storage values.
     ///
     /// Note: This mutates the input and takes ownership of used storage proofs and block hashes

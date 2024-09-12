@@ -38,7 +38,7 @@ const COLLATERALS: [Address; 12] = [
 ];
 
 pub fn main() {
-    // Read the state sketch from stdin. We'll use this during the execution in order to
+    // Read the state sketch from stdin. Use this during the execution in order to
     // access Ethereum state.
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();

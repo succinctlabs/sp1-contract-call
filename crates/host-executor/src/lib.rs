@@ -6,7 +6,7 @@ use alloy_sol_types::SolCall;
 use alloy_transport::Transport;
 use eyre::{eyre, OptionExt};
 // use mpt::generate_tries;
-use reth_primitives::Block;
+use reth_primitives::{Block, Header};
 use revm::db::CacheDB;
 use revm_primitives::{B256, U256};
 use rsp_mpt::EthereumState;
@@ -15,24 +15,22 @@ use rsp_rpc_db::RpcDb;
 
 use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
 
-// pub mod mpt;
-
-/// An executor that fetches data from a [Provider].
+/// An executor that fetches data from a [`Provider`].
 ///
 /// This executor keeps track of the state being accessed, and eventually compresses it into an
-/// [EVMStateSketch].
+/// [`EVMStateSketch`].
 #[derive(Debug, Clone)]
 pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> {
-    /// The state root of the block we want to execute our contract calls on.
-    pub block: Block,
-    /// The [RpcDb] we use to back the Evm.
+    /// The header of the block to execute our view functions on.
+    pub header: Header,
+    /// The [`RpcDb`] used to back the EVM.
     pub rpc_db: RpcDb<T, P>,
     /// The provider we use to fetch data.
     pub provider: P,
 }
 
 impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
-    /// Create a new [`HostExecutor`] with a specific [Provider] and [BlockNumberOrTag].
+    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
     pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
         let block = provider
             .get_block_by_number(block_number, true)
@@ -42,13 +40,13 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
 
         // TODO
         let rpc_db = RpcDb::new(provider.clone(), block_number.as_number().unwrap());
-        Ok(Self { block, rpc_db, provider })
+        Ok(Self { header: block.header, rpc_db, provider })
     }
 
-    /// Executes the smart contract call with the given [ContractInput].
+    /// Executes the smart contract call with the given [`ContractInput`].
     pub async fn execute<C: SolCall>(&mut self, call: ContractInput<C>) -> eyre::Result<C::Return> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, &self.block.header, U256::ZERO, call);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, call);
         let output = evm.transact()?;
         let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
 
@@ -57,9 +55,9 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
         Ok(result)
     }
 
-    /// Returns the cumulative [EVMStateSketch] after executing some smart contracts.
+    /// Returns the cumulative [`EVMStateSketch`] after executing some smart contracts.
     pub async fn finalize(&self) -> eyre::Result<EVMStateSketch> {
-        let block_number = self.block.header.number;
+        let block_number = self.header.number;
 
         // For every account we touched, fetch the storage proofs for all the slots we touched.
         let state_requests = self.rpc_db.get_state_requests();
@@ -84,8 +82,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
 
         let storage_proofs_by_address =
             storage_proofs.iter().map(|item| (item.address, item.clone())).collect();
-        let state =
-            EthereumState::from_proofs(self.block.header.state_root, &storage_proofs_by_address)?;
+        let state = EthereumState::from_proofs(self.header.state_root, &storage_proofs_by_address)?;
 
         // Fetch the parent headers needed to constrain the BLOCKHASH opcode.
         let oldest_ancestor = *self.rpc_db.oldest_ancestor.borrow();
@@ -97,7 +94,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
         }
 
         Ok(EVMStateSketch {
-            header: self.block.header.clone(),
+            header: self.header.clone(),
             ancestor_headers,
             state,
             state_requests,
