@@ -7,10 +7,10 @@ use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
 use revm::{db::CacheDB, Database, Evm, EvmBuilder};
 use revm_primitives::{Address, BlockEnv, CfgEnvWithHandlerCfg, SpecId, TxKind, U256};
+use rsp_client_executor::io::WitnessInput;
 use rsp_witness_db::WitnessDb;
 
 /// Input to a contract call.
-/// TODO refactor this into a `common` crate
 #[derive(Debug, Clone)]
 pub struct ContractInput<C: SolCall> {
     /// The address of the contract to call.
@@ -24,20 +24,20 @@ pub struct ContractInput<C: SolCall> {
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
 pub struct ClientExecutor {
-    /// The databse that the executor uses to access state.
+    /// The database that the executor uses to access state.
     pub witness_db: WitnessDb,
-    /// The block header
+    /// The block header.
     pub header: Header,
 }
 
 impl ClientExecutor {
-    /// Instantiates a new [ClientExecutor]
-    pub fn new(mut state_sketch: EVMStateSketch) -> eyre::Result<Self> {
+    /// Instantiates a new [`ClientExecutor`]
+    pub fn new(state_sketch: EVMStateSketch) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
         Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
     }
 
-    /// Executes the smart contract call with the given [ContractInput] in SP1.
+    /// Executes the smart contract call with the given [`ContractInput`] in SP1.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute<C: SolCall>(&self, call: ContractInput<C>) -> eyre::Result<C::Return> {
@@ -50,9 +50,8 @@ impl ClientExecutor {
     }
 }
 
-/// TODO refactor this into a `common` crate
-/// TODO add support for other chains
-/// Instantiates a new EVM, who is ready to run `call`.
+/// TODO Add support for other chains besides Ethereum Mainnet.
+/// Instantiates a new EVM, which is ready to run `call`.
 pub fn new_evm<'a, D, C>(
     db: D,
     header: &Header,
@@ -83,7 +82,7 @@ where
     tx_env.caller = call.caller_address;
     tx_env.data = call.calldata.abi_encode().into();
     tx_env.gas_limit = header.gas_limit;
-    // TODO make this an argument
+    // TODO Make the gas price configurable. Right now, it's always set to the base fee.
     tx_env.gas_price = U256::from(header.base_fee_per_gas.unwrap());
     tx_env.transact_to = TxKind::Call(call.contract_address);
 

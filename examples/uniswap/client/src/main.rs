@@ -21,7 +21,7 @@ const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
 pub fn main() {
-    // Read the state sketch from stdin. We'll use this during the execution in order to
+    // Read the state sketch from stdin. Use this during the execution in order to
     // access Ethereum state.
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();

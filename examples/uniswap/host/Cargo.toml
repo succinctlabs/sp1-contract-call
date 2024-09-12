@@ -1,6 +1,6 @@
 [package]
 version = "0.1.0"
-name = "uniswap-host"
+name = "uniswap"
 edition = "2021"
 
 [dependencies]

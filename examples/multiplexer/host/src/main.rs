@@ -45,16 +45,18 @@ async fn main() -> eyre::Result<()> {
     // Setup logging.
     utils::setup_logger();
 
-    // Which block we execute transactions on.
-    let block_number = BlockNumberOrTag::Number(20729012);
+    // Which block transactions are executed on.
+    let block_number = BlockNumberOrTag::Latest;
 
-    // Prepare the host executor. Fetch the necessary state from the RPC.
+    // Prepare the host executor.
+    //
+    // Use `RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("RPC_URL").unwrap_or_else(|_| panic!("Missing RPC_URL"));
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
     // Keep track of the block hash. We'll later validate the client's execution against this.
-    let block_hash = host_executor.block.header.hash_slow();
+    let block_hash = host_executor.header.hash_slow();
 
     // Describes the call to the getRates function.
     let call = ContractInput {
@@ -66,8 +68,7 @@ async fn main() -> eyre::Result<()> {
     // Call getRates from the host executor.
     let _rates = host_executor.execute(call).await?._0;
 
-    // Now that we've executed all of the calls, we can get the [EVMStateSketch] from the host
-    // executor.
+    // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let input = host_executor.finalize().await?;
 
     // Feed the sketch into the client.
@@ -85,7 +86,6 @@ async fn main() -> eyre::Result<()> {
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
     let mut proof = client.prove(&pk, stdin).run().unwrap();
-
     println!("generated proof");
 
     // Read the block hash, and verify that it's the same as the one inputted.
@@ -99,9 +99,8 @@ async fn main() -> eyre::Result<()> {
     let result = proof.public_values.read::<Vec<U256>>();
     println!("Got these rates: \n{:?}%", result);
 
-    // Verify proof and public values
+    // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");
-
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }

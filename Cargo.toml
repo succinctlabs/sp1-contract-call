@@ -40,11 +40,17 @@ sp1-cc-host-executor = {path = "./crates/host-executor"}
 # rsp-client-executor = { git = "https://github.com/succinctlabs/rsp" , rev = "2850e250"}
 # rsp-mpt = { git = "https://github.com/succinctlabs/rsp" , rev = "2850e250"}
 
-rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
-rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
-rsp-primitives = { path = "../rsp/crates/primitives"}
-rsp-client-executor = {path = "../rsp/crates/executor/client"}
-rsp-mpt = { path = "../rsp/crates/mpt"}
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp" , rev = "0a49664"}
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp" , rev = "0a49664"}
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp" , rev = "0a49664"}
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp" , rev = "0a49664"}
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp" , rev = "0a49664"}
+
+# rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
+# rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
+# rsp-primitives = { path = "../rsp/crates/primitives"}
+# rsp-client-executor = {path = "../rsp/crates/executor/client"}
+# rsp-mpt = { path = "../rsp/crates/mpt"}
 
 # reth
 reth-primitives = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [

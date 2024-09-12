@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-//Helper contract to fetch collateral asset prices
+// Helper contract to fetch collateral asset prices
 
 interface IsfrxETH {
     function pricePerShare() external view returns (uint256);
@@ -51,11 +51,6 @@ interface IWeETH {
     function getRate() external view returns (uint256);
 }
 
-interface IEzETH {
-    //TODO
-}
-
-
 contract ZkOracleHelper {
 
     address public constant ankrETH = 0xE95A203B1a91a908F9B9CE46459d101078c2c3cb;
@@ -90,7 +85,6 @@ contract ZkOracleHelper {
             (, uint256 totalETHBalance, uint256 totalETHXSupply) = IethxOracle(ethxOracle).exchangeRate();
             return (totalETHBalance * 1e18) / totalETHXSupply;
         }
-        //        if (collateral == ezEth) return 0; //TODO
         if (collateral == pufEth) return IPufETH(pufEth).previewRedeem(1e18);
         if (collateral == rETH) return IrETH(rETH).getExchangeRate();
         if (collateral == rsEth) return IRsETH(rsEthOracle).rsETHPrice();

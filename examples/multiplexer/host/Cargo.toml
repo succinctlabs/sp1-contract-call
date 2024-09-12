@@ -1,6 +1,6 @@
 [package]
 version = "0.1.0"
-name = "multiplexer-host"
+name = "multiplexer"
 edition = "2021"
 
 [dependencies]
@@ -13,7 +13,6 @@ alloy-sol-types.workspace = true
 alloy-rpc-types.workspace = true
 alloy-sol-macro.workspace = true
 alloy-provider.workspace = true
-# Alloy host dependencies
 alloy.workspace = true
 
 # EVM

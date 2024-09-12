@@ -3364,7 +3364,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "multiplexer-host"
+name = "multiplexer"
 version = "0.1.0"
 dependencies = [
  "alloy",
@@ -5361,6 +5361,7 @@ dependencies = [
 [[package]]
 name = "rsp-client-executor"
 version = "0.1.0"
+source = "git+https://github.com/succinctlabs/rsp?rev=0a49664#0a49664f2bd92cb809b2636f489eabe6a3e87e08"
 dependencies = [
  "alloy-primitives 0.8.3",
  "alloy-rlp",
@@ -5393,6 +5394,7 @@ dependencies = [
 [[package]]
 name = "rsp-mpt"
 version = "0.1.0"
+source = "git+https://github.com/succinctlabs/rsp?rev=0a49664#0a49664f2bd92cb809b2636f489eabe6a3e87e08"
 dependencies = [
  "alloy-primitives 0.8.3",
  "alloy-rlp",
@@ -5414,6 +5416,7 @@ dependencies = [
 [[package]]
 name = "rsp-primitives"
 version = "0.1.0"
+source = "git+https://github.com/succinctlabs/rsp?rev=0a49664#0a49664f2bd92cb809b2636f489eabe6a3e87e08"
 dependencies = [
  "alloy-rpc-types",
  "eyre",
@@ -5431,6 +5434,7 @@ dependencies = [
 [[package]]
 name = "rsp-rpc-db"
 version = "0.1.0"
+source = "git+https://github.com/succinctlabs/rsp?rev=0a49664#0a49664f2bd92cb809b2636f489eabe6a3e87e08"
 dependencies = [
  "alloy-provider",
  "alloy-rlp",
@@ -5452,6 +5456,7 @@ dependencies = [
 [[package]]
 name = "rsp-witness-db"
 version = "0.1.0"
+source = "git+https://github.com/succinctlabs/rsp?rev=0a49664#0a49664f2bd92cb809b2636f489eabe6a3e87e08"
 dependencies = [
  "reth-primitives",
  "reth-storage-errors",
@@ -7337,7 +7342,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "229730647fbc343e3a80e463c1db7f78f3855d3f3739bee0dda773c9a037c90a"
 
 [[package]]
-name = "uniswap-host"
+name = "uniswap"
 version = "0.1.0"
 dependencies = [
  "alloy",
