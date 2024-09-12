@@ -1,0 +1,3 @@
+[submodule "examples/ecdsa/lib/forge-std"]
+	path = examples/ecdsa/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
