@@ -8,10 +8,6 @@ edition = "2021"
 # workspace
 sp1-cc-client-executor = { path = "../../../crates/client-executor" }
 
-# rsp 
-# rsp-client-executor = { git = "https://github.com/succinctlabs/rsp" , rev = "2850e250"}
-# rsp-client-executor = {path = "../../../../rsp/crates/executor/client"}
-
 # alloy
 alloy-primitives = { version = "0.8" }
 alloy-sol-types = { version = "0.8" }
