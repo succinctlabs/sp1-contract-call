@@ -1,9 +1,9 @@
-use std::{collections::HashMap, hash::RandomState};
+use std::{collections::HashMap, iter::once};
 
-use eyre::Result;
-use reth_primitives::{revm_primitives::AccountInfo, Address, Header, B256, U256};
-use rsp_primitives::account_proof::AccountProofWithBytecode;
-use rsp_witness_db::WitnessDb;
+use reth_primitives::{Address, Header, B256, U256};
+use revm_primitives::Bytecode;
+use rsp_client_executor::io::WitnessInput;
+use rsp_mpt::EthereumState;
 use serde::{Deserialize, Serialize};
 
 /// Information about how the contract executions accessed state, which is needed to execute the
@@ -13,57 +13,42 @@ use serde::{Deserialize, Serialize};
 /// for the storage slots that were modified and accessed are passed in.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EVMStateSketch {
+    /// The current block header.
     pub header: Header,
-    pub storage_and_account_proofs: HashMap<Address, AccountProofWithBytecode, RandomState>,
-    pub block_hashes: HashMap<u64, B256>,
+    /// The previous block headers starting from the most recent. These are used for calls to the
+    /// blockhash opcode.
+    pub ancestor_headers: Vec<Header>,
+    /// Current block's Ethereum state.
+    pub state: EthereumState,
+    /// Requests to account state and storage slots.
+    pub state_requests: HashMap<Address, Vec<U256>>,
+    /// Account bytecodes.
+    pub bytecodes: Vec<Bytecode>,
 }
 
-impl EVMStateSketch {
-    /// Creates a [`WitnessDb`] from an [`EVMStateSketch`]. To do so, it verifies the used storage
-    /// proofs and constructs the account and storage values.
-    ///
-    /// Note: This mutates the input and takes ownership of used storage proofs and block hashes
-    /// to avoid unnecessary cloning.
-    pub fn witness_db(&mut self) -> Result<WitnessDb> {
-        let mut accounts = HashMap::new();
-        let mut storage = HashMap::new();
-        let storage_and_account_proofs = std::mem::take(&mut self.storage_and_account_proofs);
-        for (address, proof) in storage_and_account_proofs {
-            // Verify the storage proof.
-            proof.verify(self.header.state_root)?;
-
-            // Update the accounts.
-            let account_info = match proof.proof.info {
-                Some(account_info) => AccountInfo {
-                    nonce: account_info.nonce,
-                    balance: account_info.balance,
-                    code_hash: account_info.bytecode_hash.unwrap(),
-                    code: Some(proof.code),
-                },
-                None => AccountInfo::default(),
-            };
-            accounts.insert(address, account_info);
-
-            // Update the storage.
-            let storage_values: HashMap<U256, U256> = proof
-                .proof
-                .storage_proofs
-                .into_iter()
-                .map(|storage_proof| (storage_proof.key.into(), storage_proof.value))
-                .collect();
-            storage.insert(address, storage_values);
-        }
-        Ok(WitnessDb {
-            accounts,
-            storage,
-            block_hashes: std::mem::take(&mut self.block_hashes),
-            state_root: self.header.state_root,
-            trie_nodes: HashMap::new(),
-        })
+impl WitnessInput for EVMStateSketch {
+    #[inline(always)]
+    fn state(&self) -> &EthereumState {
+        &self.state
     }
 
-    /// Convenience method for fetching the state root from the header.
-    pub fn state_root(&self) -> B256 {
+    #[inline(always)]
+    fn state_anchor(&self) -> B256 {
         self.header.state_root
+    }
+
+    #[inline(always)]
+    fn state_requests(&self) -> impl Iterator<Item = (&Address, &Vec<U256>)> {
+        self.state_requests.iter()
+    }
+
+    #[inline(always)]
+    fn bytecodes(&self) -> impl Iterator<Item = &Bytecode> {
+        self.bytecodes.iter()
+    }
+
+    #[inline(always)]
+    fn headers(&self) -> impl Iterator<Item = &Header> {
+        once(&self.header).chain(self.ancestor_headers.iter())
     }
 }

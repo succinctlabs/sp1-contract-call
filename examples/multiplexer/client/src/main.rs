@@ -38,13 +38,14 @@ const COLLATERALS: [Address; 12] = [
 ];
 
 pub fn main() {
-    // Read the state sketch from stdin. We'll use this during the execution in order to
+    // Read the state sketch from stdin. Use this during the execution in order to
     // access Ethereum state.
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Commit the sketch's state root.
-    sp1_zkvm::io::commit(&state_sketch.state_root());
+    // Commit the sketch's state_root.
+    let state_root = state_sketch.header.state_root;
+    sp1_zkvm::io::commit(&state_root);
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.

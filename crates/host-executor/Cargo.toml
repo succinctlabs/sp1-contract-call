@@ -24,6 +24,7 @@ rsp-rpc-db.workspace = true
 rsp-witness-db.workspace = true
 rsp-primitives.workspace = true
 rsp-client-executor.workspace = true
+rsp-mpt.workspace = true
 
 # reth
 reth-codecs.workspace = true

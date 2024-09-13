@@ -20,8 +20,6 @@ const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 /// Address of the caller.
 const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
-const RPC_URL: &str = "https://ethereum-rpc.publicnode.com";
-
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
 
@@ -30,15 +28,17 @@ async fn main() -> eyre::Result<()> {
     // Setup logging.
     utils::setup_logger();
 
-    // Which block we execute transactions on.
+    // Which block transactions are executed on.
     let block_number = BlockNumberOrTag::Latest;
 
-    // Prepare the host executor: we'll use [RPC_URL] to get all of the necessary state for our
-    // smart contract call.
-    let provider = ReqwestProvider::new_http(Url::parse(RPC_URL)?);
+    // Prepare the host executor.
+    //
+    // Use `RPC_URL` to get all of the necessary state for the smart contract call.
+    let rpc_url = std::env::var("RPC_URL").unwrap_or_else(|_| panic!("Missing RPC_URL"));
+    let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. We'll later validate the client's execution against this.
+    // Keep track of the state root. Later, validate the client's execution against this.
     let state_root = host_executor.header.state_root;
 
     // Make the call to the slot0 function.
@@ -52,9 +52,8 @@ async fn main() -> eyre::Result<()> {
         .await?
         .sqrtPriceX96;
 
-    // Now that we've executed all of the calls, we can get the [EVMStateSketch] from the host
-    // executor.
-    let input = host_executor.finalize().await;
+    // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
+    let input = host_executor.finalize().await?;
 
     // Feed the sketch into the client.
     let input_bytes = bincode::serialize(&input)?;
@@ -71,12 +70,11 @@ async fn main() -> eyre::Result<()> {
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
     let mut proof = client.prove(&pk, stdin).run().unwrap();
-
     println!("generated proof");
 
-    // Read the state root, and verify it
+    // Read the state root, and verify it.
     let client_state_root = proof.public_values.read::<B256>();
-    assert_eq!(client_state_root, state_root);
+    assert_eq!(client_state_root, state_root, "Client used a different block hash than provided");
 
     // Read the output, and then calculate the uniswap exchange rate.
     //
@@ -87,9 +85,8 @@ async fn main() -> eyre::Result<()> {
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);
 
-    // Verify proof and public values
+    // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");
-
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }

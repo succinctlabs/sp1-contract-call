@@ -37,8 +37,6 @@ const COLLATERALS: [Address; 12] = [
     address!("Cd5fE23C85820F7B72D0926FC9b05b43E359b7ee"),
 ];
 
-const RPC_URL: &str = "https://ethereum-rpc.publicnode.com";
-
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
 
@@ -50,12 +48,14 @@ async fn main() -> eyre::Result<()> {
     // Which block transactions are executed on.
     let block_number = BlockNumberOrTag::Latest;
 
-    // Prepare the host executor: we'll use `RPC_URL` to get all of the necessary state for our
-    // smart contract call.
-    let provider = ReqwestProvider::new_http(Url::parse(RPC_URL)?);
+    // Prepare the host executor.
+    //
+    // Use `RPC_URL` to get all of the necessary state for the smart contract call.
+    let rpc_url = std::env::var("RPC_URL").unwrap_or_else(|_| panic!("Missing RPC_URL"));
+    let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. We'll later validate the client's execution against this.
+    // Keep track of the state root. Later, the client's execution will be validated against this.
     let state_root = host_executor.header.state_root;
 
     // Describes the call to the getRates function.
@@ -68,9 +68,8 @@ async fn main() -> eyre::Result<()> {
     // Call getRates from the host executor.
     let _rates = host_executor.execute(call).await?._0;
 
-    // Now that we've executed all of the calls, we can get the `EVMStateSketch` from the host
-    // executor.
-    let input = host_executor.finalize().await;
+    // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
+    let input = host_executor.finalize().await?;
 
     // Feed the sketch into the client.
     let input_bytes = bincode::serialize(&input)?;

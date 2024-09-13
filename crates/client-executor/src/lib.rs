@@ -7,6 +7,7 @@ use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
 use revm::{db::CacheDB, Database, Evm, EvmBuilder};
 use revm_primitives::{Address, BlockEnv, CfgEnvWithHandlerCfg, SpecId, TxKind, U256};
+use rsp_client_executor::io::WitnessInput;
 use rsp_witness_db::WitnessDb;
 
 /// Input to a contract call.
@@ -23,7 +24,7 @@ pub struct ContractInput<C: SolCall> {
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
 pub struct ClientExecutor {
-    /// The databse that the executor uses to access state.
+    /// The database that the executor uses to access state.
     pub witness_db: WitnessDb,
     /// The block header.
     pub header: Header,
@@ -31,7 +32,7 @@ pub struct ClientExecutor {
 
 impl ClientExecutor {
     /// Instantiates a new [`ClientExecutor`]
-    pub fn new(mut state_sketch: EVMStateSketch) -> eyre::Result<Self> {
+    pub fn new(state_sketch: EVMStateSketch) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
         Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
     }
@@ -67,7 +68,7 @@ where
     EthEvmConfig::default().fill_cfg_and_block_env(
         &mut cfg_env,
         &mut block_env,
-        &rsp_primitives::chain_spec::mainnet().unwrap(),
+        &rsp_primitives::chain_spec::mainnet(),
         header,
         total_difficulty,
     );

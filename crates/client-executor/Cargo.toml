@@ -18,6 +18,7 @@ tracing.workspace = true
 rsp-witness-db.workspace = true
 rsp-primitives.workspace = true
 rsp-client-executor.workspace = true
+rsp-mpt.workspace = true
 
 # reth
 reth-ethereum-consensus.workspace = true
