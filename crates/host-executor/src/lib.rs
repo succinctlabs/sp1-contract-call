@@ -28,7 +28,7 @@ pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone
     pub provider: P,
 }
 
-impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
+impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
     /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
     pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
         let block = provider
@@ -46,10 +46,11 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
         let cache_db = CacheDB::new(&self.rpc_db);
         let mut evm = new_evm(cache_db, &self.header, U256::ZERO, call);
         let output = evm.transact()?;
+        tracing::info!("is success? {:?}", output.result.is_success());
         let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
 
-        let result = C::abi_decode_returns(output_bytes, true)?;
         tracing::info!("Result of host executor call: {:?}", output_bytes);
+        let result = C::abi_decode_returns(output_bytes, true)?;
         Ok(result)
     }
 
