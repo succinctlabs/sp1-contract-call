@@ -70,11 +70,8 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
                 .into_iter()
                 .collect::<Vec<_>>();
 
-            let storage_proof = self
-                .provider
-                .get_proof(*address, keys.clone())
-                .block_id(block_number.into())
-                .await?;
+            let storage_proof =
+                self.provider.get_proof(*address, keys).block_id(block_number.into()).await?;
             storage_proofs.push(eip1186_proof_to_account_proof(storage_proof));
         }
 
