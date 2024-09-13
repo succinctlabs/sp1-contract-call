@@ -3,7 +3,7 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
-use alloy_sol_types::SolCall;
+use alloy_sol_types::{SolCall, SolValue};
 use bincode;
 use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
 
@@ -12,6 +12,18 @@ sol! {
     /// apxEth, ankrEth, pufEth, and more.
     interface IOracleHelper {
         function getRates(address[] memory collaterals) external view returns (uint256[] memory);
+    }
+}
+
+sol! {
+    struct MultiplexerOutput {
+        address contractAddress;
+        address callerAddress;
+        bytes contractCallData;
+        uint256[] contractOutput;
+        bytes32 blockHash;
+        uint64 blockTimestamp;
+        uint64 blockNumber;
     }
 }
 
@@ -43,22 +55,35 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Commit the sketch's block hash.
+    // Compute the sketch's block hash, timestamp, and block height.
     let block_hash = state_sketch.header.hash_slow();
-    sp1_zkvm::io::commit(&block_hash);
+    let timestamp = state_sketch.header.timestamp;
+    let block_number = state_sketch.header.number;
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::new(state_sketch).unwrap();
 
     // Execute the getRates call using the client executor.
+    let calldata = IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() };
     let call = ContractInput {
         contract_address: CONTRACT,
         caller_address: CALLER,
-        calldata: IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() },
+        calldata: calldata.clone(),
     };
     let rates = executor.execute(call).unwrap()._0;
 
-    // Commit the result.
-    sp1_zkvm::io::commit(&rates);
+    // ABI encode the output.
+    let output = MultiplexerOutput {
+        contractAddress: CONTRACT,
+        callerAddress: CALLER,
+        contractCallData: calldata.abi_encode().into(),
+        contractOutput: rates,
+        blockHash: block_hash,
+        blockTimestamp: timestamp,
+        blockNumber: block_number,
+    };
+
+    // Commit the output.
+    sp1_zkvm::io::commit_slice(&output.abi_encode());
 }

@@ -1,7 +1,8 @@
-use alloy_primitives::{address, Address, B256, U160};
+use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
+use alloy_sol_types::SolValue;
 use sp1_cc_client_executor::ContractInput;
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
@@ -11,6 +12,16 @@ sol! {
     /// Simplified interface of the IUniswapV3PoolState interface.
     interface IUniswapV3PoolState {
         function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
+    }
+}
+
+sol! {
+    struct UniswapOutput {
+        address contractAddress;
+        address callerAddress;
+        bytes contractCallData;
+        uint160 contractOutput;
+        bytes32 blockHash;
     }
 }
 
@@ -69,19 +80,20 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).run().unwrap();
+    let proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
-    // Read the block hash, and verify that it's the same as the one inputted.
-    let client_block_hash = proof.public_values.read::<B256>();
-    assert_eq!(client_block_hash, block_hash);
+    // Read the public values, and deserialize them.
+    let public_vals = UniswapOutput::abi_decode(proof.public_values.as_slice(), true)?;
+
+    // Check that the provided block hash matches the one in the proof.
+    assert_eq!(public_vals.blockHash, block_hash);
 
     // Read the output, and then calculate the uniswap exchange rate.
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let sqrt_price_x96 = proof.public_values.read::<U160>();
-    let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
+    let sqrt_price = f64::from(public_vals.contractOutput) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);
 

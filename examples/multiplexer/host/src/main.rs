@@ -15,6 +15,18 @@ sol! {
     }
 }
 
+sol! {
+    struct MultiplexerOutput {
+        address contractAddress;
+        address callerAddress;
+        bytes contractCallData;
+        uint256[] contractOutput;
+        bytes32 blockHash;
+        uint64 blockTimestamp;
+        uint64 blockNumber;
+    }
+}
+
 /// Address of the multiplexer contract on Ethereum Mainnet.
 const CONTRACT: Address = address!("0A8c00EcFA0816F4f09289ac52Fcb88eA5337526");
 
@@ -88,6 +100,7 @@ async fn main() -> eyre::Result<()> {
     let mut proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
+    proof.save("proof-with-pis.bin").expect("saving proof failed");
     // Read the block hash, and verify that it's the same as the one inputted.
     let client_block_hash = proof.public_values.read::<B256>();
     assert_eq!(client_block_hash, block_hash);
