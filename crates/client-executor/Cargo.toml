@@ -41,7 +41,4 @@ alloy-primitives.workspace = true
 alloy-rlp.workspace = true
 alloy-sol-types.workspace = true
 
-# misc
-itertools.workspace = true
-
 [dev-dependencies]

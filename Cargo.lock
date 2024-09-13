@@ -6055,7 +6055,6 @@ dependencies = [
  "alloy-rlp",
  "alloy-sol-types 0.8.3",
  "eyre",
- "itertools 0.13.0",
  "reth-chainspec",
  "reth-errors",
  "reth-ethereum-consensus",
