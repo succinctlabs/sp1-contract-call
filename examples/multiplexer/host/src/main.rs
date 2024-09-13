@@ -1,4 +1,4 @@
-use alloy_primitives::{address, Address, B256, U256};
+use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
@@ -98,7 +98,7 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).run().unwrap();
+    let proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
     proof.save("proof-with-pis.bin").expect("saving proof failed");
