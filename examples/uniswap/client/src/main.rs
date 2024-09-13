@@ -19,7 +19,7 @@ sol! {
         address contractAddress;
         address callerAddress;
         bytes contractCallData;
-        uint160 contractOutput;
+        uint160 sqrtPriceX96;
         bytes32 blockHash;
     }
 }
@@ -57,7 +57,7 @@ pub fn main() {
         contractAddress: CONTRACT,
         callerAddress: CALLER,
         contractCallData: slot0_call.abi_encode().into(),
-        contractOutput: sqrt_price_x96,
+        sqrtPriceX96: sqrt_price_x96,
         blockHash: block_hash,
     };
 

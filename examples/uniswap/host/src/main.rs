@@ -20,7 +20,7 @@ sol! {
         address contractAddress;
         address callerAddress;
         bytes contractCallData;
-        uint160 contractOutput;
+        uint160 sqrtPriceX96;
         bytes32 blockHash;
     }
 }
@@ -49,7 +49,7 @@ async fn main() -> eyre::Result<()> {
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the block hash. We'll later validate the client's execution against this.
+    // Keep track of the block hash. Later, validate the client's execution against this.
     let block_hash = host_executor.header.hash_slow();
 
     // Make the call to the slot0 function.
@@ -93,7 +93,7 @@ async fn main() -> eyre::Result<()> {
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let sqrt_price = f64::from(public_vals.contractOutput) / 2f64.powi(96);
+    let sqrt_price = f64::from(public_vals.sqrtPriceX96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);
 

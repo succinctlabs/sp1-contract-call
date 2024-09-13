@@ -2,6 +2,7 @@ use alloy_primitives::{address, Address, B256, U256};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
+use alloy_sol_types::SolValue;
 use sp1_cc_client_executor::ContractInput;
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
@@ -20,7 +21,7 @@ sol! {
         address contractAddress;
         address callerAddress;
         bytes contractCallData;
-        uint256[] contractOutput;
+        uint256[] rates;
         bytes32 blockHash;
         uint64 blockTimestamp;
         uint64 blockNumber;
@@ -67,7 +68,7 @@ async fn main() -> eyre::Result<()> {
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the block hash. We'll later validate the client's execution against this.
+    // Keep track of the block hash. Later, the client's execution will be validated against this.
     let block_hash = host_executor.header.hash_slow();
 
     // Describes the call to the getRates function.
@@ -101,16 +102,15 @@ async fn main() -> eyre::Result<()> {
     println!("generated proof");
 
     proof.save("proof-with-pis.bin").expect("saving proof failed");
-    // Read the block hash, and verify that it's the same as the one inputted.
-    let client_block_hash = proof.public_values.read::<B256>();
-    assert_eq!(client_block_hash, block_hash);
 
-    // Read the output, in the form of a bunch of exchange rates.
-    //
-    // Note that this output is read from values commited to in the program using
-    // `sp1_zkvm::io::commit`.
-    let result = proof.public_values.read::<Vec<U256>>();
-    println!("Got these rates: \n{:?}%", result);
+    // Read the public values, and deserialize them.
+    let public_vals = MultiplexerOutput::abi_decode(proof.public_values.as_slice(), true)?;
+
+    // Read the block hash, and verify that it's the same as the one inputted.
+    assert_eq!(public_vals.blockHash, block_hash);
+
+    // Print the fetched rates.
+    println!("Got these rates: \n{:?}%", public_vals.rates);
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");

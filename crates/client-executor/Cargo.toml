@@ -30,7 +30,6 @@ reth-evm-ethereum.workspace = true
 reth-errors.workspace = true
 reth-chainspec.workspace = true
 reth-revm.workspace = true
-reth-trie-common.workspace = true
 
 # revm
 revm.workspace = true
@@ -40,8 +39,5 @@ revm-primitives.workspace = true
 alloy-primitives.workspace = true
 alloy-rlp.workspace = true
 alloy-sol-types.workspace = true
-
-# misc
-itertools.workspace = true
 
 [dev-dependencies]
