@@ -80,11 +80,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
 
         let storage_proofs_by_address =
             storage_proofs.iter().map(|item| (item.address, item.clone())).collect();
-        let state = EthereumState::from_proofs(
-            self.header.state_root,
-            &storage_proofs_by_address,
-            &storage_proofs_by_address,
-        )?;
+        let state = EthereumState::from_proofs(self.header.state_root, &storage_proofs_by_address)?;
 
         // Fetch the parent headers needed to constrain the BLOCKHASH opcode.
         let oldest_ancestor = *self.rpc_db.oldest_ancestor.borrow();
