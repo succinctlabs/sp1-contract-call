@@ -19,11 +19,7 @@ sol! {
 
 sol! {
     struct MultiplexerOutput {
-        address contractAddress;
-        address callerAddress;
-        bytes contractCallData;
-        uint256[] rates;
-        bytes32 blockHash;
+        ContractOutput rawContractOutput;
         uint64 blockTimestamp;
         uint64 blockNumber;
     }
@@ -36,19 +32,19 @@ const CONTRACT: Address = address!("0A8c00EcFA0816F4f09289ac52Fcb88eA5337526");
 const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
 /// Inputs to the contract call.
-const COLLATERALS: [Address; 12] = [
+const COLLATERALS: [Address; 1] = [
     address!("E95A203B1a91a908F9B9CE46459d101078c2c3cb"),
-    address!("9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6"),
-    address!("Be9895146f7AF43049ca1c1AE358B0541Ea49704"),
-    address!("7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"),
-    address!("A35b1B31Ce002FBF2058D22F30f95D405200A15b"),
-    address!("D9A442856C234a39a81a089C06451EBAa4306a72"),
-    address!("ae78736Cd615f374D3085123A210448E74Fc6393"),
-    address!("A1290d69c65A6Fe4DF752f95823fae25cB99e5A7"),
-    address!("ac3E018457B222d93114458476f3E3416Abbe38F"),
-    address!("9D39A5DE30e57443BfF2A8307A4256c8797A3497"),
-    address!("f951E335afb289353dc249e82926178EaC7DEd78"),
-    address!("Cd5fE23C85820F7B72D0926FC9b05b43E359b7ee"),
+    // address!("9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6"),
+    // address!("Be9895146f7AF43049ca1c1AE358B0541Ea49704"),
+    // address!("7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"),
+    // address!("A35b1B31Ce002FBF2058D22F30f95D405200A15b"),
+    // address!("D9A442856C234a39a81a089C06451EBAa4306a72"),
+    // address!("ae78736Cd615f374D3085123A210448E74Fc6393"),
+    // address!("A1290d69c65A6Fe4DF752f95823fae25cB99e5A7"),
+    // address!("ac3E018457B222d93114458476f3E3416Abbe38F"),
+    // address!("9D39A5DE30e57443BfF2A8307A4256c8797A3497"),
+    // address!("f951E335afb289353dc249e82926178EaC7DEd78"),
+    // address!("Cd5fE23C85820F7B72D0926FC9b05b43E359b7ee"),
 ];
 
 /// The ELF we want to execute inside the zkVM.
@@ -99,24 +95,25 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).run().unwrap();
+    let proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
     proof.save("proof-with-pis.bin").expect("saving proof failed");
 
     // Read the public values, and deserialize them.
-    let public_vals = ContractOutput::abi_decode(&proof.public_values.read::<Vec<u8>>(), true)?;
+    let public_vals = MultiplexerOutput::abi_decode(proof.public_values.as_slice(), true)?;
+    let contract_output = public_vals.rawContractOutput;
 
     // Read the block hash, and verify that it's the same as the one inputted.
-    assert_eq!(public_vals.blockHash, block_hash);
+    assert_eq!(contract_output.blockHash, block_hash);
 
     // Print the fetched rates.
-    let rates = getRatesCall::abi_decode_returns(&public_vals.contractOutput, true)?._0;
+    let rates = getRatesCall::abi_decode_returns(&contract_output.contractOutput, true)?._0;
     println!("Got these rates: \n{:?}", rates);
 
-    // Print out the block timestamp and block number.
-    println!("timestamp: {}", proof.public_values.read::<u64>());
-    println!("block number: {}", proof.public_values.read::<u64>());
+    // Print the timestamp and block number.
+    println!("Block timestamp: {}", public_vals.blockTimestamp);
+    println!("Block number: {}", public_vals.blockNumber);
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");

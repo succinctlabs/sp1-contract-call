@@ -14,16 +14,6 @@ sol! {
     }
 }
 
-sol! {
-    struct UniswapOutput {
-        address contractAddress;
-        address callerAddress;
-        bytes contractCallData;
-        uint160 sqrtPriceX96;
-        bytes32 blockHash;
-    }
-}
-
 /// Address of Uniswap V3 pool.
 const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 
