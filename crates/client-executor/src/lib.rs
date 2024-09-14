@@ -35,6 +35,10 @@ sol! {
 }
 
 impl ContractOutput {
+    /// Construct a new [`ContractOutput`]
+    ///
+    /// By default, commit the contract input, the output, and the block hash to public input of
+    /// our proof. More can be committed if necessary.
     pub fn new<C: SolCall>(call: ContractInput<C>, output: Bytes, block_hash: B256) -> Self {
         Self {
             contractAddress: call.contract_address,
