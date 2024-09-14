@@ -1,4 +1,4 @@
-use alloy_primitives::{address, Address, U160};
+use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
