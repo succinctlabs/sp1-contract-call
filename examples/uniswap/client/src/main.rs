@@ -36,9 +36,6 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Compute the block hash.
-    let block_hash = state_sketch.header.hash_slow();
-
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::new(state_sketch).unwrap();
@@ -50,17 +47,8 @@ pub fn main() {
         caller_address: CALLER,
         calldata: slot0_call.clone(),
     };
-    let sqrt_price_x96 = executor.execute(input).unwrap().sqrtPriceX96;
+    let output = executor.execute(input).unwrap();
 
-    // ABI encode the output.
-    let output = UniswapOutput {
-        contractAddress: CONTRACT,
-        callerAddress: CALLER,
-        contractCallData: slot0_call.abi_encode().into(),
-        sqrtPriceX96: sqrt_price_x96,
-        blockHash: block_hash,
-    };
-
-    // Commit the output
+    // Commit the abi-encoded output.
     sp1_zkvm::io::commit_slice(&output.abi_encode());
 }

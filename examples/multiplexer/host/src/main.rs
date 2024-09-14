@@ -2,11 +2,12 @@ use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
-use alloy_sol_types::SolValue;
-use sp1_cc_client_executor::ContractInput;
+use alloy_sol_types::{SolCall, SolValue};
+use sp1_cc_client_executor::{ContractInput, ContractOutput};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
 use url::Url;
+use IOracleHelper::getRatesCall;
 
 sol! {
     /// Interface to the multiplexer contract. It gets the exchange rates of many tokens, including
@@ -98,19 +99,24 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, stdin).run().unwrap();
+    let mut proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
     proof.save("proof-with-pis.bin").expect("saving proof failed");
 
     // Read the public values, and deserialize them.
-    let public_vals = MultiplexerOutput::abi_decode(proof.public_values.as_slice(), true)?;
+    let public_vals = ContractOutput::abi_decode(&proof.public_values.read::<Vec<u8>>(), true)?;
 
     // Read the block hash, and verify that it's the same as the one inputted.
     assert_eq!(public_vals.blockHash, block_hash);
 
     // Print the fetched rates.
-    println!("Got these rates: \n{:?}%", public_vals.rates);
+    let rates = getRatesCall::abi_decode_returns(&public_vals.contractOutput, true)?._0;
+    println!("Got these rates: \n{:?}%", rates);
+
+    // Print out the block timestamp and block number.
+    println!("timestamp: {}", proof.public_values.read::<u64>());
+    println!("block number: {}", proof.public_values.read::<u64>());
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");

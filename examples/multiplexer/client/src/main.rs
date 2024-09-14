@@ -55,8 +55,7 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Compute the sketch's block hash, timestamp, and block height.
-    let block_hash = state_sketch.header.hash_slow();
+    // Compute the sketch's timestamp, and block height.
     let timestamp = state_sketch.header.timestamp;
     let block_number = state_sketch.header.number;
 
@@ -71,19 +70,12 @@ pub fn main() {
         caller_address: CALLER,
         calldata: calldata.clone(),
     };
-    let rates = executor.execute(call).unwrap()._0;
+    let output = executor.execute(call).unwrap()._0;
 
-    // ABI encode the output.
-    let output = MultiplexerOutput {
-        contractAddress: CONTRACT,
-        callerAddress: CALLER,
-        contractCallData: calldata.abi_encode().into(),
-        contractOutput: rates,
-        blockHash: block_hash,
-        blockTimestamp: timestamp,
-        blockNumber: block_number,
-    };
-
-    // Commit the output.
+    // Commit the abi-encoded output.
     sp1_zkvm::io::commit_slice(&output.abi_encode());
+
+    // For this case, we also need to commit the timestamp and the block number.
+    sp1_zkvm::io::commit(&timestamp);
+    sp1_zkvm::io::commit(&block_number);
 }

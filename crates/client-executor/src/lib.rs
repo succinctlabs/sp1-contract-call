@@ -1,12 +1,12 @@
 pub mod io;
-use alloy_sol_types::SolCall;
+use alloy_sol_types::{sol, SolCall};
 use eyre::OptionExt;
 use io::EVMStateSketch;
 use reth_evm::ConfigureEvmEnv;
 use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
 use revm::{db::CacheDB, Database, Evm, EvmBuilder};
-use revm_primitives::{Address, BlockEnv, CfgEnvWithHandlerCfg, SpecId, TxKind, U256};
+use revm_primitives::{Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, SpecId, TxKind, B256, U256};
 use rsp_client_executor::io::WitnessInput;
 use rsp_witness_db::WitnessDb;
 
@@ -19,6 +19,31 @@ pub struct ContractInput<C: SolCall> {
     pub caller_address: Address,
     /// The calldata to pass to the contract.
     pub calldata: C,
+}
+
+sol! {
+    /// Output of a contract call.
+    ///
+    /// These outputs can easily be abi-encoded, for use on-chain.
+    struct ContractOutput {
+        address contractAddress;
+        address callerAddress;
+        bytes contractCallData;
+        bytes contractOutput;
+        bytes32 blockHash;
+    }
+}
+
+impl ContractOutput {
+    pub fn new<C: SolCall>(call: ContractInput<C>, output: Bytes, block_hash: B256) -> Self {
+        Self {
+            contractAddress: call.contract_address,
+            callerAddress: call.caller_address,
+            contractCallData: call.calldata.abi_encode().into(),
+            contractOutput: output,
+            blockHash: block_hash,
+        }
+    }
 }
 
 /// An executor that executes smart contract calls inside a zkVM.
@@ -40,13 +65,12 @@ impl ClientExecutor {
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
-    pub fn execute<C: SolCall>(&self, call: ContractInput<C>) -> eyre::Result<C::Return> {
+    pub fn execute<C: SolCall>(&self, call: ContractInput<C>) -> eyre::Result<ContractOutput> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, call);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
         let tx_output = evm.transact()?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
-        let result = C::abi_decode_returns(tx_output_bytes, true)?;
-        Ok(result)
+        Ok(ContractOutput::new::<C>(call, tx_output_bytes.clone(), self.header.hash_slow()))
     }
 }
 
@@ -56,7 +80,7 @@ pub fn new_evm<'a, D, C>(
     db: D,
     header: &Header,
     total_difficulty: U256,
-    call: ContractInput<C>,
+    call: &ContractInput<C>,
 ) -> Evm<'a, (), D>
 where
     D: Database,
