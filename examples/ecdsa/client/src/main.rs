@@ -1,15 +1,13 @@
 #![no_main]
 sp1_zkvm::entrypoint!(main);
 
-use alloy_primitives::{address, Address, B256};
+use alloy_primitives::{address, Address, Bytes, B256};
 use alloy_sol_macro::sol;
+use alloy_sol_types::SolValue;
 use bincode;
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
-use reth_primitives::{public_key_to_address, Bytes};
 use secp256k1::{generate_keypair, Message, SECP256K1};
-// use rand_chacha::ChaCha20Rng;
-// use rand_core::SeedableRng;
 use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
 
 sol! {
@@ -40,7 +38,7 @@ pub fn main() {
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
     // The testing rng we use to generate messages and secret keys.
-
+    // 
     // Note: this is deterministic based on the `SEED`, so the host and the client have the same
     // behavior.
     let mut test_rng = ChaCha20Rng::seed_from_u64(SEED);
@@ -53,9 +51,9 @@ pub fn main() {
     let mut signatures = Vec::with_capacity(NUM_STAKERS);
     let mut messages = Vec::with_capacity(NUM_STAKERS);
 
-    for i in 0..NUM_STAKERS {
+    for _ in 0..NUM_STAKERS {
         // Generate a random signing key and message, and sign the message with the key.
-        let (sk, pk) = generate_keypair(&mut test_rng);
+        let (sk, _pk) = generate_keypair(&mut test_rng);
         let message = B256::random_with(&mut test_rng);
         let message_hash = alloy_primitives::keccak256(message);
         let signature = SECP256K1.sign_ecdsa_recoverable(&Message::from_digest(*message_hash), &sk);
@@ -66,8 +64,6 @@ pub fn main() {
         signature_bytes.push((id.to_i32() as u8) + 27);
 
         let signature_bytes = Bytes::from(signature_bytes);
-        println!("signature: {}, message: {}", signature_bytes, message_hash);
-        // message_hash); Add stake to the host
 
         messages.push(message_hash);
         signatures.push(signature_bytes);
@@ -88,5 +84,5 @@ pub fn main() {
     let total_stake = executor.execute(verify_signed_call).unwrap();
 
     // Commit the result.
-    sp1_zkvm::io::commit(&3);
+    sp1_zkvm::io::commit(&total_stake.abi_encode());
 }

@@ -44,9 +44,8 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
     /// Executes the smart contract call with the given [`ContractInput`].
     pub async fn execute<C: SolCall>(&mut self, call: ContractInput<C>) -> eyre::Result<C::Return> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, call);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
         let output = evm.transact()?;
-        tracing::info!("is success? {:?}", output.result.is_success());
         let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
 
         tracing::info!("Result of host executor call: {:?}", output_bytes);
@@ -71,21 +70,14 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
                 .into_iter()
                 .collect::<Vec<_>>();
 
-            let storage_proof = self
-                .provider
-                .get_proof(*address, keys.clone())
-                .block_id(block_number.into())
-                .await?;
+            let storage_proof =
+                self.provider.get_proof(*address, keys).block_id(block_number.into()).await?;
             storage_proofs.push(eip1186_proof_to_account_proof(storage_proof));
         }
 
         let storage_proofs_by_address =
             storage_proofs.iter().map(|item| (item.address, item.clone())).collect();
-        let state = EthereumState::from_proofs(
-            self.header.state_root,
-            &storage_proofs_by_address,
-            &storage_proofs_by_address,
-        )?;
+        let state = EthereumState::from_proofs(self.header.state_root, &storage_proofs_by_address)?;
 
         // Fetch the parent headers needed to constrain the BLOCKHASH opcode.
         let oldest_ancestor = *self.rpc_db.oldest_ancestor.borrow();

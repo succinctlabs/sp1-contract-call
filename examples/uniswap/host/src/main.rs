@@ -1,11 +1,13 @@
-use alloy_primitives::{address, Address, B256, U160};
+use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
-use sp1_cc_client_executor::ContractInput;
+use alloy_sol_types::{SolCall, SolValue};
+use sp1_cc_client_executor::{ContractInput, ContractOutput};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
 use url::Url;
+use IUniswapV3PoolState::slot0Call;
 
 sol! {
     /// Simplified interface of the IUniswapV3PoolState interface.
@@ -38,8 +40,8 @@ async fn main() -> eyre::Result<()> {
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. Later, validate the client's execution against this.
-    let state_root = host_executor.header.state_root;
+    // Keep track of the block hash. Later, validate the client's execution against this.
+    let block_hash = host_executor.header.hash_slow();
 
     // Make the call to the slot0 function.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
@@ -69,18 +71,22 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).run().unwrap();
+    let proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
-    // Read the state root, and verify it.
-    let client_state_root = proof.public_values.read::<B256>();
-    assert_eq!(client_state_root, state_root, "Client used a different block hash than provided");
+    // Read the public values, and deserialize them.
+    let public_vals = ContractOutput::abi_decode(proof.public_values.as_slice(), true)?;
+
+    // Check that the provided block hash matches the one in the proof.
+    assert_eq!(public_vals.blockHash, block_hash);
+    println!("verified block hash");
 
     // Read the output, and then calculate the uniswap exchange rate.
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let sqrt_price_x96 = proof.public_values.read::<U160>();
+    let sqrt_price_x96 =
+        slot0Call::abi_decode_returns(&public_vals.contractOutput, true)?.sqrtPriceX96;
     let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);

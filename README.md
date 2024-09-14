@@ -18,6 +18,7 @@ where `[example]` is one of the following
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
     * The source code of this contract is found in `examples/multiplexer/ZkOracleHelper.sol`.
+    * Due to the size of this program, it's recommended to use the [SP1 Prover network](https://docs.succinct.xyz/generating-proofs/prover-network.html) to generate proofs for this example.
 
 
 ## Acknowledgments

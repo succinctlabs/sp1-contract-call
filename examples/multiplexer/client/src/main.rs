@@ -3,15 +3,23 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
-use alloy_sol_types::SolCall;
+use alloy_sol_types::{SolCall, SolValue};
 use bincode;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
+use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput, ContractOutput};
 
 sol! {
     /// Interface to the multiplexer contract. It gets the prices of many tokens, including
     /// apxEth, ankrEth, pufEth, and more.
     interface IOracleHelper {
         function getRates(address[] memory collaterals) external view returns (uint256[] memory);
+    }
+}
+
+sol! {
+    struct MultiplexerOutput {
+        ContractOutput rawContractOutput;
+        uint64 blockTimestamp;
+        uint64 blockNumber;
     }
 }
 
@@ -43,22 +51,29 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Commit the sketch's state_root.
-    let state_root = state_sketch.header.state_root;
-    sp1_zkvm::io::commit(&state_root);
+    // Compute the sketch's timestamp and block height.
+    let timestamp = state_sketch.header.timestamp;
+    let block_number = state_sketch.header.number;
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::new(state_sketch).unwrap();
 
     // Execute the getRates call using the client executor.
+    let calldata = IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() };
     let call = ContractInput {
         contract_address: CONTRACT,
         caller_address: CALLER,
-        calldata: IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() },
+        calldata: calldata.clone(),
     };
-    let rates = executor.execute(call).unwrap()._0;
+    let contract_output = executor.execute(call).unwrap();
 
-    // Commit the result.
-    sp1_zkvm::io::commit(&rates);
+    let output = MultiplexerOutput {
+        rawContractOutput: contract_output,
+        blockTimestamp: timestamp,
+        blockNumber: block_number,
+    };
+
+    // Commit the abi-encoded output.
+    sp1_zkvm::io::commit_slice(&output.abi_encode());
 }

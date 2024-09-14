@@ -1,15 +1,17 @@
-use alloy_primitives::{address, Address, Bytes, B256, U160, U256};
+use alloy_primitives::{address, Address, Bytes, B256, U256};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
+use alloy_sol_types::{SolCall, SolValue};
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
 use reth_primitives::public_key_to_address;
 use secp256k1::{generate_keypair, Message, SECP256K1};
-use sp1_cc_client_executor::ContractInput;
+use sp1_cc_client_executor::{ContractInput, ContractOutput};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
 use url::Url;
+use SimpleStaking::verifySignedCall;
 
 sol! {
     /// Part of the SimpleStaking interface
@@ -57,8 +59,8 @@ async fn main() -> eyre::Result<()> {
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. Later, validate the client's execution against this.
-    let state_root = host_executor.header.state_root;
+    // Keep track of the block hash. Later, validate the client's execution against this.
+    let block_hash = host_executor.header.hash_slow();
 
     // Generate messages and signatures, with random (but deterministic) signing keys.
     let mut addresses = Vec::with_capacity(NUM_STAKERS);
@@ -78,7 +80,6 @@ async fn main() -> eyre::Result<()> {
         signature_bytes.push((id.to_i32() as u8) + 27);
 
         // Figure out the address corresponding to the public key of the signing key.
-        // println!("public key bytes: {:?}", public_key_bytes);
         let address = public_key_to_address(pk);
 
         // Set up the call to add stake for each address.
@@ -126,18 +127,22 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).run().unwrap();
+    let proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
-    // Read the state root, and verify it.
-    let client_state_root = proof.public_values.read::<B256>();
-    assert_eq!(client_state_root, state_root, "Client used a different block hash than provided");
+    // Read the public values, and deserialize them.
+    let public_vals = ContractOutput::abi_decode(proof.public_values.as_slice(), true)?;
+
+    // Check that the provided block hash matches the one in the proof.
+    assert_eq!(public_vals.blockHash, block_hash);
+    println!("verified block hash");
 
     // Read the output, and then calculate the uniswap exchange rate.
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let sqrt_price_x96 = proof.public_values.read::<U160>();
+    let sqrt_price_x96 =
+        verifySignedCall::abi_decode_returns(&public_vals.contractOutput, true)?._0;
     let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);
