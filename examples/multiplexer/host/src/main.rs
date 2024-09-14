@@ -95,7 +95,7 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, stdin).run().unwrap();
+    let proof = client.prove(&pk, stdin).plonk().run().unwrap();
     println!("generated proof");
 
     proof.save("proof-with-pis.bin").expect("saving proof failed");
