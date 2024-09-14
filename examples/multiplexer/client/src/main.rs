@@ -70,10 +70,10 @@ pub fn main() {
         caller_address: CALLER,
         calldata: calldata.clone(),
     };
-    let output = executor.execute(call).unwrap()._0;
+    let output = executor.execute(call).unwrap();
 
     // Commit the abi-encoded output.
-    sp1_zkvm::io::commit_slice(&output.abi_encode());
+    sp1_zkvm::io::commit(&output.abi_encode());
 
     // For this case, we also need to commit the timestamp and the block number.
     sp1_zkvm::io::commit(&timestamp);

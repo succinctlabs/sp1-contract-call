@@ -112,7 +112,7 @@ async fn main() -> eyre::Result<()> {
 
     // Print the fetched rates.
     let rates = getRatesCall::abi_decode_returns(&public_vals.contractOutput, true)?._0;
-    println!("Got these rates: \n{:?}%", rates);
+    println!("Got these rates: \n{:?}", rates);
 
     // Print out the block timestamp and block number.
     println!("timestamp: {}", proof.public_values.read::<u64>());
