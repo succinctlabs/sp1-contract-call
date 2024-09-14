@@ -91,7 +91,6 @@ async fn main() -> eyre::Result<()> {
 
         let signature_bytes = Bytes::from(signature_bytes);
         println!("address: {}, signature: {}, message: {}", address, signature_bytes, message_hash);
-        // message_hash); Add stake to the host
         host_executor.execute(call).await?;
 
         messages.push(message_hash);
@@ -137,15 +136,14 @@ async fn main() -> eyre::Result<()> {
     assert_eq!(public_vals.blockHash, block_hash);
     println!("verified block hash");
 
-    // Read the output, and then calculate the uniswap exchange rate.
+    // Read the output, and then calculate the total stake associated with valid signatures.
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let sqrt_price_x96 =
+    let client_total_stake =
         verifySignedCall::abi_decode_returns(&public_vals.contractOutput, true)?._0;
-    let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
-    let price = sqrt_price * sqrt_price;
-    println!("Proven exchange rate is: {}%", price);
+    assert_eq!(client_total_stake, total_stake);
+    println!("verified total stake calculation");
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");

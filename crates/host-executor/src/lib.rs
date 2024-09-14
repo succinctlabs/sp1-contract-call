@@ -48,8 +48,8 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
         let output = evm.transact()?;
         let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
 
-        tracing::info!("Result of host executor call: {:?}", output_bytes);
         let result = C::abi_decode_returns(output_bytes, true)?;
+        tracing::info!("Result of host executor call: {:?}", output_bytes);
         Ok(result)
     }
 
