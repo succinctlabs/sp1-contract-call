@@ -1,4 +1,4 @@
-# SP1 Contract Calls
+# SP1 Contract Calls TODO alloy sol vs alloy sol types vs alloy sol macro ?
 
 Generates zero-knowledge proofs of Ethereum smart contract execution. 
 
@@ -8,9 +8,13 @@ Generates zero-knowledge proofs of Ethereum smart contract execution.
 
 ## Overview
 
-This repository will allow you to efficiently call Ethereum smart contracts off chain, while verifying the correctness of their execution using SP1. Previous verifiable methods to obtain Ethereum state off chain involved deep developer knowledge of Ethereum storage mechanisms, but `sp1-cc` allows you to specify your Solidity function interface natively in Rust, allowing for a seamless developer experience.
+This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers with a simple interface to efficiently generate a ZKP of Ethereum smart contract execution offchain, that can be verified cheaply onchain for ~280k gas. This enables developers to verifiably run very expensive Solidity smart contract calls and be able to use this information in their smart contracts. Developers simply specific their Solidity function interface in Rust using the [`alloy_sol_types`](https://docs.rs/alloy-sol-types/latest/alloy_sol_types/) library and can write an SP1 program to generate these proofs. Lets check out an example below:
 
-To illustrate how SP1 works, let's start with a simple example -- fetching the current price of the UNI / WETH pair on a UniswapV3 Pool. Here's a code snippet from `examples/uniswap/client` -- this code is ran in SP1.
+### Client
+
+First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
+
+In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. The code below is taken from `examples/uniswap/client/main.rs` which contains all of the code needed for the SP1 client program.
 
 ```
 sol! {
@@ -36,7 +40,13 @@ let input =
 let price_x96 = executor.execute(input).unwrap().sqrtPriceX96;
 ```
 
-However, since we can't directly access the network in SP1, we need to execute a preflight call before  running this client code in SP1. The following excerpt from `examples/uniswap/host` demonstrates this.
+### Host
+
+Under the hood, the SP1 client program uses the executor from the `sp1_cc` library, which requires storage slots and merkle proof information to correctly and verifiably run the smart contract execution.
+
+The "host" program is code that is run outside of the zkVM & is responsible for fetching all of the witness data that is needed for the client program. This witness data includes storage slots, account information & merkle proofs that the client program verifies.
+
+You can see in the host example code below that we run the exact same contract call with the host executor (instead of the client executor), and the host executor will fetch all relevant information as its executing. When we call finalize() on the host executor, it prepares all of the data it has gathered during contract call execution and then prepares it for input into the client program.
 
 ```
 ...
