@@ -3,7 +3,7 @@ use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
-use sp1_cc_client_executor::{ContractInput, ContractOutput};
+use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
 use url::Url;
@@ -75,7 +75,7 @@ async fn main() -> eyre::Result<()> {
     println!("generated proof");
 
     // Read the public values, and deserialize them.
-    let public_vals = ContractOutput::abi_decode(proof.public_values.as_slice(), true)?;
+    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice(), true)?;
 
     // Check that the provided block hash matches the one in the proof.
     assert_eq!(public_vals.blockHash, block_hash);
@@ -86,7 +86,7 @@ async fn main() -> eyre::Result<()> {
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
     let sqrt_price_x96 =
-        slot0Call::abi_decode_returns(&public_vals.contractOutput, true)?.sqrtPriceX96;
+        slot0Call::abi_decode_returns(&public_vals.contractPublicValues, true)?.sqrtPriceX96;
     let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);

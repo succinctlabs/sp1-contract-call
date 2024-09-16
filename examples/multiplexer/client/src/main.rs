@@ -5,7 +5,9 @@ use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use bincode;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput, ContractOutput};
+use sp1_cc_client_executor::{
+    io::EVMStateSketch, ClientExecutor, ContractInput, ContractPublicValues,
+};
 
 sol! {
     /// Interface to the multiplexer contract. It gets the prices of many tokens, including
@@ -17,7 +19,7 @@ sol! {
 
 sol! {
     struct MultiplexerOutput {
-        ContractOutput rawContractOutput;
+        ContractPublicValues rawContractPublicValues;
         uint64 blockTimestamp;
         uint64 blockNumber;
     }
@@ -69,7 +71,7 @@ pub fn main() {
     let contract_output = executor.execute(call).unwrap();
 
     let output = MultiplexerOutput {
-        rawContractOutput: contract_output,
+        rawContractPublicValues: contract_output,
         blockTimestamp: timestamp,
         blockNumber: block_number,
     };
