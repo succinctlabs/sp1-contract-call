@@ -1,17 +1,29 @@
-use alloy_primitives::{address, Address, B256, U256};
+use std::{fs::File, io::Write};
+
+use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
-use sp1_cc_client_executor::ContractInput;
+use alloy_sol_types::{SolCall, SolValue};
+use sp1_cc_client_executor::{ContractInput, ContractOutput};
 use sp1_cc_host_executor::HostExecutor;
-use sp1_sdk::{utils, ProverClient, SP1Stdin};
+use sp1_sdk::{utils, HashableKey, ProverClient, SP1Stdin};
 use url::Url;
+use IOracleHelper::getRatesCall;
 
 sol! {
     /// Interface to the multiplexer contract. It gets the exchange rates of many tokens, including
     /// apxEth, ankrEth, and pufEth.
     interface IOracleHelper {
         function getRates(address[] memory collaterals) external view returns (uint256[] memory);
+    }
+}
+
+sol! {
+    struct MultiplexerOutput {
+        ContractOutput rawContractOutput;
+        uint64 blockTimestamp;
+        uint64 blockNumber;
     }
 }
 
@@ -55,8 +67,8 @@ async fn main() -> eyre::Result<()> {
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
-    // Keep track of the state root. Later, the client's execution will be validated against this.
-    let state_root = host_executor.header.state_root;
+    // Keep track of the block hash. Later, the client's execution will be validated against this.
+    let block_hash = host_executor.header.hash_slow();
 
     // Describes the call to the getRates function.
     let call = ContractInput {
@@ -85,19 +97,34 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).run().unwrap();
+    println!("vkey: {:?}", vk.bytes32());
+    let proof = client.prove(&pk, stdin).plonk().run().unwrap();
     println!("generated proof");
 
-    // Read the state root, and verify it.
-    let client_state_root = proof.public_values.read::<B256>();
-    assert_eq!(client_state_root, state_root);
+    // proof.save("proof-with-pis.bin").expect("saving proof failed");
 
-    // Read the output, in the form of a bunch of exchange rates.
-    //
-    // Note that this output is read from values commited to in the program using
-    // `sp1_zkvm::io::commit`.
-    let result = proof.public_values.read::<Vec<U256>>();
-    println!("Got these rates: \n{:?}%", result);
+    // Save the proof to plonk-proof.bin
+    let mut proof_file = File::create("plonk-proof.bin")?;
+    proof_file.write_all(&proof.bytes())?;
+
+    // Save the public values to public-values.bin
+    let mut public_values_file = File::create("public-values.bin")?;
+    public_values_file.write_all(proof.public_values.as_slice())?;
+
+    // Read the public values, and deserialize them.
+    let public_vals = MultiplexerOutput::abi_decode(proof.public_values.as_slice(), true)?;
+    let contract_output = public_vals.rawContractOutput;
+
+    // Read the block hash, and verify that it's the same as the one inputted.
+    assert_eq!(contract_output.blockHash, block_hash);
+
+    // Print the fetched rates.
+    let rates = getRatesCall::abi_decode_returns(&contract_output.contractOutput, true)?._0;
+    println!("Got these rates: \n{:?}", rates);
+
+    // Print the timestamp and block number.
+    println!("Block timestamp: {}", public_vals.blockTimestamp);
+    println!("Block number: {}", public_vals.blockNumber);
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");
