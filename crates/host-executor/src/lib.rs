@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod test;
+
 use std::collections::BTreeSet;
 
 use alloy_provider::{network::AnyNetwork, Provider};
