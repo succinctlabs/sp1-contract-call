@@ -29,7 +29,7 @@ sol! {
         address contractAddress;
         address callerAddress;
         bytes contractCallData;
-        bytes contractPublicValues;
+        bytes contractOutput;
         bytes32 blockHash;
     }
 }
@@ -44,7 +44,7 @@ impl ContractPublicValues {
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
             contractCallData: call.calldata.abi_encode().into(),
-            contractPublicValues: output,
+            contractOutput: output,
             blockHash: block_hash,
         }
     }

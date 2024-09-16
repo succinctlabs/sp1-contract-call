@@ -86,7 +86,7 @@ async fn main() -> eyre::Result<()> {
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
     let sqrt_price_x96 =
-        slot0Call::abi_decode_returns(&public_vals.contractPublicValues, true)?.sqrtPriceX96;
+        slot0Call::abi_decode_returns(&public_vals.contractOutput, true)?.sqrtPriceX96;
     let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);

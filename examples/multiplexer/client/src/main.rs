@@ -19,7 +19,7 @@ sol! {
 
 sol! {
     struct MultiplexerOutput {
-        ContractPublicValues rawContractPublicValues;
+        ContractPublicValues contractPublicValues;
         uint64 blockTimestamp;
         uint64 blockNumber;
     }
@@ -68,10 +68,10 @@ pub fn main() {
         caller_address: CALLER,
         calldata: calldata.clone(),
     };
-    let contract_output = executor.execute(call).unwrap();
+    let contract_public_values = executor.execute(call).unwrap();
 
     let output = MultiplexerOutput {
-        rawContractPublicValues: contract_output,
+        contractPublicValues: contract_public_values,
         blockTimestamp: timestamp,
         blockNumber: block_number,
     };

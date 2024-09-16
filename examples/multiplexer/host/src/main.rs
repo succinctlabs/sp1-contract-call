@@ -21,7 +21,7 @@ sol! {
 
 sol! {
     struct MultiplexerOutput {
-        ContractPublicValues rawContractPublicValues;
+        ContractPublicValues contractPublicValues;
         uint64 blockTimestamp;
         uint64 blockNumber;
     }
@@ -113,13 +113,13 @@ async fn main() -> eyre::Result<()> {
 
     // Read the public values, and deserialize them.
     let public_vals = MultiplexerOutput::abi_decode(proof.public_values.as_slice(), true)?;
-    let contract_output = public_vals.rawContractPublicValues;
+    let contract_public_values = public_vals.contractPublicValues;
 
     // Read the block hash, and verify that it's the same as the one inputted.
-    assert_eq!(contract_output.blockHash, block_hash);
+    assert_eq!(contract_public_values.blockHash, block_hash);
 
     // Print the fetched rates.
-    let rates = getRatesCall::abi_decode_returns(&contract_output.contractPublicValues, true)?._0;
+    let rates = getRatesCall::abi_decode_returns(&contract_public_values.contractOutput, true)?._0;
     println!("Got these rates: \n{:?}", rates);
 
     // Print the timestamp and block number.
