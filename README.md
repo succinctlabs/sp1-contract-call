@@ -14,7 +14,7 @@ This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers w
 
 First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol_macro` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
 
-In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. The code below is taken from `examples/uniswap/client/main.rs` which contains all of the code needed for the SP1 client program.
+In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` -- this is to make it easy later to use those public values on chain. The code below is taken from `examples/uniswap/client/main.rs` which contains all of the code needed for the SP1 client program. 
 
 ```
 sol! {
@@ -37,7 +37,10 @@ const CALLER: Address = address!("0000000000000000000000000000000000000000");
 let slot0_call = IUniswapV3PoolState::slot0Call {};
 let input =
     ContractInput { contract_address: CONTRACT, caller_address: CALLER, calldata: slot0_call };
-let price_x96 = executor.execute(input).unwrap().sqrtPriceX96;
+let public_values = executor.execute(input).unwrap();
+
+// Commit the abi-encoded output.
+sp1_zkvm::io::commit_slice(&public_values.abi_encode());
 ```
 
 ### Host
@@ -86,7 +89,7 @@ stdin.write(&input_bytes);
 
 ```
 
-After running the client program in the host, we generate a proof that can easily be verified on chain. The following sample contract demonstrates how you might verify the outcome of the Uniswap contract call.
+After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded. This allows us to use the output of the contract call on chain. The following sample contract demonstrates how you might verify the outcome of the Uniswap contract call.
 
 ```
 contract SP1UniswapCC {
