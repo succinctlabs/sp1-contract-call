@@ -28,7 +28,7 @@ async fn test_e2e() -> eyre::Result<()> {
     dotenv::dotenv().ok();
 
     // Which block transactions are executed on.
-    let block_number = BlockNumberOrTag::Number(20764847);
+    let block_number = BlockNumberOrTag::Latest;
 
     // Prepare the host executor.
     //
