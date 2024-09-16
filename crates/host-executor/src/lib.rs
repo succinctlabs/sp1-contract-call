@@ -47,7 +47,7 @@ impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<
     /// Executes the smart contract call with the given [`ContractInput`].
     pub async fn execute<C: SolCall>(&mut self, call: ContractInput<C>) -> eyre::Result<C::Return> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, call);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
         let output = evm.transact()?;
         let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
 
