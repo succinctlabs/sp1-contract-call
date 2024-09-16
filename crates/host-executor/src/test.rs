@@ -1,23 +1,24 @@
-use alloy_primitives::{address, Address, U160};
+use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolCall;
+use revm_primitives::U256;
 use sp1_cc_client_executor::{ClientExecutor, ContractInput};
 use url::Url;
-use IUniswapV3PoolState::slot0Call;
+use ERC20Basic::totalSupplyCall;
 
 use crate::HostExecutor;
 
 sol! {
-    /// Simplified interface of the IUniswapV3PoolState interface.
-    interface IUniswapV3PoolState {
-        function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
+    /// Simplified interface of the ERC20Basic interface.
+    interface ERC20Basic {
+        function totalSupply() public constant returns (uint);
     }
 }
 
 /// Address of Uniswap V3 pool.
-const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
+const CONTRACT: Address = address!("dAC17F958D2ee523a2206206994597C13D831ec7");
 
 /// Address of the caller.
 const CALLER: Address = address!("0000000000000000000000000000000000000000");
@@ -37,10 +38,13 @@ async fn test_e2e() -> eyre::Result<()> {
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
     // Make the call to the slot0 function.
-    let slot0_call = slot0Call {};
-    let contract_input =
-        ContractInput { contract_address: CONTRACT, caller_address: CALLER, calldata: slot0_call };
-    let _price_x96 = host_executor.execute(contract_input.clone()).await?.sqrtPriceX96;
+    let total_supply_call = totalSupplyCall {};
+    let contract_input = ContractInput {
+        contract_address: CONTRACT,
+        caller_address: CALLER,
+        calldata: total_supply_call,
+    };
+    let _total_supply = host_executor.execute(contract_input.clone()).await?._0;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let state_sketch = host_executor.finalize().await?;
@@ -53,10 +57,10 @@ async fn test_e2e() -> eyre::Result<()> {
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let sqrt_price_x96 =
-        slot0Call::abi_decode_returns(&public_values.contractOutput, true)?.sqrtPriceX96;
+    let total_supply = totalSupplyCall::abi_decode_returns(&public_values.contractOutput, true)?._0;
 
-    assert_eq!(sqrt_price_x96, U160::from(4173033185634422243650260000u128));
+    // println!("total_supply: {}", total_supply);
+    assert_eq!(total_supply, U256::from(54981730120396390u128));
 
     Ok(())
 }
