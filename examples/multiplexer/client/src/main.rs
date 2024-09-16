@@ -70,12 +70,12 @@ pub fn main() {
     };
     let contract_public_values = executor.execute(call).unwrap();
 
-    let output = MultiplexerOutput {
+    let public_vals = MultiplexerOutput {
         contractPublicValues: contract_public_values,
         blockTimestamp: timestamp,
         blockNumber: block_number,
     };
 
     // Commit the abi-encoded output.
-    sp1_zkvm::io::commit_slice(&output.abi_encode());
+    sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
 }
