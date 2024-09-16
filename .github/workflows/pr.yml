@@ -11,7 +11,7 @@ concurrency:
 jobs:
   examples:
     name: Examples
-    runs-on: ["runs-on", "runner=64cpu-linux-x64", "run-id=${{ github.run_id }}"]
+    runs-on: ["runs-on", "runner=128cpu-linux-x64", "run-id=${{ github.run_id }}"]
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
@@ -41,7 +41,7 @@ jobs:
 
   test-e2e:
     name: Test
-    runs-on: ["runs-on", "runner=64cpu-linux-x64", "run-id=${{ github.run_id }}"]
+    runs-on: ["runs-on", "runner=32cpu-linux-x64", "run-id=${{ github.run_id }}"]
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
