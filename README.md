@@ -93,7 +93,8 @@ The resulting proof can then be verified on chain with a Solidity function simil
 ```
 function verifyUniswapCallProof(
     bytes calldata proof,
-    bytes calldata publicValues
+    bytes calldata publicValues,
+    
 ) public {
 		
     // In your application, you'll probably want to validate the committed block hash. 
