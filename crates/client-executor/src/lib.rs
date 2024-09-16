@@ -28,7 +28,7 @@ sol! {
     struct ContractPublicValues {
         address contractAddress;
         address callerAddress;
-        bytes contractCallData;
+        bytes contractCalldata;
         bytes contractOutput;
         bytes32 blockHash;
     }
@@ -38,12 +38,12 @@ impl ContractPublicValues {
     /// Construct a new [`ContractPublicValues`]
     ///
     /// By default, commit the contract input, the output, and the block hash to public values of
-    /// our proof. More can be committed if necessary.
+    /// the proof. More can be committed if necessary.
     pub fn new<C: SolCall>(call: ContractInput<C>, output: Bytes, block_hash: B256) -> Self {
         Self {
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
-            contractCallData: call.calldata.abi_encode().into(),
+            contractCalldata: call.calldata.abi_encode().into(),
             contractOutput: output,
             blockHash: block_hash,
         }

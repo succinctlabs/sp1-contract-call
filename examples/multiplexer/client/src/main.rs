@@ -17,14 +17,6 @@ sol! {
     }
 }
 
-sol! {
-    struct MultiplexerOutput {
-        ContractPublicValues contractPublicValues;
-        uint64 blockTimestamp;
-        uint64 blockNumber;
-    }
-}
-
 /// Address of the multiplexer contract on Ethereum Mainnet.
 const CONTRACT: Address = address!("0A8c00EcFA0816F4f09289ac52Fcb88eA5337526");
 
@@ -70,12 +62,6 @@ pub fn main() {
     };
     let contract_public_values = executor.execute(call).unwrap();
 
-    let public_vals = MultiplexerOutput {
-        contractPublicValues: contract_public_values,
-        blockTimestamp: timestamp,
-        blockNumber: block_number,
-    };
-
     // Commit the abi-encoded output.
-    sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
+    sp1_zkvm::io::commit_slice(&contract_public_values.abi_encode());
 }
