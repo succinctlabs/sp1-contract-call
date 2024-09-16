@@ -54,7 +54,7 @@ jobs:
       
       - name: "Run integration test"
         run: |
-          SP1_DEV=1 RUST_LOG=info cargo test -p sp1-cc-host-executor --release e2e -- --nocapture
+          SP1_DEV=1 RUST_LOG=info cargo test -p sp1-cc-host-executor --release -- --nocapture
 
 
 
