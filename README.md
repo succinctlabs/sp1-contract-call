@@ -1,4 +1,4 @@
-# SP1 Contract Calls TODO alloy sol vs alloy sol types vs alloy sol macro ?
+# SP1 Contract Calls
 
 Generates zero-knowledge proofs of Ethereum smart contract execution. 
 
@@ -8,11 +8,11 @@ Generates zero-knowledge proofs of Ethereum smart contract execution.
 
 ## Overview
 
-This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers with a simple interface to efficiently generate a ZKP of Ethereum smart contract execution offchain, that can be verified cheaply onchain for ~280k gas. This enables developers to verifiably run very expensive Solidity smart contract calls and be able to use this information in their smart contracts. Developers simply specific their Solidity function interface in Rust using the [`alloy_sol_types`](https://docs.rs/alloy-sol-types/latest/alloy_sol_types/) library and can write an SP1 program to generate these proofs. Lets check out an example below:
+This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers with a simple interface to efficiently generate a ZKP of Ethereum smart contract execution offchain, that can be verified cheaply onchain for ~280k gas. This enables developers to verifiably run very expensive Solidity smart contract calls and be able to use this information in their smart contracts. Developers simply specific their Solidity function interface in Rust using the [`alloy_sol_macro`](https://docs.rs/alloy-sol-macro/latest/alloy_sol_macro/) library and can write an SP1 program to generate these proofs. Let's check out an example below:
 
 ### Client
 
-First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
+First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol_macro` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
 
 In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. The code below is taken from `examples/uniswap/client/main.rs` which contains all of the code needed for the SP1 client program.
 
@@ -86,27 +86,42 @@ stdin.write(&input_bytes);
 
 ```
 
-The host executor runs the contract, and keeps track of the state that contract accessed. It then feeds this state into the client. 
-
-The resulting proof can then be verified on chain with a Solidity function similar to the following.
+After running the client program in the host, we generate a proof that can easily be verified on chain. The following sample contract demonstrates how you might verify the outcome of the Uniswap contract call.
 
 ```
-function verifyUniswapCallProof(
-    bytes calldata proof,
-    bytes calldata publicValues,
-    
-) public {
-		
-    // In your application, you'll probably want to validate the committed block hash. 
-    // Depending on your application, you might want to do some other checks on the public values.
-    ContractOutput uniswapPublicValues = abi.decode(publicValues, ContractOutput);
-    require(uniswapPublicValues.blockHash, myBlockHash)
+contract SP1UniswapCC {
+    // The SP1 verification key hash for the Uniswap contract call client program.
+    bytes32 public uniswapVkeyHash;
+    // The block hash we run the query at. 
+    bytes32 public targetBlockHash;
+    // The SP1 verifier contract.
+    ISP1Verifier public verifier;
 
-    // Verify the proof with the associated public values.
-    // Here, verifier is an instance of ISP1Verifier
-    verifier.verifyProof(uniswapProgramVkeyHash, publicValues, proof);
+    constructor(
+        bytes32 _uniswapVkeyHash,
+        bytes32 _targetBlockHash,
+        address _verifier
+    ) {
+        uniswapVkeyHash = _uniswapVkeyHash;
+        targetBlockHash = _initialBlockHash;
+        verifier = ISP1Verifier(_verifier);
+    }
 
-    ...
+    function verifyUniswapCallProof(
+        bytes calldata proof,
+        bytes calldata publicValues
+    ) public {
+        ContractPublicValues contractPublicValues = abi.decode(publicValues, ContractPublicValues);
+
+        // Require that the block hash from the public values matches the target block hash. 
+        require(contractPublicValues.blockHash == targetBlockHash);
+
+        // Verify the proof with the associated public values.
+        verifier.verifyProof(uniswapVkeyHash, publicValues, proof);
+
+        // Now, you can do something with the contractOutput -- an abi encoded exchange rate. 
+
+    }
 }
 ```
 ## Running examples
