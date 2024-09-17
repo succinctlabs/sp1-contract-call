@@ -105,11 +105,11 @@ async fn main() -> eyre::Result<()> {
         calldata: SimpleStaking::verifySignedCall { messageHashes: messages, signatures },
     };
 
+    // The host executes the call to `verifySigned`.
     let total_stake = host_executor.execute(verify_signed_call).await?._0;
-
     println!("total_stake: {}", total_stake);
 
-    // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
+    // Now that we've executed the call, get the `EVMStateSketch` from the host executor.
     let input = host_executor.finalize().await?;
 
     // Feed the sketch into the client.

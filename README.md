@@ -21,6 +21,7 @@ where `[example]` is one of the following
     * Due to the size of this program, it's recommended to use the [SP1 Prover network](https://docs.succinct.xyz/generating-proofs/prover-network.html) to generate proofs for this example.
 * `ecdsa`
     * Calls a contract that verifies several ECDSA signatures on chain, and sums the stake for the addresses corresponding to valid signatures.
+    * This contract has been pre-populated with stake for the addresses involved.
 
 
 ## Acknowledgments

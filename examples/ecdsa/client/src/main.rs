@@ -62,7 +62,6 @@ pub fn main() {
         let (id, r_and_s) = signature.serialize_compact();
         let mut signature_bytes = r_and_s.to_vec();
         signature_bytes.push((id.to_i32() as u8) + 27);
-
         let signature_bytes = Bytes::from(signature_bytes);
 
         messages.push(message_hash);
