@@ -37,8 +37,8 @@ pub fn main() {
         caller_address: CALLER,
         calldata: slot0_call.clone(),
     };
-    let public_values = executor.execute(input).unwrap();
+    let public_vals = executor.execute(input).unwrap();
 
     // Commit the abi-encoded output.
-    sp1_zkvm::io::commit_slice(&public_values.abi_encode());
+    sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
 }
