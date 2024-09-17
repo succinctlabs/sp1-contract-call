@@ -7,7 +7,7 @@ use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
 use reth_primitives::public_key_to_address;
 use secp256k1::{generate_keypair, Message, SECP256K1};
-use sp1_cc_client_executor::{ContractInput, ContractOutput};
+use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
 use url::Url;
@@ -130,7 +130,7 @@ async fn main() -> eyre::Result<()> {
     println!("generated proof");
 
     // Read the public values, and deserialize them.
-    let public_vals = ContractOutput::abi_decode(proof.public_values.as_slice(), true)?;
+    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice(), true)?;
 
     // Check that the provided block hash matches the one in the proof.
     assert_eq!(public_vals.blockHash, block_hash);

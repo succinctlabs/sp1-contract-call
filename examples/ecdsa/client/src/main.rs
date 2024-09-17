@@ -38,7 +38,7 @@ pub fn main() {
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
     // The testing rng we use to generate messages and secret keys.
-    // 
+    //
     // Note: this is deterministic based on the `SEED`, so the host and the client have the same
     // behavior.
     let mut test_rng = ChaCha20Rng::seed_from_u64(SEED);
