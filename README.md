@@ -8,15 +8,15 @@ Generates zero-knowledge proofs of Ethereum smart contract execution.
 
 ## Overview
 
-This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers with a simple interface to efficiently generate a ZKP of Ethereum smart contract execution offchain, that can be verified cheaply onchain for ~280k gas. This enables developers to verifiably run very expensive Solidity smart contract calls and be able to use this information in their smart contracts. Developers simply specific their Solidity function interface in Rust using the [`alloy_sol_macro`](https://docs.rs/alloy-sol-macro/latest/alloy_sol_macro/) library and can write an SP1 program to generate these proofs. Let's check out an example below:
+This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers with a simple interface to efficiently generate a ZKP of Ethereum smart contract execution offchain, that can be verified cheaply onchain for ~280k gas. This enables developers to verifiably run very expensive Solidity smart contract calls and be able to use this information in their onchain applications. Developers simply specific their Solidity function interface in Rust using the [`alloy_sol_macro`](https://docs.rs/alloy-sol-macro/latest/alloy_sol_macro/) library and can write an SP1 program to generate these proofs. Let's check out an example below:
 
 ### Client
 
 First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol_macro` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
 
-In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` -- this is to make it easy later to use those public values on chain. The code below is taken from `examples/uniswap/client/main.rs` which contains all of the code needed for the SP1 client program. 
+In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` -- this is to make it easy later to use those public values on chain. The code below is taken from [./examples/uniswap/client/main.rs] which contains all of the code needed for the SP1 client program. 
 
-```
+```rs
 sol! {
     /// Simplified interface of the IUniswapV3PoolState interface.
     interface IUniswapV3PoolState {
@@ -32,6 +32,13 @@ const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
 ...
+
+let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
+let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
+
+// Initialize the client executor with the state sketch.
+// This step also validates all of the storage against the provided state root.
+let executor = ClientExecutor::new(state_sketch).unwrap();
 
 // Execute the slot0 call using the client executor.
 let slot0_call = IUniswapV3PoolState::slot0Call {};
@@ -49,9 +56,9 @@ Under the hood, the SP1 client program uses the executor from the `sp1_cc` libra
 
 The "host" program is code that is run outside of the zkVM & is responsible for fetching all of the witness data that is needed for the client program. This witness data includes storage slots, account information & merkle proofs that the client program verifies.
 
-You can see in the host example code below that we run the exact same contract call with the host executor (instead of the client executor), and the host executor will fetch all relevant information as its executing. When we call finalize() on the host executor, it prepares all of the data it has gathered during contract call execution and then prepares it for input into the client program.
+You can see in the host example code below that we run the exact same contract call with the host executor (instead of the client executor), and the host executor will fetch all relevant information as its executing. When we call ``finalize()` on the host executor, it prepares all of the data it has gathered during contract call execution and then prepares it for input into the client program.
 
-```
+```rs
 ...
 
 // Prepare the host executor.
@@ -89,41 +96,40 @@ stdin.write(&input_bytes);
 
 ```
 
-After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded. This allows us to use the output of the contract call on chain. The following sample contract demonstrates how you might verify the outcome of the Uniswap contract call.
+After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain.  
 
-```
-contract SP1UniswapCC {
-    // The SP1 verification key hash for the Uniswap contract call client program.
-    bytes32 public uniswapVkeyHash;
-    // The block hash we run the query at. 
-    bytes32 public targetBlockHash;
-    // The SP1 verifier contract.
-    ISP1Verifier public verifier;
+```sol
+/// @title SP1 UniswapCall.
+/// @notice This contract implements a simple example of verifying the proof of call to a smart 
+///         contract.
+contract UniswapCall {
+    /// @notice The address of the SP1 verifier contract.
+    /// @dev This can either be a specific SP1Verifier for a specific version, or the
+    ///      SP1VerifierGateway which can be used to verify proofs for any version of SP1.
+    ///      For the list of supported verifiers on each chain, see:
+    ///      https://github.com/succinctlabs/sp1-contracts/tree/main/contracts/deployments
+    address public verifier;
 
-    constructor(
-        bytes32 _uniswapVkeyHash,
-        bytes32 _targetBlockHash,
-        address _verifier
-    ) {
-        uniswapVkeyHash = _uniswapVkeyHash;
-        targetBlockHash = _initialBlockHash;
-        verifier = ISP1Verifier(_verifier);
+    /// @notice The verification key for the uniswapCall program.
+    bytes32 public uniswapCallProgramVKey;
+
+    constructor(address _verifier, bytes32 _uniswapCallProgramVKey) {
+        verifier = _verifier;
+        uniswapCallProgramVKey = _uniswapCallProgramVKey;
     }
 
-    function verifyUniswapCallProof(
-        bytes calldata proof,
-        bytes calldata publicValues
-    ) public {
-        ContractPublicValues contractPublicValues = abi.decode(publicValues, ContractPublicValues);
-
-        // Require that the block hash from the public values matches the target block hash. 
-        require(contractPublicValues.blockHash == targetBlockHash);
-
-        // Verify the proof with the associated public values.
-        verifier.verifyProof(uniswapVkeyHash, publicValues, proof);
-
-        // Now, you can do something with the contractOutput -- an abi encoded exchange rate. 
-
+    /// @notice The entrypoint for verifying the proof of a uniswapCall number.
+    /// @param _proofBytes The encoded proof.
+    /// @param _publicValues The encoded public values.
+    function verifyUniswapCallProof(bytes calldata _publicValues, bytes calldata _proofBytes)
+        public
+        view
+        returns (uint160)
+    {
+        ISP1Verifier(verifier).verifyProof(uniswapCallProgramVKey, _publicValues, _proofBytes);
+        ContractPublicValues memory publicValues = abi.decode(_publicValues, (ContractPublicValues));
+        uint160 sqrtPriceX96 = abi.decode(publicValues.contractOutput, (uint160));
+        return sqrtPriceX96;
     }
 }
 ```

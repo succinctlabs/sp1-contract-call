@@ -1,11 +1,15 @@
+use std::path::PathBuf;
+
+use alloy::hex;
 use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
+use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
-use sp1_sdk::{utils, ProverClient, SP1Stdin};
+use sp1_sdk::{utils, HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
 use url::Url;
 use IUniswapV3PoolState::slot0Call;
 
@@ -24,6 +28,34 @@ const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
+
+/// A fixture that can be used to test the verification of SP1 zkVM proofs inside Solidity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SP1CCProofFixture {
+    vkey: String,
+    public_values: String,
+    proof: String,
+}
+
+/// Generate a `SP1CCProofFixture`, and save it as a json file.
+///
+/// This is useful for verifying the proof of contract call execution on chain.
+fn save_fixture(vkey: String, proof: &SP1ProofWithPublicValues) {
+    let fixture = SP1CCProofFixture {
+        vkey,
+        public_values: format!("0x{}", hex::encode(proof.public_values.as_slice())),
+        proof: format!("0x{}", hex::encode(proof.bytes())),
+    };
+
+    let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../contracts/src/fixtures");
+    std::fs::create_dir_all(&fixture_path).expect("failed to create fixture path");
+    std::fs::write(
+        fixture_path.join("plonk-fixture.json".to_lowercase()),
+        serde_json::to_string_pretty(&fixture).unwrap(),
+    )
+    .expect("failed to write fixture");
+}
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
@@ -71,7 +103,7 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, stdin).run().unwrap();
+    let proof = client.prove(&pk, stdin).plonk().run().unwrap();
     println!("generated proof");
 
     // Read the public values, and deserialize them.
@@ -90,6 +122,10 @@ async fn main() -> eyre::Result<()> {
     let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);
+
+    // Save the proof, public values, and vkey to a json file.
+    save_fixture(vk.bytes32(), &proof);
+    println!("saved proof to plonk-fixture.json");
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");
