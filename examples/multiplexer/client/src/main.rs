@@ -5,21 +5,15 @@ use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use bincode;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput, ContractOutput};
+use sp1_cc_client_executor::{
+    io::EVMStateSketch, ClientExecutor, ContractInput, ContractPublicValues,
+};
 
 sol! {
     /// Interface to the multiplexer contract. It gets the prices of many tokens, including
     /// apxEth, ankrEth, pufEth, and more.
     interface IOracleHelper {
         function getRates(address[] memory collaterals) external view returns (uint256[] memory);
-    }
-}
-
-sol! {
-    struct MultiplexerOutput {
-        ContractOutput rawContractOutput;
-        uint64 blockTimestamp;
-        uint64 blockNumber;
     }
 }
 
@@ -51,10 +45,6 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Compute the sketch's timestamp and block height.
-    let timestamp = state_sketch.header.timestamp;
-    let block_number = state_sketch.header.number;
-
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::new(state_sketch).unwrap();
@@ -66,14 +56,8 @@ pub fn main() {
         caller_address: CALLER,
         calldata: calldata.clone(),
     };
-    let contract_output = executor.execute(call).unwrap();
-
-    let output = MultiplexerOutput {
-        rawContractOutput: contract_output,
-        blockTimestamp: timestamp,
-        blockNumber: block_number,
-    };
+    let contract_public_values = executor.execute(call).unwrap();
 
     // Commit the abi-encoded output.
-    sp1_zkvm::io::commit_slice(&output.abi_encode());
+    sp1_zkvm::io::commit_slice(&contract_public_values.abi_encode());
 }

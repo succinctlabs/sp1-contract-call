@@ -3,7 +3,7 @@ use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
-use sp1_cc_client_executor::{ContractInput, ContractOutput};
+use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, ProverClient, SP1Stdin};
 use url::Url;
@@ -75,7 +75,7 @@ async fn main() -> eyre::Result<()> {
     println!("generated proof");
 
     // Read the public values, and deserialize them.
-    let public_vals = ContractOutput::abi_decode(proof.public_values.as_slice(), true)?;
+    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice(), true)?;
 
     // Check that the provided block hash matches the one in the proof.
     assert_eq!(public_vals.blockHash, block_hash);

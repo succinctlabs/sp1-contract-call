@@ -1,13 +1,11 @@
-use std::{fs::File, io::Write};
-
 use alloy_primitives::{address, Address};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
-use sp1_cc_client_executor::{ContractInput, ContractOutput};
+use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
-use sp1_sdk::{utils, HashableKey, ProverClient, SP1Stdin};
+use sp1_sdk::{utils, ProverClient, SP1Stdin};
 use url::Url;
 use IOracleHelper::getRatesCall;
 
@@ -16,14 +14,6 @@ sol! {
     /// apxEth, ankrEth, and pufEth.
     interface IOracleHelper {
         function getRates(address[] memory collaterals) external view returns (uint256[] memory);
-    }
-}
-
-sol! {
-    struct MultiplexerOutput {
-        ContractOutput rawContractOutput;
-        uint64 blockTimestamp;
-        uint64 blockNumber;
     }
 }
 
@@ -97,34 +87,18 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    println!("vkey: {:?}", vk.bytes32());
-    let proof = client.prove(&pk, stdin).plonk().run().unwrap();
+    let proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
-    // proof.save("proof-with-pis.bin").expect("saving proof failed");
-
-    // Save the proof to plonk-proof.bin
-    let mut proof_file = File::create("plonk-proof.bin")?;
-    proof_file.write_all(&proof.bytes())?;
-
-    // Save the public values to public-values.bin
-    let mut public_values_file = File::create("public-values.bin")?;
-    public_values_file.write_all(proof.public_values.as_slice())?;
-
     // Read the public values, and deserialize them.
-    let public_vals = MultiplexerOutput::abi_decode(proof.public_values.as_slice(), true)?;
-    let contract_output = public_vals.rawContractOutput;
+    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice(), true)?;
 
     // Read the block hash, and verify that it's the same as the one inputted.
-    assert_eq!(contract_output.blockHash, block_hash);
+    assert_eq!(public_vals.blockHash, block_hash);
 
     // Print the fetched rates.
-    let rates = getRatesCall::abi_decode_returns(&contract_output.contractOutput, true)?._0;
+    let rates = getRatesCall::abi_decode_returns(&public_vals.contractOutput, true)?._0;
     println!("Got these rates: \n{:?}", rates);
-
-    // Print the timestamp and block number.
-    println!("Block timestamp: {}", public_vals.blockTimestamp);
-    println!("Block number: {}", public_vals.blockNumber);
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");

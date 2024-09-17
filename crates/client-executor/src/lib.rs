@@ -22,28 +22,28 @@ pub struct ContractInput<C: SolCall> {
 }
 
 sol! {
-    /// Output of a contract call.
+    /// Public values of a contract call.
     ///
     /// These outputs can easily be abi-encoded, for use on-chain.
-    struct ContractOutput {
+    struct ContractPublicValues {
         address contractAddress;
         address callerAddress;
-        bytes contractCallData;
+        bytes contractCalldata;
         bytes contractOutput;
         bytes32 blockHash;
     }
 }
 
-impl ContractOutput {
-    /// Construct a new [`ContractOutput`]
+impl ContractPublicValues {
+    /// Construct a new [`ContractPublicValues`]
     ///
-    /// By default, commit the contract input, the output, and the block hash to public input of
-    /// our proof. More can be committed if necessary.
+    /// By default, commit the contract input, the output, and the block hash to public values of
+    /// the proof. More can be committed if necessary.
     pub fn new<C: SolCall>(call: ContractInput<C>, output: Bytes, block_hash: B256) -> Self {
         Self {
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
-            contractCallData: call.calldata.abi_encode().into(),
+            contractCalldata: call.calldata.abi_encode().into(),
             contractOutput: output,
             blockHash: block_hash,
         }
@@ -69,12 +69,15 @@ impl ClientExecutor {
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
-    pub fn execute<C: SolCall>(&self, call: ContractInput<C>) -> eyre::Result<ContractOutput> {
+    pub fn execute<C: SolCall>(
+        &self,
+        call: ContractInput<C>,
+    ) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
         let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
         let tx_output = evm.transact()?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
-        Ok(ContractOutput::new::<C>(call, tx_output_bytes.clone(), self.header.hash_slow()))
+        Ok(ContractPublicValues::new::<C>(call, tx_output_bytes.clone(), self.header.hash_slow()))
     }
 }
 
