@@ -3,9 +3,11 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
-use alloy_sol_types::SolCall;
+use alloy_sol_types::{SolCall, SolValue};
 use bincode;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
+use sp1_cc_client_executor::{
+    io::EVMStateSketch, ClientExecutor, ContractInput, ContractPublicValues,
+};
 
 sol! {
     /// Interface to the multiplexer contract. It gets the prices of many tokens, including
@@ -43,22 +45,19 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Commit the sketch's state_root.
-    let state_root = state_sketch.header.state_root;
-    sp1_zkvm::io::commit(&state_root);
-
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::new(state_sketch).unwrap();
 
     // Execute the getRates call using the client executor.
+    let calldata = IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() };
     let call = ContractInput {
         contract_address: CONTRACT,
         caller_address: CALLER,
-        calldata: IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() },
+        calldata: calldata.clone(),
     };
-    let rates = executor.execute(call).unwrap()._0;
+    let contract_public_values = executor.execute(call).unwrap();
 
-    // Commit the result.
-    sp1_zkvm::io::commit(&rates);
+    // Commit the abi-encoded output.
+    sp1_zkvm::io::commit_slice(&contract_public_values.abi_encode());
 }

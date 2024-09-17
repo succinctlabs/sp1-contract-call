@@ -3,9 +3,9 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
+use alloy_sol_types::{SolCall, SolValue};
 use bincode;
 use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
-
 sol! {
     /// Simplified interface of the IUniswapV3PoolState interface.
     interface IUniswapV3PoolState {
@@ -26,25 +26,19 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Commit the sketch's state root.
-    let state_root = state_sketch.header.state_root;
-    sp1_zkvm::io::commit(&state_root);
-
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::new(state_sketch).unwrap();
 
     // Execute the slot0 call using the client executor.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
-    let price_x96 = executor
-        .execute(ContractInput {
-            contract_address: CONTRACT,
-            caller_address: CALLER,
-            calldata: slot0_call,
-        })
-        .unwrap()
-        .sqrtPriceX96;
+    let input = ContractInput {
+        contract_address: CONTRACT,
+        caller_address: CALLER,
+        calldata: slot0_call.clone(),
+    };
+    let public_vals = executor.execute(input).unwrap();
 
-    // Commit the result.
-    sp1_zkvm::io::commit(&price_x96);
+    // Commit the abi-encoded output.
+    sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
 }
