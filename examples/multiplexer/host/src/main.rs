@@ -90,8 +90,6 @@ async fn main() -> eyre::Result<()> {
     let proof = client.prove(&pk, stdin).run().unwrap();
     println!("generated proof");
 
-    proof.save("proof-with-pis.bin").expect("saving proof failed");
-
     // Read the public values, and deserialize them.
     let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice(), true)?;
 
