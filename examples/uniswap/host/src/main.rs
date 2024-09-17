@@ -35,8 +35,9 @@ async fn main() -> eyre::Result<()> {
 
     // Prepare the host executor.
     //
-    // Use `RPC_URL` to get all of the necessary state for the smart contract call.
-    let rpc_url = std::env::var("RPC_URL").unwrap_or_else(|_| panic!("Missing RPC_URL"));
+    // Use `ETH_RPC_URL` to get all of the necessary state for the smart contract call.
+    let rpc_url =
+        std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
