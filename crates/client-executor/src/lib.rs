@@ -26,11 +26,11 @@ sol! {
     ///
     /// These outputs can easily be abi-encoded, for use on-chain.
     struct ContractPublicValues {
-        address contractAddress;
+        bytes32 blockHash;
         address callerAddress;
+        address contractAddress;
         bytes contractCalldata;
         bytes contractOutput;
-        bytes32 blockHash;
     }
 }
 
