@@ -27,7 +27,7 @@ contract SimpleStaking {
     ///
     ///         Calling this function onchain could be expensive with a large
     ///         number of signatures -- in that case, it would be better to prove its execution
-    ///         with SP1
+    ///         with SP1.
     function verifySigned(
         bytes32[] memory messageHashes,
         bytes[] memory signatures
