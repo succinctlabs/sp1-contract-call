@@ -33,7 +33,7 @@ jobs:
 
       - name: Run uniswap script
         run: |
-          SP1_DEV=1 RUST_LOG=info cargo run --release --bin uniswap --ignore-rust-version   
+          SP1_DEV=1 RUST_LOG=info RUST_BACKTRACE=full  cargo run --release --bin uniswap --ignore-rust-version   
 
 
   test-e2e:
