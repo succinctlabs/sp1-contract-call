@@ -30,15 +30,9 @@ jobs:
         run: |
             sp1up
 
-      - name: "Set up test fixture"
+      - name: "Set up RPC env"
         run: |
-          git clone https://github.com/succinctlabs/rsp-tests --branch 2024-09-11 --depth 1 ../rsp-tests
-          cd ../rsp-tests/
-          docker compose up -d
-
-      - name: "Use local test fixture"
-        run: |
-          echo "ETH_RPC_URL=http://localhost:9545/main/evm/1" >> $GITHUB_ENV
+          echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
 
       - name: Run uniswap script
         run: |
@@ -57,16 +51,10 @@ jobs:
       - name: "Checkout sources"
         uses: actions/checkout@v4
 
-      - name: "Set up test fixture"
+      - name: "Set up RPC env"
         run: |
-          git clone https://github.com/succinctlabs/rsp-tests --depth 1 ../rsp-tests
-          cd ../rsp-tests/
-          docker compose up -d
+          echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
 
-      - name: "Use local test fixture"
-        run: |
-          echo "ETH_RPC_URL=http://localhost:9545/main/evm/1" >> $GITHUB_ENV
-      
       - name: "Run integration test"
         run: |
           SP1_DEV=1 RUST_LOG=info cargo test -p sp1-cc-host-executor --release -- --nocapture
