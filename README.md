@@ -14,7 +14,7 @@ This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers w
 
 First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol_macro` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
 
-In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` -- this is to make it easy later to use those public values on chain. The code below is taken from [./examples/uniswap/client/main.rs] which contains all of the code needed for the SP1 client program. 
+In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` -- this is to make it easy later to use those public values on chain. The code below is taken from [`examples/uniswap/client/src/main.rs`](./examples/uniswap/client/src/main.rs) which contains all of the code needed for the SP1 client program. 
 
 ```rs
 sol! {
@@ -56,7 +56,7 @@ Under the hood, the SP1 client program uses the executor from the `sp1-cc-client
 
 The "host" program is code that is run outside of the zkVM & is responsible for fetching all of the witness data that is needed for the client program. This witness data includes storage slots, account information & merkle proofs that the client program verifies.
 
-You can see in the host example code below that we run the exact same contract call with the host executor (instead of the client executor), and the host executor will fetch all relevant information as its executing. When we call ``finalize()` on the host executor, it prepares all of the data it has gathered during contract call execution and then prepares it for input into the client program.
+You can see in the host example code below that we run the exact same contract call with the host executor (instead of the client executor), and the host executor will fetch all relevant information as its executing. When we call `finalize()` on the host executor, it prepares all of the data it has gathered during contract call execution and then prepares it for input into the client program.
 
 ```rs
 ...
@@ -96,7 +96,7 @@ stdin.write(&input_bytes);
 
 ```
 
-After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Check out [examples/uniswap/contracts](./examples/uniswap/contracts/) for more details. 
+After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Check out [`examples/uniswap/contracts`](./examples/uniswap/contracts/) for more details. 
 
 ```sol
 /// @title SP1 UniswapCall.
@@ -153,6 +153,7 @@ where `[example]` is one of the following
     * Fetches the price of the UNI / WETH pair on Uniswap V3.
     * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain. 
     * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory. 
+    * On chain verification requires generating a plonk or groth16 proof, which requires significant computational resources. We recommend using the [SP1 Prover network](https://docs.succinct.xyz/generating-proofs/prover-network.html).
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
     * The source code of this contract is found [here](./examples/multiplexer/ZkOracleHelper.sol).
