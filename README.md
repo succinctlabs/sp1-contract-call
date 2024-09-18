@@ -96,7 +96,7 @@ stdin.write(&input_bytes);
 
 ```
 
-After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Check out [`examples/uniswap/contracts`](./examples/uniswap/contracts/) for more details. 
+After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Here is part of a sample contract that verifies this proof; check out [`examples/uniswap/contracts`](./examples/uniswap/contracts/) for more details. 
 
 ```sol
 /// @title SP1 UniswapCall.
