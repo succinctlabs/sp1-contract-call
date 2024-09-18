@@ -45,10 +45,6 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // Compute the sketch's timestamp and block height.
-    let timestamp = state_sketch.header.timestamp;
-    let block_number = state_sketch.header.number;
-
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::new(state_sketch).unwrap();

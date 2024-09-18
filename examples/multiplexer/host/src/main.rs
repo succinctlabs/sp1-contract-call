@@ -17,14 +17,6 @@ sol! {
     }
 }
 
-sol! {
-    struct MultiplexerOutput {
-        ContractPublicValues contractPublicValues;
-        uint64 blockTimestamp;
-        uint64 blockNumber;
-    }
-}
-
 /// Address of the multiplexer contract on Ethereum Mainnet.
 const CONTRACT: Address = address!("0A8c00EcFA0816F4f09289ac52Fcb88eA5337526");
 
