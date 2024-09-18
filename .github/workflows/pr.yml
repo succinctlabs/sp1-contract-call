@@ -42,11 +42,16 @@ jobs:
           echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
 
       - name: Run uniswap script
-        run: |
-          SP1_DEV=1 RUST_LOG=info RUST_BACKTRACE=full  cargo run --release --bin uniswap --ignore-rust-version
+        uses: actions-rs/cargo@v1   
+        with:
+          command: run
+          args:
+            --release --bin uniswap --ignore-rust-version
         env:
-          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
-          RUST_BACKTRACE: 1   
+          RUSTFLAGS: -Copt-level=3 -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
+          RUST_BACKTRACE: full
+          SP1_DEV: 1
+          RUST_LOG: info
         
       # - name: "Run forge test"
       #   run: |
