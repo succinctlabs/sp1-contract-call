@@ -18,6 +18,9 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Install sudo package
+        run: apt update && apt install sudo
+
       - name: "Install sp1up"
         run: |
             curl -L https://sp1.succinct.xyz | bash
