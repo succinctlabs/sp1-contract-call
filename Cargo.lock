@@ -7380,6 +7380,8 @@ dependencies = [
  "eyre",
  "revm",
  "rsp-rpc-db",
+ "serde",
+ "serde_json",
  "sp1-cc-client-executor",
  "sp1-cc-host-executor",
  "sp1-helper",
