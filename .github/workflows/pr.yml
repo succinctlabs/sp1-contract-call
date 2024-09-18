@@ -34,6 +34,9 @@ jobs:
       - name: Run uniswap script
         run: |
           SP1_DEV=1 RUST_LOG=info cargo run --release --bin uniswap --ignore-rust-version   
+        env:
+          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
+          RUST_BACKTRACE: 1
 
       - name: Run multiplexer script
         run: |
