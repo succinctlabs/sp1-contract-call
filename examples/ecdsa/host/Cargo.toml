@@ -36,10 +36,10 @@ rand_core = "0.6.4"
 rand_chacha = "0.3.1"
 
 # sp1
-sp1-sdk = "1.2.0-rc2"
+sp1-sdk = "2.0.0"
 
 [build-dependencies]
-sp1-helper = "1.2.0-rc2"
+sp1-helper = "2.0.0"
 
 [features]
 default = []
