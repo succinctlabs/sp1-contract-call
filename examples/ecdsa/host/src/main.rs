@@ -102,7 +102,10 @@ async fn main() -> eyre::Result<()> {
     let verify_signed_call = ContractInput {
         contract_address: CONTRACT,
         caller_address: CALLER,
-        calldata: SimpleStaking::verifySignedCall { messageHashes: messages, signatures },
+        calldata: SimpleStaking::verifySignedCall {
+            messageHashes: messages.clone(),
+            signatures: signatures.clone(),
+        },
     };
 
     // The host executes the call to `verifySigned`.
@@ -116,6 +119,10 @@ async fn main() -> eyre::Result<()> {
     let input_bytes = bincode::serialize(&input)?;
     let mut stdin = SP1Stdin::new();
     stdin.write(&input_bytes);
+
+    // Additionally write the messages and signatures.
+    stdin.write(&messages);
+    stdin.write(&signatures);
 
     // Create a `ProverClient`.
     let client = ProverClient::new();

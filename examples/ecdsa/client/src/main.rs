@@ -37,36 +37,9 @@ pub fn main() {
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
-    // The testing rng we use to generate messages and secret keys.
-    //
-    // Note: this is deterministic based on the `SEED`, so the host and the client have the same
-    // behavior.
-    let mut test_rng = ChaCha20Rng::seed_from_u64(SEED);
-
-    // Commit the sketch's state root.
-    let state_root = state_sketch.header.state_root;
-    sp1_zkvm::io::commit(&state_root);
-
-    // Generate messages and signatures, with random (but deterministic) signing keys.
-    let mut signatures = Vec::with_capacity(NUM_STAKERS);
-    let mut messages = Vec::with_capacity(NUM_STAKERS);
-
-    for _ in 0..NUM_STAKERS {
-        // Generate a random signing key and message, and sign the message with the key.
-        let (sk, _pk) = generate_keypair(&mut test_rng);
-        let message = B256::random_with(&mut test_rng);
-        let message_hash = alloy_primitives::keccak256(message);
-        let signature = SECP256K1.sign_ecdsa_recoverable(&Message::from_digest(*message_hash), &sk);
-
-        // Manually serialize the signature to match the EVM-compatible format
-        let (id, r_and_s) = signature.serialize_compact();
-        let mut signature_bytes = r_and_s.to_vec();
-        signature_bytes.push((id.to_i32() as u8) + 27);
-        let signature_bytes = Bytes::from(signature_bytes);
-
-        messages.push(message_hash);
-        signatures.push(signature_bytes);
-    }
+    // Read messages and signatures from stdin.
+    let mut messages = sp1_zkvm::io::read::<Vec<B256>>();
+    let mut signatures = sp1_zkvm::io::read::<Vec<Bytes>>();
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.

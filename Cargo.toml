@@ -75,6 +75,7 @@ reth-ethereum-consensus = { git = "https://github.com/sp1-patches/reth", tag = "
 
 # revm
 revm = { version = "14.0.0", features = [
+    "optimism",
     "std",
     "serde",
     "kzg-rs",

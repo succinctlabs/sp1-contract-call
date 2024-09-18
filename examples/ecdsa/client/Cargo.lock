@@ -1000,21 +1000,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ecdsa"
-version = "0.16.9"
-source = "git+https://github.com/sp1-patches/signatures?branch=patch-ecdsa-v0.16.9#de1b108e8140dcb86ecf56f1215ac4b7fab6fcd8"
-dependencies = [
- "anyhow",
- "cfg-if",
- "digest 0.10.7",
- "elliptic-curve",
- "hex-literal",
- "signature",
- "sp1-lib",
- "spki",
-]
-
-[[package]]
 name = "ecdsa-client"
 version = "0.0.0"
 dependencies = [
@@ -1022,10 +1007,7 @@ dependencies = [
  "alloy-sol-macro",
  "alloy-sol-types",
  "bincode",
- "rand_chacha",
- "rand_core",
  "revm",
- "secp256k1",
  "sp1-cc-client-executor",
  "sp1-zkvm",
 ]
@@ -1506,11 +1488,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "956ff9b67e26e1a6a866cb758f12c6f8746208489e3e4a4b5580802f2f0a587b"
 dependencies = [
  "cfg-if",
- "ecdsa 0.16.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ecdsa",
  "elliptic-curve",
  "once_cell",
  "sha2",
- "signature",
 ]
 
 [[package]]
@@ -1811,7 +1792,7 @@ version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9863ad85fa8f4460f9c48cb909d38a0d689dba1f6f6988a5e3e0d31071bcd4b"
 dependencies = [
- "ecdsa 0.16.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ecdsa",
  "elliptic-curve",
  "primeorder",
  "sha2",
@@ -2855,21 +2836,19 @@ dependencies = [
 
 [[package]]
 name = "secp256k1"
-version = "0.29.0"
-source = "git+https://github.com/sp1-patches/rust-secp256k1?branch=patch-secp256k1-v0.29.0#1da89f39f21f1e4ed4f9f869169a59bbe81edc71"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9465315bc9d4566e1724f0fffcbcc446268cb522e60f9a27bcded6b19c108113"
 dependencies = [
- "cfg-if",
- "ecdsa 0.16.9 (git+https://github.com/sp1-patches/signatures?branch=patch-ecdsa-v0.16.9)",
- "elliptic-curve",
- "k256",
  "rand",
  "secp256k1-sys",
 ]
 
 [[package]]
 name = "secp256k1-sys"
-version = "0.10.0"
-source = "git+https://github.com/sp1-patches/rust-secp256k1?branch=patch-secp256k1-v0.29.0#1da89f39f21f1e4ed4f9f869169a59bbe81edc71"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4387882333d3aa8cb20530a17c69a3752e97837832f34f6dccc760e715001d9"
 dependencies = [
  "cc",
 ]
@@ -3079,10 +3058,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-zkvm"
-version = "1.2.0"
+name = "sp1-lib"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a777787c41fffb1ce1e74229f480223ce8d0ae66763aaac689cec737a19663e"
+checksum = "413956de14568d7fb462213b9505ad4607d75c875301b9eca567cfb2e58eaac1"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "cfg-if",
+ "hex",
+ "serde",
+ "snowbridge-amcl",
+]
+
+[[package]]
+name = "sp1-zkvm"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66c525f67cfd3f65950f01c713a72c41a5d44d289155644c8ace4ec264098039"
 dependencies = [
  "bincode",
  "cfg-if",
@@ -3093,7 +3086,7 @@ dependencies = [
  "rand",
  "serde",
  "sha2",
- "sp1-lib",
+ "sp1-lib 2.0.0",
 ]
 
 [[package]]
@@ -3107,7 +3100,7 @@ dependencies = [
  "group",
  "pairing",
  "rand_core",
- "sp1-lib",
+ "sp1-lib 1.2.0",
  "subtle",
 ]
 
