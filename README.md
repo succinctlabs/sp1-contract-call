@@ -52,7 +52,7 @@ sp1_zkvm::io::commit_slice(&public_values.abi_encode());
 
 ### Host
 
-Under the hood, the SP1 client program uses the executor from the `sp1_cc` library, which requires storage slots and merkle proof information to correctly and verifiably run the smart contract execution.
+Under the hood, the SP1 client program uses the executor from the `sp1-cc-client-executor` library, which requires storage slots and merkle proof information to correctly and verifiably run the smart contract execution.
 
 The "host" program is code that is run outside of the zkVM & is responsible for fetching all of the witness data that is needed for the client program. This witness data includes storage slots, account information & merkle proofs that the client program verifies.
 
@@ -96,7 +96,7 @@ stdin.write(&input_bytes);
 
 ```
 
-After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain.  
+After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Check out [examples/uniswap/contracts](./examples/uniswap/contracts/) for more details. 
 
 ```sol
 /// @title SP1 UniswapCall.
@@ -142,7 +142,7 @@ export ETH_RPC_URL=[YOUR ETH RPC URL HERE]
 export ETH_SEPOLIA_RPC_URL=[YOUR ETH SEPOLIA RPC URL HERE]
 ``` 
 
-Alternatively, you can use a `.env` file (see [example](./example.env)).
+Alternatively, you can use a `.env` file (see [example](./.env.example)).
 
 Then, from the root directory of the repository, run 
 
@@ -151,9 +151,11 @@ Then, from the root directory of the repository, run
 where `[example]` is one of the following
 * `uniswap`
     * Fetches the price of the UNI / WETH pair on Uniswap V3.
+    * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain. 
+    * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory. 
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
-    * The source code of this contract is found in `examples/multiplexer/ZkOracleHelper.sol`.
+    * The source code of this contract is found [here](./examples/multiplexer/ZkOracleHelper.sol).
     * Due to the size of this program, it's recommended to use the [SP1 Prover network](https://docs.succinct.xyz/generating-proofs/prover-network.html) to generate proofs for this example.
 
 
