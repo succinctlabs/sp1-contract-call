@@ -60,9 +60,15 @@ jobs:
       - name: "Checkout sources"
         uses: actions/checkout@v4
 
-      - name: "Set RPC url"
+      - name: "Set up test fixture"
         run: |
-          echo "ETH_RPC_URL=https://ethereum-rpc.publicnode.com" >> $GITHUB_ENV
+          git clone https://github.com/succinctlabs/rsp-tests --branch 2024-09-11 --depth 1 ../rsp-tests
+          cd ../rsp-tests/
+          docker compose up -d
+
+      - name: "Use local test fixture"
+        run: |
+          echo "ETH_RPC_URL=http://localhost:9545/main/evm/1" >> $GITHUB_ENV
       
       - name: "Run integration test"
         run: |
