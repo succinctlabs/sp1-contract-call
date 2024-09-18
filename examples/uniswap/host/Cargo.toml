@@ -27,6 +27,8 @@ url.workspace = true
 tokio.workspace = true
 eyre.workspace = true
 bincode.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 # sp1
 sp1-sdk = "2.0.0"

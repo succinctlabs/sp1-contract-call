@@ -48,7 +48,7 @@ async fn main() -> eyre::Result<()> {
     utils::setup_logger();
 
     // Which block transactions are executed on.
-    let block_number = BlockNumberOrTag::Latest;
+    let block_number = BlockNumberOrTag::Number(20767554);
 
     // Prepare the host executor.
     //
