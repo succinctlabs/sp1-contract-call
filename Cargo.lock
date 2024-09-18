@@ -1870,31 +1870,6 @@ checksum = "0d6ef0072f8a535281e4876be788938b528e9a1d43900b82c2569af7da799125"
 
 [[package]]
 name = "ecdsa"
-version = "0.1.0"
-dependencies = [
- "alloy",
- "alloy-primitives 0.8.3",
- "alloy-provider",
- "alloy-rpc-types",
- "alloy-sol-macro 0.8.3",
- "alloy-sol-types 0.8.3",
- "bincode",
- "eyre",
- "rand_chacha",
- "rand_core",
- "reth-primitives",
- "revm",
- "secp256k1",
- "sp1-cc-client-executor",
- "sp1-cc-host-executor",
- "sp1-helper",
- "sp1-sdk",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "ecdsa"
 version = "0.16.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee27f32b5c5292967d2d4a9d7f1e0b0aed2c15daded5a60300e4abb9d8020bca"
@@ -3189,7 +3164,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "956ff9b67e26e1a6a866cb758f12c6f8746208489e3e4a4b5580802f2f0a587b"
 dependencies = [
  "cfg-if",
- "ecdsa 0.16.9",
+ "ecdsa",
  "elliptic-curve",
  "once_cell",
  "sha2",
@@ -3823,7 +3798,7 @@ version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9863ad85fa8f4460f9c48cb909d38a0d689dba1f6f6988a5e3e0d31071bcd4b"
 dependencies = [
- "ecdsa 0.16.9",
+ "ecdsa",
  "elliptic-curve",
  "primeorder",
  "sha2",
@@ -7486,6 +7461,31 @@ dependencies = [
  "git2",
  "rustversion",
  "time",
+]
+
+[[package]]
+name = "verify-quorum"
+version = "0.1.0"
+dependencies = [
+ "alloy",
+ "alloy-primitives 0.8.3",
+ "alloy-provider",
+ "alloy-rpc-types",
+ "alloy-sol-macro 0.8.3",
+ "alloy-sol-types 0.8.3",
+ "bincode",
+ "eyre",
+ "rand_chacha",
+ "rand_core",
+ "reth-primitives",
+ "revm",
+ "secp256k1",
+ "sp1-cc-client-executor",
+ "sp1-cc-host-executor",
+ "sp1-helper",
+ "sp1-sdk",
+ "tokio",
+ "url",
 ]
 
 [[package]]

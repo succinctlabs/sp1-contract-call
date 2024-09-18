@@ -1000,19 +1000,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ecdsa-client"
-version = "0.0.0"
-dependencies = [
- "alloy-primitives",
- "alloy-sol-macro",
- "alloy-sol-types",
- "bincode",
- "revm",
- "sp1-cc-client-executor",
- "sp1-zkvm",
-]
-
-[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3470,6 +3457,19 @@ name = "valuable"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
+
+[[package]]
+name = "verify-quorum-client"
+version = "0.0.0"
+dependencies = [
+ "alloy-primitives",
+ "alloy-sol-macro",
+ "alloy-sol-types",
+ "bincode",
+ "revm",
+ "sp1-cc-client-executor",
+ "sp1-zkvm",
+]
 
 [[package]]
 name = "version_check"

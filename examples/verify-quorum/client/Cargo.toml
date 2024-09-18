@@ -1,6 +1,6 @@
 [workspace.package]
 [package]
-name = "ecdsa-client"
+name = "verify-quorum-client"
 description = ""
 edition = "2021"
 

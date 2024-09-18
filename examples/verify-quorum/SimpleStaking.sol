@@ -12,18 +12,22 @@ contract SimpleStaking {
 
     mapping(address => uint256) public stakeWeight;
 
-    /// @notice Returns the total stake of an address
+    /// @notice Returns the total stake of an address.
     function getStake(address addr) public view returns (uint256) {
         return stakeWeight[addr];
     }
 
-    /// @notice Updates the stake of an address
+    /// @notice Updates the stake of an address.
     function update(address addr, uint256 weight) public {
         stakeWeight[addr] = weight;
     }
 
     /// @notice Collects signatures over many messages, and returns the total stake corresponding
-    ///         to those signatures
+    ///         to those signatures. 
+    ///
+    ///         Calling this function onchain could be expensive with a large
+    ///         number of signatures -- in that case, it would be better to prove its execution
+    ///         with SP1
     function verifySigned(
         bytes32[] memory messageHashes,
         bytes[] memory signatures
@@ -38,7 +42,6 @@ contract SimpleStaking {
         for (uint i = 0; i < messageHashes.length; i++) {
             address recoveredSigner = messageHashes[i].recover(signatures[i]);
             totalStake += stakeWeight[recoveredSigner];
-            // If the signature is invalid, we simply ignore it and move on
         }
 
         return totalStake;

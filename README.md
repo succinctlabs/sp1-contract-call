@@ -158,9 +158,8 @@ where `[example]` is one of the following
     * Calls a contract that fetches the prices of many different collateral assets.
     * The source code of this contract is found [here](./examples/multiplexer/ZkOracleHelper.sol).
     * Due to the size of this program, it's recommended to use the [SP1 Prover network](https://docs.succinct.xyz/generating-proofs/prover-network.html) to generate proofs for this example.
-* `ecdsa`
+* `verify-quorum`
     * Calls a contract that verifies several ECDSA signatures on chain, and sums the stake for the addresses corresponding to valid signatures.
-    * This contract has been pre-populated with stake for the addresses involved.
 
 
 ## Acknowledgments

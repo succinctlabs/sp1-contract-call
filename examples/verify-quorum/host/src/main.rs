@@ -1,4 +1,4 @@
-use alloy_primitives::{address, Address, Bytes, B256, U256};
+use alloy_primitives::{address, Address, Bytes, B256};
 use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
@@ -70,7 +70,7 @@ async fn main() -> eyre::Result<()> {
     let mut signatures = Vec::with_capacity(NUM_STAKERS);
     let mut messages = Vec::with_capacity(NUM_STAKERS);
 
-    for i in 0..NUM_STAKERS {
+    for _ in 0..NUM_STAKERS {
         // Generate a random signing key and message, and sign the message with the key.
         let (sk, pk) = generate_keypair(&mut test_rng);
         let message = B256::random_with(&mut test_rng);
@@ -81,20 +81,12 @@ async fn main() -> eyre::Result<()> {
         let (id, r_and_s) = signature.serialize_compact();
         let mut signature_bytes = r_and_s.to_vec();
         signature_bytes.push((id.to_i32() as u8) + 27);
-
-        // Figure out the address corresponding to the public key of the signing key.
-        let address = public_key_to_address(pk);
-
-        // Set up the call to add stake for each address.
-        let call = ContractInput {
-            contract_address: CONTRACT,
-            caller_address: CALLER,
-            calldata: SimpleStaking::updateCall { addr: address, weight: U256::from(i * 100 + 50) },
-        };
-
         let signature_bytes = Bytes::from(signature_bytes);
-        println!("address: {}, signature: {}, message: {}", address, signature_bytes, message_hash);
-        host_executor.execute(call).await?;
+
+        // For transparency, print out the address corresponding to the public key of the signing
+        // key.
+        let address = public_key_to_address(pk);
+        println!("address: {}\nsignature: {}\nmessage: {}", address, signature_bytes, message_hash);
 
         messages.push(message_hash);
         signatures.push(signature_bytes);
