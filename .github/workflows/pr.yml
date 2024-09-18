@@ -18,8 +18,8 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      # - name: Setup CI
-      #   uses: ./.github/actions/setup
+      - name: Setup CI
+        uses: ./.github/actions/setup
 
       - name: "Install sp1up"
         run: |
