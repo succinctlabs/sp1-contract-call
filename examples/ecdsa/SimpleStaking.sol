@@ -3,19 +3,27 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+/// @title SimpleStaking
+/// @notice This contract models a voting scheme, where each address has some stake. 
+///         Eventually, when a vote is called, signatures are collected and the total stake 
+///         corresponding to those signatures is returned.
 contract SimpleStaking {
     using ECDSA for bytes32;
 
     mapping(address => uint256) public stakeWeight;
 
+    /// @notice Returns the total stake of an address
     function getStake(address addr) public view returns (uint256) {
         return stakeWeight[addr];
     }
 
+    /// @notice Updates the stake of an address
     function update(address addr, uint256 weight) public {
         stakeWeight[addr] = weight;
     }
 
+    /// @notice Collects signatures over many messages, and returns the total stake corresponding
+    ///         to those signatures
     function verifySigned(
         bytes32[] memory messageHashes,
         bytes[] memory signatures

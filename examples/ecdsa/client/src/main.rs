@@ -22,12 +22,6 @@ const CONTRACT: Address = address!("C82bbB1719271318282fe332795935f39B89b5cf");
 /// Address of the caller.
 const CALLER: Address = address!("0000000000000000000000000000000000000000");
 
-/// The number of stakers.
-const NUM_STAKERS: usize = 3;
-
-/// The seed for the RNG. Needs to be set in order for client and host to be consistent.
-const SEED: u64 = 12;
-
 pub fn main() {
     // Read the state sketch from stdin. Use this during the execution in order to
     // access Ethereum state.
@@ -50,8 +44,8 @@ pub fn main() {
     };
 
     // Execute the call.
-    let total_stake = executor.execute(verify_signed_call).unwrap();
+    let public_vals = executor.execute(verify_signed_call).unwrap();
 
     // Commit the result.
-    sp1_zkvm::io::commit(&total_stake.abi_encode());
+    sp1_zkvm::io::commit(&public_vals.abi_encode());
 }
