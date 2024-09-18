@@ -9,8 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  examples:
-    name: Examples
+  example:
+    name: Uniswap example
     runs-on: [runs-on, family=c7a.32xlarge, "run-id=${{ github.run_id }}"]
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
@@ -47,9 +47,6 @@ jobs:
           RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
           RUST_BACKTRACE: 1
 
-      - name: Run multiplexer script
-        run: |
-          SP1_DEV=1 RUST_LOG=info cargo run --release --bin multiplexer --ignore-rust-version
 
   test-e2e:
     name: Test
@@ -62,7 +59,7 @@ jobs:
 
       - name: "Set up test fixture"
         run: |
-          git clone https://github.com/succinctlabs/rsp-tests --branch 2024-09-11 --depth 1 ../rsp-tests
+          git clone https://github.com/succinctlabs/rsp-tests --depth 1 ../rsp-tests
           cd ../rsp-tests/
           docker compose up -d
 
