@@ -13,7 +13,6 @@ alloy-sol-types.workspace = true
 alloy-rpc-types.workspace = true
 alloy-sol-macro.workspace = true
 alloy-provider.workspace = true
-alloy-transport.workspace = true
 # Alloy host dependencies
 alloy.workspace = true
 
@@ -22,9 +21,6 @@ revm.workspace = true
 
 # reth
 reth-primitives.workspace = true
-
-# RSP
-rsp-rpc-db.workspace = true
 
 # misc:
 url.workspace = true

@@ -5,9 +5,6 @@ use alloy_primitives::{address, Address, Bytes, B256};
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use bincode;
-use rand_chacha::ChaCha20Rng;
-use rand_core::SeedableRng;
-use secp256k1::{generate_keypair, Message, SECP256K1};
 use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
 
 sol! {
@@ -38,8 +35,8 @@ pub fn main() {
     let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
 
     // Read messages and signatures from stdin.
-    let mut messages = sp1_zkvm::io::read::<Vec<B256>>();
-    let mut signatures = sp1_zkvm::io::read::<Vec<Bytes>>();
+    let messages = sp1_zkvm::io::read::<Vec<B256>>();
+    let signatures = sp1_zkvm::io::read::<Vec<Bytes>>();
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
