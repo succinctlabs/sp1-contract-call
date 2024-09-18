@@ -18,9 +18,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Setup CI
-        uses: ./.github/actions/setup
-
       - name: "Install sp1up"
         run: |
             curl -L https://sp1.succinct.xyz | bash
@@ -36,6 +33,7 @@ jobs:
 
       - name: Run uniswap script
         run: |
+          chmod +w .
           SP1_DEV=1 RUST_LOG=info cargo run --release --bin uniswap --ignore-rust-version   
 
 
