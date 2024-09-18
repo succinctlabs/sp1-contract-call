@@ -3,10 +3,9 @@ use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolCall;
-use revm_primitives::U256;
 use sp1_cc_client_executor::{ClientExecutor, ContractInput, ContractPublicValues};
 use url::Url;
-use ERC20Basic::totalSupplyCall;
+use ERC20Basic::nameCall;
 use IOracleHelper::getRatesCall;
 
 use crate::HostExecutor;
@@ -14,7 +13,7 @@ use crate::HostExecutor;
 sol! {
     /// Simplified interface of the ERC20Basic interface.
     interface ERC20Basic {
-        function totalSupply() public constant returns (uint);
+        function name() public constant returns (string memory);
     }
 }
 
@@ -61,22 +60,29 @@ async fn test_multiplexer() -> eyre::Result<()> {
     Ok(())
 }
 
+/// This test goes to the Wrapped Ether contract, and gets the name of the token.
+/// This should always be "Wrapped Ether".
 #[tokio::test(flavor = "multi_thread")]
-async fn test_total_supply() -> eyre::Result<()> {
-    let total_supply_call = totalSupplyCall {};
+async fn test_wrapped_eth() -> eyre::Result<()> {
+    let name_call = nameCall {};
     let contract_input = ContractInput {
-        contract_address: address!("dAC17F958D2ee523a2206206994597C13D831ec7"),
+        contract_address: address!("C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
         caller_address: Address::default(),
-        calldata: total_supply_call,
+        calldata: name_call,
     };
     let public_values = test_e2e(contract_input).await?;
 
-    let total_supply = totalSupplyCall::abi_decode_returns(&public_values.contractOutput, true)?._0;
-    assert_eq!(total_supply, U256::from(54981730120396390u128));
+    let name = nameCall::abi_decode_returns(&public_values.contractOutput, true)?._0;
+    assert_eq!(name, String::from("Wrapped Ether"));
 
     Ok(())
 }
 
+/// Emulates the entire workflow of executing a smart contract call, without using SP1.
+///
+/// First, executes the smart contract call with the given [`ContractInput`] in the host executor.
+/// After getting the [`EVMStateSketch`] from the host executor, executes the same smart contract   
+/// call in the client executor.
 async fn test_e2e<C: SolCall + Clone>(
     contract_input: ContractInput<C>,
 ) -> eyre::Result<ContractPublicValues> {
