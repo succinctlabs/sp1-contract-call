@@ -56,8 +56,8 @@ pub fn main() {
         caller_address: CALLER,
         calldata: calldata.clone(),
     };
-    let contract_public_values = executor.execute(call).unwrap();
+    let public_vals = executor.execute(call).unwrap();
 
     // Commit the abi-encoded output.
-    sp1_zkvm::io::commit_slice(&contract_public_values.abi_encode());
+    sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
 }
