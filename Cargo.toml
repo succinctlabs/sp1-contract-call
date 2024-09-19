@@ -2,6 +2,7 @@
 members = [
     "examples/uniswap/host",
     "examples/multiplexer/host",
+    "examples/verify-quorum/host",
     "crates/client-executor",
     "crates/host-executor",
 ]

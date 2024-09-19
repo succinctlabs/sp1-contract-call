@@ -7963,6 +7963,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "verify-quorum"
+version = "0.1.0"
+dependencies = [
+ "alloy",
+ "alloy-primitives 0.8.3",
+ "alloy-provider",
+ "alloy-rpc-types",
+ "alloy-sol-macro 0.8.3",
+ "alloy-sol-types 0.8.3",
+ "bincode",
+ "eyre",
+ "rand_chacha",
+ "rand_core",
+ "reth-primitives",
+ "revm",
+ "secp256k1",
+ "sp1-cc-client-executor",
+ "sp1-cc-host-executor",
+ "sp1-helper",
+ "sp1-sdk",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"

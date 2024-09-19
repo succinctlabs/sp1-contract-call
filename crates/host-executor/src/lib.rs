@@ -31,7 +31,7 @@ pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone
     pub provider: P,
 }
 
-impl<'a, T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
+impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
     /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
     pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
         let block = provider
