@@ -51,9 +51,6 @@ jobs:
           RUSTFLAGS: -Copt-level=3 -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
           RUST_BACKTRACE: full
           RUST_LOG: info
-        
-      # - name: "Run forge test"
-      #   run: |
 
 
   test-e2e:
