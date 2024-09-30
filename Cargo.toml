@@ -34,11 +34,11 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp" , rev = "9f4b54f"}
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp" , rev = "9f4b54f"}
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp" , rev = "9f4b54f"}
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp" , rev = "9f4b54f"}
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp" , rev = "9f4b54f"}
+rsp-rpc-db = { git = "https://github.com/xJonathanLEI/rsp" , rev = "ab900d0"}
+rsp-witness-db = { git = "https://github.com/xJonathanLEI/rsp" , rev = "ab900d0"}
+rsp-primitives = { git = "https://github.com/xJonathanLEI/rsp" , rev = "ab900d0"}
+rsp-client-executor = { git = "https://github.com/xJonathanLEI/rsp" , rev = "ab900d0"}
+rsp-mpt = { git = "https://github.com/xJonathanLEI/rsp" , rev = "ab900d0"}
 
 # rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
 # rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
@@ -84,6 +84,8 @@ revm-primitives = { version = "9.0.0", features = [
     "std",
     "serde",
 ], default-features = false }
+revm-interpreter = { version = "=10.0.1", default-features = false }
+revm-precompile = { version = "=11.0.1", default-features = false }
 
 # alloy
 alloy-primitives = "0.8"
