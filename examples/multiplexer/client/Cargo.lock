@@ -2605,7 +2605,7 @@ dependencies = [
 [[package]]
 name = "rsp-client-executor"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=9f4b54f#9f4b54f66929d3b25b334b7d3f1ea63e34519ba8"
+source = "git+https://github.com/succinctlabs/rsp?rev=3647076#3647076da6580e30384dd911a3fc50d4bcdb5bc1"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -2638,7 +2638,7 @@ dependencies = [
 [[package]]
 name = "rsp-mpt"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=9f4b54f#9f4b54f66929d3b25b334b7d3f1ea63e34519ba8"
+source = "git+https://github.com/succinctlabs/rsp?rev=3647076#3647076da6580e30384dd911a3fc50d4bcdb5bc1"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -2660,7 +2660,7 @@ dependencies = [
 [[package]]
 name = "rsp-primitives"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=9f4b54f#9f4b54f66929d3b25b334b7d3f1ea63e34519ba8"
+source = "git+https://github.com/succinctlabs/rsp?rev=3647076#3647076da6580e30384dd911a3fc50d4bcdb5bc1"
 dependencies = [
  "alloy-rpc-types",
  "eyre",
@@ -2669,6 +2669,8 @@ dependencies = [
  "reth-primitives",
  "reth-revm",
  "reth-trie",
+ "revm-interpreter",
+ "revm-precompile",
  "revm-primitives",
  "serde",
  "serde_json",
@@ -2678,7 +2680,7 @@ dependencies = [
 [[package]]
 name = "rsp-witness-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=9f4b54f#9f4b54f66929d3b25b334b7d3f1ea63e34519ba8"
+source = "git+https://github.com/succinctlabs/rsp?rev=3647076#3647076da6580e30384dd911a3fc50d4bcdb5bc1"
 dependencies = [
  "reth-primitives",
  "reth-storage-errors",
