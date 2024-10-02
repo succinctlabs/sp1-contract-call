@@ -49,7 +49,6 @@ rsp-mpt = { git = "https://github.com/succinctlabs/rsp" , rev = "3647076"}
 # reth
 reth-primitives = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
     "alloy-compat",
-    "optimism",
     "std",
 ] }
 reth-codecs = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
@@ -75,10 +74,8 @@ reth-ethereum-consensus = { git = "https://github.com/sp1-patches/reth", tag = "
 
 # revm
 revm = { version = "14.0.0", features = [
-    "optimism",
     "std",
     "serde",
-    "kzg-rs",
 ], default-features = false }
 revm-primitives = { version = "9.0.0", features = [
     "std",
@@ -89,7 +86,6 @@ revm-primitives = { version = "9.0.0", features = [
 alloy-primitives = "0.8"
 alloy-provider = { version = "0.3", default-features = false, features = [
     "reqwest",
-    "reqwest-rustls-tls",
 ] }
 alloy-rpc-types = { version = "0.3", default-features = false, features = [
     "eth",
