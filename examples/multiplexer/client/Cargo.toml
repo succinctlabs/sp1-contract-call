@@ -13,9 +13,6 @@ alloy-primitives = { version = "0.8" }
 alloy-sol-types = { version = "0.8" }
 alloy-sol-macro = { version = "0.8" }
 
-# EVM
-revm = { version = "14.0.0", features = ["serde"], default-features = false }
-
 # sp1
 sp1-zkvm = "2.0.0"
 

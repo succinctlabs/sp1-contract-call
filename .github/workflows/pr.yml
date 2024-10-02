@@ -52,7 +52,6 @@ jobs:
           RUST_BACKTRACE: full
           RUST_LOG: info
 
-
   test-e2e:
     name: Test
     runs-on: ["runs-on", "runner=32cpu-linux-x64", "run-id=${{ github.run_id }}"]
@@ -69,7 +68,3 @@ jobs:
       - name: "Run integration test"
         run: |
           SP1_DEV=1 RUST_LOG=info cargo test -p sp1-cc-host-executor --release -- --nocapture
-
-
-
-

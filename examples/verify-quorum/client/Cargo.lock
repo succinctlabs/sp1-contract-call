@@ -3468,7 +3468,6 @@ dependencies = [
  "alloy-sol-macro",
  "alloy-sol-types",
  "bincode",
- "revm",
  "sp1-cc-client-executor",
  "sp1-zkvm",
 ]

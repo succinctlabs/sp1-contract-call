@@ -3407,8 +3407,8 @@ dependencies = [
  "rsp-rpc-db",
  "sp1-cc-client-executor",
  "sp1-cc-host-executor",
- "sp1-helper 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-sdk 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sp1-helper",
+ "sp1-sdk",
  "tokio",
  "url",
 ]
@@ -6086,18 +6086,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-build"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "anyhow",
- "cargo_metadata",
- "chrono",
- "clap",
- "dirs",
-]
-
-[[package]]
 name = "sp1-cc-client-executor"
 version = "0.1.0"
 dependencies = [
@@ -6187,47 +6175,10 @@ dependencies = [
  "rrs-succinct",
  "serde",
  "serde_with",
- "sp1-curves 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-derive 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "strum",
- "strum_macros",
- "thiserror",
- "tiny-keccak",
- "tracing",
- "typenum",
- "vec_map",
-]
-
-[[package]]
-name = "sp1-core-executor"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "bincode",
- "bytemuck",
- "elf",
- "enum-map",
- "eyre",
- "generic-array 1.1.0",
- "hashbrown 0.14.5",
- "hex",
- "itertools 0.13.0",
- "log",
- "nohash-hasher",
- "num",
- "p3-field",
- "p3-keccak-air",
- "p3-maybe-rayon",
- "rand",
- "rrs-succinct",
- "serde",
- "serde_with",
- "sp1-curves 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-derive 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-curves",
+ "sp1-derive",
+ "sp1-primitives",
+ "sp1-stark",
  "strum",
  "strum_macros",
  "thiserror",
@@ -6286,76 +6237,11 @@ dependencies = [
  "serde_with",
  "size",
  "snowbridge-amcl",
- "sp1-core-executor 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-curves 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-derive 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "static_assertions",
- "strum",
- "strum_macros",
- "tempfile",
- "thiserror",
- "tracing",
- "tracing-forest",
- "tracing-subscriber",
- "typenum",
- "web-time",
-]
-
-[[package]]
-name = "sp1-core-machine"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "anyhow",
- "arrayref",
- "bincode",
- "blake3",
- "bytemuck",
- "cfg-if",
- "curve25519-dalek",
- "elf",
- "elliptic-curve",
- "generic-array 1.1.0",
- "hashbrown 0.14.5",
- "hex",
- "itertools 0.13.0",
- "k256",
- "log",
- "nohash-hasher",
- "num",
- "num-bigint 0.4.6",
- "num_cpus",
- "p3-air",
- "p3-baby-bear",
- "p3-blake3",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-keccak",
- "p3-keccak-air",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-uni-stark",
- "p3-util",
- "rand",
- "rayon-scan",
- "rrs-succinct",
- "serde",
- "serde_with",
- "size",
- "snowbridge-amcl",
- "sp1-core-executor 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-curves 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-derive 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-executor",
+ "sp1-curves",
+ "sp1-derive",
+ "sp1-primitives",
+ "sp1-stark",
  "static_assertions",
  "strum",
  "strum_macros",
@@ -6380,29 +6266,9 @@ dependencies = [
  "prost-types",
  "serde",
  "serde_json",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-prover 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "twirp-rs",
-]
-
-[[package]]
-name = "sp1-cuda"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "bincode",
- "ctrlc",
- "prost",
- "prost-types",
- "serde",
- "serde_json",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-prover 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-machine",
+ "sp1-prover",
+ "sp1-stark",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -6425,28 +6291,8 @@ dependencies = [
  "p3-field",
  "serde",
  "snowbridge-amcl",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "typenum",
-]
-
-[[package]]
-name = "sp1-curves"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "curve25519-dalek",
- "dashu",
- "elliptic-curve",
- "generic-array 1.1.0",
- "itertools 0.13.0",
- "k256",
- "num",
- "p3-field",
- "serde",
- "snowbridge-amcl",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-primitives",
+ "sp1-stark",
  "typenum",
 ]
 
@@ -6462,30 +6308,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-derive"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "sp1-helper"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f08124c62d09764810783355cff518477e3f36c8e83343623859afeca6f3eeb"
 dependencies = [
- "sp1-build 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "sp1-helper"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "sp1-build 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-build",
 ]
 
 [[package]]
@@ -6507,19 +6335,6 @@ name = "sp1-primitives"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "efbeba375fe59917f162f1808c280d2e39e4698dc7eeac83936b6e70c2f8dbbc"
-dependencies = [
- "itertools 0.13.0",
- "lazy_static",
- "p3-baby-bear",
- "p3-field",
- "p3-poseidon2",
- "p3-symmetric",
-]
-
-[[package]]
-name = "sp1-primitives"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
 dependencies = [
  "itertools 0.13.0",
  "lazy_static",
@@ -6553,54 +6368,15 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
- "sp1-core-executor 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-circuit 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-compiler 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-core 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-gnark-ffi 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-program 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "subtle-encoding",
- "tempfile",
- "thiserror",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "sp1-prover"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "anyhow",
- "bincode",
- "clap",
- "dirs",
- "hex",
- "itertools 0.13.0",
- "num-bigint 0.4.6",
- "oneshot",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-challenger",
- "p3-commit",
- "p3-field",
- "p3-matrix",
- "rayon",
- "serde",
- "serde_json",
- "serial_test",
- "sp1-core-executor 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-circuit 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-compiler 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-core 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-gnark-ffi 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-program 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-executor",
+ "sp1-core-machine",
+ "sp1-primitives",
+ "sp1-recursion-circuit",
+ "sp1-recursion-compiler",
+ "sp1-recursion-core",
+ "sp1-recursion-gnark-ffi",
+ "sp1-recursion-program",
+ "sp1-stark",
  "subtle-encoding",
  "tempfile",
  "thiserror",
@@ -6625,36 +6401,12 @@ dependencies = [
  "p3-matrix",
  "p3-util",
  "serde",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-compiler 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-core 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-derive 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-program 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "sp1-recursion-circuit"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "bincode",
- "itertools 0.13.0",
- "p3-air",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-commit",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-util",
- "serde",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-compiler 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-core 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-derive 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-program 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-machine",
+ "sp1-recursion-compiler",
+ "sp1-recursion-core",
+ "sp1-recursion-derive",
+ "sp1-recursion-program",
+ "sp1-stark",
 ]
 
 [[package]]
@@ -6677,41 +6429,12 @@ dependencies = [
  "p3-util",
  "rayon",
  "serde",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-core 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-core-v2 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-derive 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "tracing",
- "vec_map",
-]
-
-[[package]]
-name = "sp1-recursion-compiler"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "backtrace",
- "itertools 0.13.0",
- "p3-air",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-commit",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "rayon",
- "serde",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-core 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-core-v2 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-derive 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-machine",
+ "sp1-primitives",
+ "sp1-recursion-core",
+ "sp1-recursion-core-v2",
+ "sp1-recursion-derive",
+ "sp1-stark",
  "tracing",
  "vec_map",
 ]
@@ -6744,48 +6467,11 @@ dependencies = [
  "p3-util",
  "serde",
  "serde_with",
- "sp1-core-executor 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-derive 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "static_assertions",
- "tracing",
- "zkhash",
-]
-
-[[package]]
-name = "sp1-recursion-core"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "arrayref",
- "backtrace",
- "ff 0.13.0",
- "hashbrown 0.14.5",
- "itertools 0.13.0",
- "num_cpus",
- "p3-air",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "serde",
- "serde_with",
- "sp1-core-executor 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-derive 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-executor",
+ "sp1-core-machine",
+ "sp1-derive",
+ "sp1-primitives",
+ "sp1-stark",
  "static_assertions",
  "tracing",
  "zkhash",
@@ -6819,52 +6505,12 @@ dependencies = [
  "p3-util",
  "serde",
  "serde_with",
- "sp1-core-executor 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-derive 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-core 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "static_assertions",
- "thiserror",
- "tracing",
- "vec_map",
- "zkhash",
-]
-
-[[package]]
-name = "sp1-recursion-core-v2"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "arrayref",
- "backtrace",
- "ff 0.13.0",
- "hashbrown 0.14.5",
- "itertools 0.13.0",
- "num_cpus",
- "p3-air",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "serde",
- "serde_with",
- "sp1-core-executor 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-derive 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-core 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-executor",
+ "sp1-core-machine",
+ "sp1-derive",
+ "sp1-primitives",
+ "sp1-recursion-core",
+ "sp1-stark",
  "static_assertions",
  "thiserror",
  "tracing",
@@ -6877,16 +6523,6 @@ name = "sp1-recursion-derive"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4921db3912a60ee3896242ce336203066377e6eddd1c26d099e8bf6b9c470a21"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "sp1-recursion-derive"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6914,35 +6550,9 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-compiler 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "tempfile",
-]
-
-[[package]]
-name = "sp1-recursion-gnark-ffi"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "anyhow",
- "bincode",
- "bindgen",
- "cc",
- "cfg-if",
- "hex",
- "log",
- "num-bigint 0.4.6",
- "p3-baby-bear",
- "p3-field",
- "p3-symmetric",
- "rand",
- "serde",
- "serde_json",
- "sha2",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-compiler 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-machine",
+ "sp1-recursion-compiler",
+ "sp1-stark",
  "tempfile",
 ]
 
@@ -6968,43 +6578,12 @@ dependencies = [
  "p3-util",
  "rand",
  "serde",
- "sp1-core-executor 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-compiler 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-recursion-core 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "stacker",
- "tracing",
-]
-
-[[package]]
-name = "sp1-recursion-program"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "itertools 0.13.0",
- "p3-air",
- "p3-baby-bear",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "rand",
- "serde",
- "sp1-core-executor 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-compiler 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-recursion-core 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-executor",
+ "sp1-core-machine",
+ "sp1-primitives",
+ "sp1-recursion-compiler",
+ "sp1-recursion-core",
+ "sp1-stark",
  "stacker",
  "tracing",
 ]
@@ -7041,58 +6620,11 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "sp1-core-executor 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-core-machine 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-cuda 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-prover 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-stark 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "strum",
- "strum_macros",
- "sysinfo",
- "tempfile",
- "thiserror",
- "tokio",
- "tracing",
- "twirp-rs",
- "vergen",
-]
-
-[[package]]
-name = "sp1-sdk"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "alloy-sol-types 0.7.7",
- "anyhow",
- "async-trait",
- "bincode",
- "cfg-if",
- "dirs",
- "ethers",
- "futures",
- "getrandom",
- "hashbrown 0.14.5",
- "hex",
- "indicatif",
- "itertools 0.13.0",
- "log",
- "num-bigint 0.4.6",
- "p3-baby-bear",
- "p3-commit",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "prost",
- "reqwest 0.12.8",
- "reqwest-middleware",
- "serde",
- "serde_json",
- "sha2",
- "sp1-core-executor 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-core-machine 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-cuda 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-prover 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-stark 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-core-executor",
+ "sp1-core-machine",
+ "sp1-cuda",
+ "sp1-prover",
+ "sp1-stark",
  "strum",
  "strum_macros",
  "sysinfo",
@@ -7130,39 +6662,8 @@ dependencies = [
  "p3-util",
  "rayon-scan",
  "serde",
- "sp1-derive 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-primitives 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sysinfo",
- "tracing",
-]
-
-[[package]]
-name = "sp1-stark"
-version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
-dependencies = [
- "arrayref",
- "getrandom",
- "hashbrown 0.14.5",
- "itertools 0.13.0",
- "p3-air",
- "p3-baby-bear",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-uni-stark",
- "p3-util",
- "rayon-scan",
- "serde",
- "sp1-derive 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-primitives 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-derive",
+ "sp1-primitives",
  "sysinfo",
  "tracing",
 ]
@@ -7894,8 +7395,8 @@ dependencies = [
  "serde_json",
  "sp1-cc-client-executor",
  "sp1-cc-host-executor",
- "sp1-helper 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
- "sp1-sdk 2.0.0 (git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test)",
+ "sp1-helper",
+ "sp1-sdk",
  "tokio",
  "url",
 ]
@@ -7992,8 +7493,8 @@ dependencies = [
  "secp256k1",
  "sp1-cc-client-executor",
  "sp1-cc-host-executor",
- "sp1-helper 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sp1-sdk 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sp1-helper",
+ "sp1-sdk",
  "tokio",
  "url",
 ]
