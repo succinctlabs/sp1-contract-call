@@ -6,6 +6,7 @@ use alloy_provider::ReqwestProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
+use clap::Parser;
 use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
@@ -38,6 +39,14 @@ struct SP1CCProofFixture {
     proof: String,
 }
 
+/// The arguments for the command.
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[clap(long, default_value = "false")]
+    prove: bool,
+}
+
 /// Generate a `SP1CCProofFixture`, and save it as a json file.
 ///
 /// This is useful for verifying the proof of contract call execution on chain.
@@ -61,6 +70,9 @@ fn save_fixture(vkey: String, proof: &SP1ProofWithPublicValues) {
 async fn main() -> eyre::Result<()> {
     // Setup logging.
     utils::setup_logger();
+
+    // Parse the command line arguments.
+    let args = Args::parse();
 
     // Which block transactions are executed on.
     let block_number = BlockNumberOrTag::Number(20600000);
@@ -101,6 +113,11 @@ async fn main() -> eyre::Result<()> {
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
     let (_, report) = client.execute(ELF, stdin.clone()).run().unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
+
+    // If the prove flag is not set, we return here.
+    if !args.prove {
+        return Ok(());
+    }
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);

@@ -3,11 +3,9 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
-use alloy_sol_types::{SolCall, SolValue};
+use alloy_sol_types::SolValue;
 use bincode;
-use sp1_cc_client_executor::{
-    io::EVMStateSketch, ClientExecutor, ContractInput, ContractPublicValues,
-};
+use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
 
 sol! {
     /// Interface to the multiplexer contract. It gets the prices of many tokens, including
