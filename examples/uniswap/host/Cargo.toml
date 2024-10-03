@@ -32,11 +32,11 @@ serde_json.workspace = true
 clap = { version = "4.0", features = ["derive"] }
 
 # sp1
-sp1-sdk = { git = "https://github.com/succinctlabs/sp1", branch = "yuwen/fs-test"}
+sp1-sdk = "2.0.0"
 
 
 [build-dependencies]
-sp1-helper = { git = "https://github.com/succinctlabs/sp1", branch = "yuwen/fs-test"}
+sp1-helper = "2.0.0"
 
 
 [features]
