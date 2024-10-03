@@ -53,7 +53,7 @@ jobs:
           RUST_LOG: info
 
   test-e2e:
-    name: Test
+    name: Test e2es
     runs-on: ["runs-on", "runner=32cpu-linux-x64", "run-id=${{ github.run_id }}"]
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
@@ -68,3 +68,29 @@ jobs:
       - name: "Run integration test"
         run: |
           SP1_DEV=1 RUST_LOG=info cargo test -p sp1-cc-host-executor --release -- --nocapture
+
+  test-uniswap-forge:
+    name: Test uniswap forge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Forge build
+        run: |
+          cd examples/uniswap/contracts
+          forge --version
+          forge build --sizes
+        id: build
+
+      - name: Run Forge tests
+        run: |
+          cd examples/uniswap/contracts
+          forge test -vvv
+        id: test
