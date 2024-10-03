@@ -91,10 +91,6 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          cd contracts
+          cd examples/uniswap/contracts
           forge test -vvv
         id: test
-
-
-
-

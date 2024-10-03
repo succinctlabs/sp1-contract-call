@@ -10,9 +10,7 @@ workspace = true
 
 [dependencies]
 eyre.workspace = true
-serde_json.workspace = true
 url.workspace = true
-serde.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 
@@ -21,19 +19,9 @@ sp1-cc-client-executor.workspace = true
 
 # rsp
 rsp-rpc-db.workspace = true
-rsp-witness-db.workspace = true
 rsp-primitives.workspace = true
-rsp-client-executor.workspace = true
 rsp-mpt.workspace = true
-
-# reth
-reth-codecs.workspace = true
 reth-primitives = { workspace = true, features = ["secp256k1"] }
-reth-storage-errors.workspace = true
-reth-trie.workspace = true
-reth-execution-types.workspace = true
-reth-errors.workspace = true
-reth-chainspec.workspace = true
 
 # revm
 revm.workspace = true
@@ -41,7 +29,6 @@ revm-primitives.workspace = true
 
 # alloy
 alloy-primitives.workspace = true
-alloy-rlp.workspace = true
 alloy-provider.workspace = true
 alloy-transport.workspace = true
 alloy-sol-macro.workspace = true

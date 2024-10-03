@@ -3008,19 +3008,11 @@ dependencies = [
 name = "sp1-cc-client-executor"
 version = "0.1.0"
 dependencies = [
- "alloy-primitives",
- "alloy-rlp",
  "alloy-sol-types",
  "eyre",
- "reth-chainspec",
- "reth-errors",
- "reth-ethereum-consensus",
  "reth-evm",
  "reth-evm-ethereum",
- "reth-execution-types",
  "reth-primitives",
- "reth-revm",
- "reth-storage-errors",
  "revm",
  "revm-primitives",
  "rsp-client-executor",
@@ -3028,8 +3020,6 @@ dependencies = [
  "rsp-primitives",
  "rsp-witness-db",
  "serde",
- "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -3049,7 +3039,8 @@ dependencies = [
 [[package]]
 name = "sp1-lib"
 version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413956de14568d7fb462213b9505ad4607d75c875301b9eca567cfb2e58eaac1"
 dependencies = [
  "anyhow",
  "bincode",
@@ -3062,7 +3053,8 @@ dependencies = [
 [[package]]
 name = "sp1-zkvm"
 version = "2.0.0"
-source = "git+https://github.com/succinctlabs/sp1?branch=yuwen/fs-test#826e67993294266f3c88f360a0aee52f3856326f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66c525f67cfd3f65950f01c713a72c41a5d44d289155644c8ace4ec264098039"
 dependencies = [
  "bincode",
  "cfg-if",
@@ -3449,7 +3441,6 @@ dependencies = [
  "alloy-sol-macro",
  "alloy-sol-types",
  "bincode",
- "revm",
  "sp1-cc-client-executor",
  "sp1-zkvm",
 ]
