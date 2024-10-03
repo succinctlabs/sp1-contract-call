@@ -150,10 +150,12 @@ Then, from the root directory of the repository, run
 
 where `[example]` is one of the following
 * `uniswap`
-    * Fetches the price of the UNI / WETH pair on Uniswap V3.
-    * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain. 
-    * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory. 
-    * On chain verification requires generating a plonk or groth16 proof, which requires significant computational resources. We recommend using the [SP1 Prover network](https://docs.succinct.xyz/generating-proofs/prover-network.html).
+    * Fetches the price of the UNI / WETH pair on Uniswap V3. By default, this does not generate a proof.  
+    * Running `RUST_LOG=info cargo run --bin [example] --release -- --prove` will generate a plonk proof. This requires 
+    significant computational resources, so we recommend using the [SP1 Prover network]
+    (https://docs.succinct.xyz/generating-proofs/prover-network.html).
+        * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain. 
+        * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory. 
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
     * The source code of this contract is found [here](./examples/multiplexer/ZkOracleHelper.sol).
