@@ -13,13 +13,6 @@ alloy-sol-types.workspace = true
 alloy-rpc-types.workspace = true
 alloy-sol-macro.workspace = true
 alloy-provider.workspace = true
-alloy.workspace = true
-
-# EVM
-revm.workspace = true
-
-# RSP
-rsp-rpc-db.workspace = true
 
 # misc:
 url.workspace = true

@@ -16,12 +16,6 @@ alloy-provider.workspace = true
 # Alloy host dependencies
 alloy.workspace = true
 
-# EVM
-revm.workspace = true
-
-# RSP
-rsp-rpc-db.workspace = true
-
 # misc:
 url.workspace = true
 tokio.workspace = true

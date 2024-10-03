@@ -3395,7 +3395,6 @@ dependencies = [
 name = "multiplexer"
 version = "0.1.0"
 dependencies = [
- "alloy",
  "alloy-primitives 0.8.5",
  "alloy-provider",
  "alloy-rpc-types",
@@ -3403,8 +3402,6 @@ dependencies = [
  "alloy-sol-types 0.8.5",
  "bincode",
  "eyre",
- "revm",
- "rsp-rpc-db",
  "sp1-cc-client-executor",
  "sp1-cc-host-executor",
  "sp1-helper",
@@ -6089,19 +6086,11 @@ dependencies = [
 name = "sp1-cc-client-executor"
 version = "0.1.0"
 dependencies = [
- "alloy-primitives 0.8.5",
- "alloy-rlp",
  "alloy-sol-types 0.8.5",
  "eyre",
- "reth-chainspec",
- "reth-errors",
- "reth-ethereum-consensus",
  "reth-evm",
  "reth-evm-ethereum",
- "reth-execution-types",
  "reth-primitives",
- "reth-revm",
- "reth-storage-errors",
  "revm",
  "revm-primitives",
  "rsp-client-executor",
@@ -6109,8 +6098,6 @@ dependencies = [
  "rsp-primitives",
  "rsp-witness-db",
  "serde",
- "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -6119,7 +6106,6 @@ version = "0.1.0"
 dependencies = [
  "alloy-primitives 0.8.5",
  "alloy-provider",
- "alloy-rlp",
  "alloy-rpc-types",
  "alloy-sol-macro 0.8.5",
  "alloy-sol-types 0.8.5",
@@ -6127,22 +6113,12 @@ dependencies = [
  "bincode",
  "dotenv",
  "eyre",
- "reth-chainspec",
- "reth-codecs",
- "reth-errors",
- "reth-execution-types",
  "reth-primitives",
- "reth-storage-errors",
- "reth-trie",
  "revm",
  "revm-primitives",
- "rsp-client-executor",
  "rsp-mpt",
  "rsp-primitives",
  "rsp-rpc-db",
- "rsp-witness-db",
- "serde",
- "serde_json",
  "sp1-cc-client-executor",
  "tokio",
  "tracing",
@@ -7390,8 +7366,6 @@ dependencies = [
  "bincode",
  "clap",
  "eyre",
- "revm",
- "rsp-rpc-db",
  "serde",
  "serde_json",
  "sp1-cc-client-executor",
@@ -7479,7 +7453,6 @@ dependencies = [
 name = "verify-quorum"
 version = "0.1.0"
 dependencies = [
- "alloy",
  "alloy-primitives 0.8.5",
  "alloy-provider",
  "alloy-rpc-types",
@@ -7490,7 +7463,6 @@ dependencies = [
  "rand_chacha",
  "rand_core",
  "reth-primitives",
- "revm",
  "secp256k1",
  "sp1-cc-client-executor",
  "sp1-cc-host-executor",

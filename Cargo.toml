@@ -75,11 +75,9 @@ reth-ethereum-consensus = { git = "https://github.com/sp1-patches/reth", tag = "
 # revm
 revm = { version = "14.0.0", features = [
     "std",
-    "serde",
 ], default-features = false }
 revm-primitives = { version = "9.0.0", features = [
     "std",
-    "serde",
 ], default-features = false }
 
 # alloy

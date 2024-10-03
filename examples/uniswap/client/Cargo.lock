@@ -3008,19 +3008,11 @@ dependencies = [
 name = "sp1-cc-client-executor"
 version = "0.1.0"
 dependencies = [
- "alloy-primitives",
- "alloy-rlp",
  "alloy-sol-types",
  "eyre",
- "reth-chainspec",
- "reth-errors",
- "reth-ethereum-consensus",
  "reth-evm",
  "reth-evm-ethereum",
- "reth-execution-types",
  "reth-primitives",
- "reth-revm",
- "reth-storage-errors",
  "revm",
  "revm-primitives",
  "rsp-client-executor",
@@ -3028,8 +3020,6 @@ dependencies = [
  "rsp-primitives",
  "rsp-witness-db",
  "serde",
- "tokio",
- "tracing",
 ]
 
 [[package]]
