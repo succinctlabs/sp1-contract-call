@@ -5,7 +5,7 @@ use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use bincode;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
+use sp1_cc_client_executor::{io::EVMStateSketch, mainnet, ClientExecutor, ContractInput};
 
 sol! {
     /// Interface to the multiplexer contract. It gets the prices of many tokens, including
@@ -45,7 +45,7 @@ pub fn main() {
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
-    let executor = ClientExecutor::new(state_sketch).unwrap();
+    let executor = ClientExecutor::new(state_sketch, mainnet()).unwrap();
 
     // Execute the getRates call using the client executor.
     let calldata = IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() };

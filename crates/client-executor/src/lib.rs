@@ -2,6 +2,7 @@ pub mod io;
 use alloy_sol_types::{sol, SolCall};
 use eyre::OptionExt;
 use io::EVMStateSketch;
+use reth_chainspec::ChainSpec;
 use reth_evm::ConfigureEvmEnv;
 use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
@@ -10,6 +11,7 @@ use revm_primitives::{Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, SpecId, Tx
 use rsp_client_executor::io::WitnessInput;
 use rsp_witness_db::WitnessDb;
 
+pub use rsp_primitives::chain_spec::mainnet;
 /// Input to a contract call.
 #[derive(Debug, Clone)]
 pub struct ContractInput<C: SolCall> {
@@ -19,6 +21,9 @@ pub struct ContractInput<C: SolCall> {
     pub caller_address: Address,
     /// The calldata to pass to the contract.
     pub calldata: C,
+}
+pub fn sepolia() -> ChainSpec {
+    (*reth_chainspec::SEPOLIA.clone()).clone()
 }
 
 sol! {
@@ -57,13 +62,19 @@ pub struct ClientExecutor {
     pub witness_db: WitnessDb,
     /// The block header.
     pub header: Header,
+    /// The chain spec.
+    pub chain_spec: ChainSpec,
 }
 
 impl ClientExecutor {
     /// Instantiates a new [`ClientExecutor`]
-    pub fn new(state_sketch: EVMStateSketch) -> eyre::Result<Self> {
+    pub fn new(state_sketch: EVMStateSketch, chain_spec: ChainSpec) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
-        Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
+        Ok(Self {
+            witness_db: state_sketch.witness_db().unwrap(),
+            header: state_sketch.header,
+            chain_spec,
+        })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
@@ -74,20 +85,20 @@ impl ClientExecutor {
         call: ContractInput<C>,
     ) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call, &self.chain_spec);
         let tx_output = evm.transact()?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
         Ok(ContractPublicValues::new::<C>(call, tx_output_bytes.clone(), self.header.hash_slow()))
     }
 }
 
-/// TODO Add support for other chains besides Ethereum Mainnet.
 /// Instantiates a new EVM, which is ready to run `call`.
 pub fn new_evm<'a, D, C>(
     db: D,
     header: &Header,
     total_difficulty: U256,
     call: &ContractInput<C>,
+    chain_spec: &ChainSpec,
 ) -> Evm<'a, (), D>
 where
     D: Database,
@@ -99,7 +110,7 @@ where
     EthEvmConfig::default().fill_cfg_and_block_env(
         &mut cfg_env,
         &mut block_env,
-        &rsp_primitives::chain_spec::mainnet(),
+        chain_spec,
         header,
         total_difficulty,
     );

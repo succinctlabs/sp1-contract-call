@@ -5,7 +5,7 @@ use alloy_primitives::{address, Address, Bytes, B256};
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use bincode;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
+use sp1_cc_client_executor::{io::EVMStateSketch, sepolia, ClientExecutor, ContractInput};
 
 sol! {
     /// Part of the SimpleStaking interface
@@ -34,7 +34,7 @@ pub fn main() {
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
-    let executor = ClientExecutor::new(state_sketch).unwrap();
+    let executor = ClientExecutor::new(state_sketch, sepolia()).unwrap();
 
     // Set up the call to `verifySigned`.
     let verify_signed_call = ContractInput {

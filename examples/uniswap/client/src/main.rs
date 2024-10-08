@@ -5,7 +5,7 @@ use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use bincode;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
+use sp1_cc_client_executor::{io::EVMStateSketch, mainnet, ClientExecutor, ContractInput};
 sol! {
     /// Simplified interface of the IUniswapV3PoolState interface.
     interface IUniswapV3PoolState {
@@ -28,7 +28,7 @@ pub fn main() {
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
-    let executor = ClientExecutor::new(state_sketch).unwrap();
+    let executor = ClientExecutor::new(state_sketch, mainnet()).unwrap();
 
     // Execute the slot0 call using the client executor.
     let slot0_call = IUniswapV3PoolState::slot0Call {};

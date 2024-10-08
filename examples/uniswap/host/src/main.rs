@@ -8,7 +8,7 @@ use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
+use sp1_cc_client_executor::{mainnet, ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{utils, HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
 use url::Url;
@@ -83,7 +83,7 @@ async fn main() -> eyre::Result<()> {
     let rpc_url =
         std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
     let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let mut host_executor = HostExecutor::new(provider.clone(), block_number, mainnet()).await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
     let block_hash = host_executor.header.hash_slow();

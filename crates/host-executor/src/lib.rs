@@ -8,6 +8,7 @@ use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_types::SolCall;
 use alloy_transport::Transport;
 use eyre::{eyre, OptionExt};
+use reth_chainspec::ChainSpec;
 use reth_primitives::{Block, Header};
 use revm::db::CacheDB;
 use revm_primitives::{B256, U256};
@@ -29,11 +30,17 @@ pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone
     pub rpc_db: RpcDb<T, P>,
     /// The provider used to fetch data.
     pub provider: P,
+    /// The chain spec.
+    pub chain_spec: ChainSpec,
 }
 
 impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
     /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
-    pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
+    pub async fn new(
+        provider: P,
+        block_number: BlockNumberOrTag,
+        chain_spec: ChainSpec,
+    ) -> eyre::Result<Self> {
         let block = provider
             .get_block_by_number(block_number, true)
             .await?
@@ -41,13 +48,13 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
             .ok_or(eyre!("couldn't fetch block: {}", block_number))??;
 
         let rpc_db = RpcDb::new(provider.clone(), block.header.number);
-        Ok(Self { header: block.header, rpc_db, provider })
+        Ok(Self { header: block.header, rpc_db, provider, chain_spec })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`].
     pub async fn execute<C: SolCall>(&mut self, call: ContractInput<C>) -> eyre::Result<C::Return> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call, &self.chain_spec);
         let output = evm.transact()?;
         let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
 
