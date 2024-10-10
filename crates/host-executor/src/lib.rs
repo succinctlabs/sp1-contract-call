@@ -4,7 +4,7 @@ mod test;
 use std::collections::BTreeSet;
 
 use alloy_provider::{network::AnyNetwork, Provider};
-use alloy_rpc_types::BlockNumberOrTag;
+use alloy_rpc_types::{BlockId, BlockNumberOrTag, BlockTransactionsKind};
 use alloy_sol_types::SolCall;
 use alloy_transport::Transport;
 use eyre::{eyre, OptionExt};
@@ -39,6 +39,18 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
             .await?
             .map(|block| Block::try_from(block.inner))
             .ok_or(eyre!("couldn't fetch block: {}", block_number))??;
+
+        let rpc_db = RpcDb::new(provider.clone(), block.header.number);
+        Ok(Self { header: block.header, rpc_db, provider })
+    }
+
+    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockId`].
+    pub async fn new_with_blockid(provider: P, block_identifier: BlockId) -> eyre::Result<Self> {
+        let block = provider
+            .get_block(block_identifier, BlockTransactionsKind::Full)
+            .await?
+            .map(|block| Block::try_from(block.inner))
+            .ok_or(eyre!("couldn't fetch block: {}", block_identifier))??;
 
         let rpc_db = RpcDb::new(provider.clone(), block.header.number);
         Ok(Self { header: block.header, rpc_db, provider })
