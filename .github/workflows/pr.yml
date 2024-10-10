@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   example:
-    name: Uniswap example
+    name: Uniswap examplee
     runs-on:
       [
         runs-on,
