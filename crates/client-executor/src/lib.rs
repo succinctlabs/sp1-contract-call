@@ -103,6 +103,9 @@ where
         header,
         total_difficulty,
     );
+    // Set the base fee to 0 to enable 0 gas price transactions.
+    block_env.basefee = U256::from(0);
+
     let mut evm = EvmBuilder::default()
         .with_db(db)
         .with_cfg_env_with_handler_cfg(cfg_env)
@@ -113,8 +116,8 @@ where
     tx_env.caller = call.caller_address;
     tx_env.data = call.calldata.abi_encode().into();
     tx_env.gas_limit = header.gas_limit;
-    // TODO Make the gas price configurable. Right now, it's always set to the base fee.
-    tx_env.gas_price = U256::from(header.base_fee_per_gas.unwrap());
+    // Set the gas price to 0 to avoid lack of funds (0) error.
+    tx_env.gas_price = U256::from(0);
     tx_env.transact_to = TxKind::Call(call.contract_address);
 
     evm
