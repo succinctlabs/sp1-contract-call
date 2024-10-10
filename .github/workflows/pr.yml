@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   example:
-    name: Uniswap examplee
+    name: Uniswap example
     runs-on:
       [
         runs-on,
