@@ -6,7 +6,9 @@ use reth_evm::ConfigureEvmEnv;
 use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
 use revm::{db::CacheDB, Database, Evm, EvmBuilder, State};
-use revm_primitives::{Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, SpecId, TxKind, B256, U256};
+use revm_primitives::{
+    address, Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, SpecId, TxKind, B256, U256,
+};
 use rsp_client_executor::io::WitnessInput;
 use rsp_witness_db::WitnessDb;
 
@@ -19,6 +21,17 @@ pub struct ContractInput<C: SolCall> {
     pub caller_address: Address,
     /// The calldata to pass to the contract.
     pub calldata: C,
+}
+
+/// Input to a contract call.
+#[derive(Debug, Clone)]
+pub struct ContractInputCustomCall {
+    /// The address of the contract to call.
+    pub contract_address: Address,
+    /// The address of the caller.
+    pub caller_address: Address,
+    /// The calldata to pass to the contract.
+    pub calldata: Bytes,
 }
 
 sol! {
@@ -122,5 +135,52 @@ where
     tx_env.gas_price = U256::from(0);
     tx_env.transact_to = TxKind::Call(call.contract_address);
 
+    evm
+}
+
+/// TODO Add support for other chains besides Ethereum Mainnet.
+/// Instantiates a new EVM, which is ready to run `call`.
+pub fn new_evm_custom_call<'a, D>(
+    db: D,
+    header: &Header,
+    total_difficulty: U256,
+    call: &ContractInputCustomCall,
+) -> Evm<'a, (), State<D>>
+where
+    D: Database,
+{
+    let mut cfg_env = CfgEnvWithHandlerCfg::new_with_spec_id(Default::default(), SpecId::LATEST);
+    let mut block_env = BlockEnv::default();
+
+    EthEvmConfig::default().fill_cfg_and_block_env(
+        &mut cfg_env,
+        &mut block_env,
+        &rsp_primitives::chain_spec::mainnet(),
+        header,
+        total_difficulty,
+    );
+    // Set the base fee to 0 to enable 0 gas price transactions.
+    block_env.basefee = U256::from(0);
+
+    let state = State::builder().with_database(db).build();
+
+    let mut evm = EvmBuilder::default()
+        .with_db(state)
+        .with_cfg_env_with_handler_cfg(cfg_env)
+        .modify_block_env(|evm_block_env| *evm_block_env = block_env)
+        .build();
+
+    let tx_env = evm.tx_mut();
+    tx_env.caller = call.caller_address;
+    tx_env.data = call.calldata.clone();
+    tx_env.gas_limit = header.gas_limit;
+    // Set the gas price to 0 to avoid lack of funds (0) error.
+    tx_env.gas_price = U256::from(0);
+    tx_env.transact_to =
+        if call.contract_address == address!("0000000000000000000000000000000000000000") {
+            TxKind::Create
+        } else {
+            TxKind::Call(call.contract_address)
+        };
     evm
 }

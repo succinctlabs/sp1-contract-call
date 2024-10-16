@@ -8,14 +8,16 @@ use alloy_rpc_types::{BlockId, BlockNumberOrTag, BlockTransactionsKind};
 use alloy_sol_types::SolCall;
 use alloy_transport::Transport;
 use eyre::{eyre, OptionExt};
-use reth_primitives::{Block, Header};
+use reth_primitives::{Block, Bytes, Header};
 use revm::db::CacheDB;
 use revm_primitives::{B256, U256};
 use rsp_mpt::EthereumState;
 use rsp_primitives::account_proof::eip1186_proof_to_account_proof;
 use rsp_rpc_db::RpcDb;
 
-use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
+use sp1_cc_client_executor::{
+    io::EVMStateSketch, new_evm, new_evm_custom_call, ContractInput, ContractInputCustomCall,
+};
 
 /// An executor that fetches data from a [`Provider`].
 ///
@@ -66,6 +68,18 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
         let result = C::abi_decode_returns(output_bytes, true)?;
         tracing::info!("Result of host executor call: {:?}", output_bytes);
         Ok(result)
+    }
+
+    // Executes the smart contract call with the given [`ContractInput`].
+    pub async fn execute_custom_call(
+        &mut self,
+        call: ContractInputCustomCall,
+    ) -> eyre::Result<Bytes> {
+        let cache_db = CacheDB::new(&self.rpc_db);
+        let mut evm = new_evm_custom_call(cache_db, &self.header, U256::ZERO, &call);
+        let output = evm.transact()?;
+        let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
+        Ok(output_bytes.clone())
     }
 
     /// Returns the cumulative [`EVMStateSketch`] after executing some smart contracts.
