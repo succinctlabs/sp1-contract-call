@@ -5,7 +5,7 @@ use io::EVMStateSketch;
 use reth_evm::ConfigureEvmEnv;
 use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
-use revm::{db::CacheDB, Database, Evm, EvmBuilder};
+use revm::{db::CacheDB, Database, Evm, EvmBuilder, State};
 use revm_primitives::{Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, SpecId, TxKind, B256, U256};
 use rsp_client_executor::io::WitnessInput;
 use rsp_witness_db::WitnessDb;
@@ -88,7 +88,7 @@ pub fn new_evm<'a, D, C>(
     header: &Header,
     total_difficulty: U256,
     call: &ContractInput<C>,
-) -> Evm<'a, (), D>
+) -> Evm<'a, (), State<D>>
 where
     D: Database,
     C: SolCall,
@@ -106,8 +106,10 @@ where
     // Set the base fee to 0 to enable 0 gas price transactions.
     block_env.basefee = U256::from(0);
 
+    let state = State::builder().with_database(db).build();
+
     let mut evm = EvmBuilder::default()
-        .with_db(db)
+        .with_db(state)
         .with_cfg_env_with_handler_cfg(cfg_env)
         .modify_block_env(|evm_block_env| *evm_block_env = block_env)
         .build();
