@@ -23,6 +23,9 @@ pub struct ContractInput {
     pub calldata: ContractCalldata,
 }
 
+/// The type of calldata to pass to a contract.
+///
+/// This enum is used to distinguish between contract calls and contract creations.
 #[derive(Debug, Clone)]
 pub enum ContractCalldata {
     Call(Bytes),
@@ -55,7 +58,8 @@ impl ContractInput {
 
     /// Creates a new contract creation input.
     ///
-    /// This will be formatted The contract address will be set to the zero address.
+    /// To create a new contract, we send a transaction with TxKind Create to the
+    /// zero address. As such, the contract address will be set to the zero address.
     pub fn new_create(caller_address: Address, calldata: Bytes) -> Self {
         Self {
             contract_address: Address::ZERO,
