@@ -24,9 +24,6 @@ sol! {
 /// Address of Uniswap V3 pool.
 const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 
-/// Address of the caller.
-const CALLER: Address = address!("0000000000000000000000000000000000000000");
-
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
 
@@ -90,14 +87,9 @@ async fn main() -> eyre::Result<()> {
 
     // Make the call to the slot0 function.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
-    let _price_x96 = host_executor
-        .execute(ContractInput {
-            contract_address: CONTRACT,
-            caller_address: CALLER,
-            calldata: slot0_call,
-        })
-        .await?
-        .sqrtPriceX96;
+    let _price_x96_bytes = host_executor
+        .execute(ContractInput::new_call(CONTRACT, Address::default(), slot0_call))
+        .await?;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let input = host_executor.finalize().await?;
