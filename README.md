@@ -28,9 +28,6 @@ sol! {
 /// Address of Uniswap V3 pool.
 const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 
-/// Address of the caller.
-const CALLER: Address = address!("0000000000000000000000000000000000000000");
-
 ...
 
 let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
@@ -42,12 +39,11 @@ let executor = ClientExecutor::new(state_sketch).unwrap();
 
 // Execute the slot0 call using the client executor.
 let slot0_call = IUniswapV3PoolState::slot0Call {};
-let input =
-    ContractInput { contract_address: CONTRACT, caller_address: CALLER, calldata: slot0_call };
-let public_values = executor.execute(input).unwrap();
+let call = ContractInput::new_call(CONTRACT, Address::default(), slot0_call);
+let public_vals = executor.execute(call).unwrap();
 
 // Commit the abi-encoded output.
-sp1_zkvm::io::commit_slice(&public_values.abi_encode());
+sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
 ```
 
 ### Host
@@ -73,14 +69,9 @@ let block_hash = host_executor.header.hash_slow();
 
 // Make the call to the slot0 function.
 let slot0_call = IUniswapV3PoolState::slot0Call {};
-let _price_x96 = host_executor
-    .execute(ContractInput {
-        contract_address: CONTRACT,
-        caller_address: CALLER,
-        calldata: slot0_call,
-    })
-    .await?
-    .sqrtPriceX96;
+let _price_x96_bytes = host_executor
+    .execute(ContractInput::new_call(CONTRACT, Address::default(), slot0_call))
+    .await?;
 
 // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
 let input = host_executor.finalize().await?;
@@ -162,7 +153,8 @@ where `[example]` is one of the following
     * Due to the size of this program, it's recommended to use the [SP1 Prover network](https://docs.succinct.xyz/generating-proofs/prover-network.html) to generate proofs for this example.
 * `verify-quorum`
     * Calls a contract that verifies several ECDSA signatures on chain, and sums the stake for the addresses corresponding to valid signatures.
-
+* `example-deploy`
+    * Demonstrates how to simulate a contract creation transaction on SP1-CC.
 
 ## Acknowledgments
 
