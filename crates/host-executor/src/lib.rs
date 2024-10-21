@@ -5,10 +5,9 @@ use std::collections::BTreeSet;
 
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{BlockId, BlockNumberOrTag, BlockTransactionsKind};
-use alloy_sol_types::SolCall;
 use alloy_transport::Transport;
 use eyre::{eyre, OptionExt};
-use reth_primitives::{Block, Header};
+use reth_primitives::{Block, Bytes, Header};
 use revm::db::CacheDB;
 use revm_primitives::{B256, U256};
 use rsp_mpt::EthereumState;
@@ -57,15 +56,13 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
     }
 
     /// Executes the smart contract call with the given [`ContractInput`].
-    pub async fn execute<C: SolCall>(&mut self, call: ContractInput<C>) -> eyre::Result<C::Return> {
+    pub async fn execute(&mut self, call: ContractInput) -> eyre::Result<Bytes> {
         let cache_db = CacheDB::new(&self.rpc_db);
         let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
         let output = evm.transact()?;
         let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
 
-        let result = C::abi_decode_returns(output_bytes, true)?;
-        tracing::info!("Result of host executor call: {:?}", output_bytes);
-        Ok(result)
+        Ok(output_bytes.clone())
     }
 
     /// Returns the cumulative [`EVMStateSketch`] after executing some smart contracts.

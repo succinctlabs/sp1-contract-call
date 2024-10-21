@@ -11,14 +11,62 @@ use rsp_client_executor::io::WitnessInput;
 use rsp_witness_db::WitnessDb;
 
 /// Input to a contract call.
+///
+/// Can be used to call an existing contract or create a new one. If used to create a new one,
 #[derive(Debug, Clone)]
-pub struct ContractInput<C: SolCall> {
+pub struct ContractInput {
     /// The address of the contract to call.
     pub contract_address: Address,
     /// The address of the caller.
     pub caller_address: Address,
     /// The calldata to pass to the contract.
-    pub calldata: C,
+    pub calldata: ContractCalldata,
+}
+
+/// The type of calldata to pass to a contract.
+///
+/// This enum is used to distinguish between contract calls and contract creations.
+#[derive(Debug, Clone)]
+pub enum ContractCalldata {
+    Call(Bytes),
+    Create(Bytes),
+}
+
+impl ContractCalldata {
+    /// Encode the calldata as a bytes.
+    pub fn to_bytes(&self) -> Bytes {
+        match self {
+            Self::Call(calldata) => calldata.clone(),
+            Self::Create(calldata) => calldata.clone(),
+        }
+    }
+}
+
+impl ContractInput {
+    /// Create a new contract call input.
+    pub fn new_call<C: SolCall>(
+        contract_address: Address,
+        caller_address: Address,
+        calldata: C,
+    ) -> Self {
+        Self {
+            contract_address,
+            caller_address,
+            calldata: ContractCalldata::Call(calldata.abi_encode().into()),
+        }
+    }
+
+    /// Creates a new contract creation input.
+    ///
+    /// To create a new contract, we send a transaction with TxKind Create to the
+    /// zero address. As such, the contract address will be set to the zero address.
+    pub fn new_create(caller_address: Address, calldata: Bytes) -> Self {
+        Self {
+            contract_address: Address::ZERO,
+            caller_address,
+            calldata: ContractCalldata::Create(calldata),
+        }
+    }
 }
 
 sol! {
@@ -39,11 +87,11 @@ impl ContractPublicValues {
     ///
     /// By default, commit the contract input, the output, and the block hash to public values of
     /// the proof. More can be committed if necessary.
-    pub fn new<C: SolCall>(call: ContractInput<C>, output: Bytes, block_hash: B256) -> Self {
+    pub fn new(call: ContractInput, output: Bytes, block_hash: B256) -> Self {
         Self {
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
-            contractCalldata: call.calldata.abi_encode().into(),
+            contractCalldata: call.calldata.to_bytes(),
             contractOutput: output,
             blockHash: block_hash,
         }
@@ -69,29 +117,25 @@ impl ClientExecutor {
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
-    pub fn execute<C: SolCall>(
-        &self,
-        call: ContractInput<C>,
-    ) -> eyre::Result<ContractPublicValues> {
+    pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
         let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
         let tx_output = evm.transact()?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
-        Ok(ContractPublicValues::new::<C>(call, tx_output_bytes.clone(), self.header.hash_slow()))
+        Ok(ContractPublicValues::new(call, tx_output_bytes.clone(), self.header.hash_slow()))
     }
 }
 
 /// TODO Add support for other chains besides Ethereum Mainnet.
 /// Instantiates a new EVM, which is ready to run `call`.
-pub fn new_evm<'a, D, C>(
+pub fn new_evm<'a, D>(
     db: D,
     header: &Header,
     total_difficulty: U256,
-    call: &ContractInput<C>,
+    call: &ContractInput,
 ) -> Evm<'a, (), State<D>>
 where
     D: Database,
-    C: SolCall,
 {
     let mut cfg_env = CfgEnvWithHandlerCfg::new_with_spec_id(Default::default(), SpecId::LATEST);
     let mut block_env = BlockEnv::default();
@@ -116,11 +160,13 @@ where
 
     let tx_env = evm.tx_mut();
     tx_env.caller = call.caller_address;
-    tx_env.data = call.calldata.abi_encode().into();
+    tx_env.data = call.calldata.to_bytes();
     tx_env.gas_limit = header.gas_limit;
     // Set the gas price to 0 to avoid lack of funds (0) error.
     tx_env.gas_price = U256::from(0);
-    tx_env.transact_to = TxKind::Call(call.contract_address);
-
+    tx_env.transact_to = match call.calldata {
+        ContractCalldata::Create(_) => TxKind::Create,
+        ContractCalldata::Call(_) => TxKind::Call(call.contract_address),
+    };
     evm
 }

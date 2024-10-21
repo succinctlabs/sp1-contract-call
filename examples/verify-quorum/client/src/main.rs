@@ -19,9 +19,6 @@ sol! {
 /// Address of the SimpleStaking contract on Ethereum Sepolia.
 const CONTRACT: Address = address!("C82bbB1719271318282fe332795935f39B89b5cf");
 
-/// Address of the caller.
-const CALLER: Address = address!("0000000000000000000000000000000000000000");
-
 pub fn main() {
     // Read the state sketch from stdin. Use this during the execution in order to
     // access Ethereum state.
@@ -37,11 +34,11 @@ pub fn main() {
     let executor = ClientExecutor::new(state_sketch).unwrap();
 
     // Set up the call to `verifySigned`.
-    let verify_signed_call = ContractInput {
-        contract_address: CONTRACT,
-        caller_address: CALLER,
-        calldata: SimpleStaking::verifySignedCall { messageHashes: messages, signatures },
-    };
+    let verify_signed_call = ContractInput::new_call(
+        CONTRACT,
+        Address::default(),
+        SimpleStaking::verifySignedCall { messageHashes: messages, signatures },
+    );
 
     // Execute the call.
     let public_vals = executor.execute(verify_signed_call).unwrap();

@@ -25,9 +25,6 @@ sol! {
 /// Address of the SimpleStaking contract on Ethereum Sepolia.
 const CONTRACT: Address = address!("C82bbB1719271318282fe332795935f39B89b5cf");
 
-/// Address of the caller.
-const CALLER: Address = address!("0000000000000000000000000000000000000000");
-
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
 
@@ -97,17 +94,18 @@ async fn main() -> eyre::Result<()> {
     }
 
     // Set up the call to `verifySigned`.
-    let verify_signed_call = ContractInput {
-        contract_address: CONTRACT,
-        caller_address: CALLER,
-        calldata: SimpleStaking::verifySignedCall {
+    let verify_signed_call = ContractInput::new_call(
+        CONTRACT,
+        Address::default(),
+        SimpleStaking::verifySignedCall {
             messageHashes: messages.clone(),
             signatures: signatures.clone(),
         },
-    };
+    );
 
     // The host executes the call to `verifySigned`.
-    let total_stake = host_executor.execute(verify_signed_call).await?._0;
+    let total_stake_bytes = host_executor.execute(verify_signed_call).await?;
+    let total_stake = verifySignedCall::abi_decode_returns(&total_stake_bytes, true)?._0;
     println!("total_stake: {}", total_stake);
 
     // Now that we've executed the call, get the `EVMStateSketch` from the host executor.

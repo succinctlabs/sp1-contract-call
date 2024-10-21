@@ -17,9 +17,6 @@ sol! {
 /// Address of Uniswap V3 pool.
 const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 
-/// Address of the caller.
-const CALLER: Address = address!("0000000000000000000000000000000000000000");
-
 pub fn main() {
     // Read the state sketch from stdin. Use this during the execution in order to
     // access Ethereum state.
@@ -32,12 +29,8 @@ pub fn main() {
 
     // Execute the slot0 call using the client executor.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
-    let input = ContractInput {
-        contract_address: CONTRACT,
-        caller_address: CALLER,
-        calldata: slot0_call.clone(),
-    };
-    let public_vals = executor.execute(input).unwrap();
+    let call = ContractInput::new_call(CONTRACT, Address::default(), slot0_call);
+    let public_vals = executor.execute(call).unwrap();
 
     // Commit the abi-encoded output.
     sp1_zkvm::io::commit_slice(&public_vals.abi_encode());

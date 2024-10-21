@@ -2295,6 +2295,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "example-deploy"
+version = "0.1.0"
+dependencies = [
+ "alloy",
+ "alloy-primitives 0.8.8",
+ "alloy-provider",
+ "alloy-rpc-types",
+ "alloy-sol-macro 0.8.8",
+ "alloy-sol-types 0.8.8",
+ "bincode",
+ "eyre",
+ "sp1-cc-client-executor",
+ "sp1-cc-host-executor",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "eyre"
 version = "0.6.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"

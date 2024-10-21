@@ -1,0 +1,22 @@
+[package]
+version = "0.1.0"
+name = "example-deploy"
+edition = "2021"
+
+[dependencies]
+# workspace
+sp1-cc-host-executor = { path = "../../../crates/host-executor" }
+sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+
+alloy-primitives.workspace = true
+alloy-sol-types.workspace = true
+alloy-rpc-types.workspace = true
+alloy-sol-macro.workspace = true
+alloy-provider.workspace = true
+alloy.workspace = true
+
+# misc:
+url.workspace = true
+tokio.workspace = true
+eyre.workspace = true
+bincode.workspace = true

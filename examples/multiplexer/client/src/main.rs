@@ -18,9 +18,6 @@ sol! {
 /// Address of the multiplexer contract on Ethereum Mainnet.
 const CONTRACT: Address = address!("0A8c00EcFA0816F4f09289ac52Fcb88eA5337526");
 
-/// Address of the caller.
-const CALLER: Address = address!("0000000000000000000000000000000000000000");
-
 /// Inputs to the contract call.
 const COLLATERALS: [Address; 12] = [
     address!("E95A203B1a91a908F9B9CE46459d101078c2c3cb"),
@@ -49,11 +46,7 @@ pub fn main() {
 
     // Execute the getRates call using the client executor.
     let calldata = IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() };
-    let call = ContractInput {
-        contract_address: CONTRACT,
-        caller_address: CALLER,
-        calldata: calldata.clone(),
-    };
+    let call = ContractInput::new_call(CONTRACT, Address::default(), calldata);
     let public_vals = executor.execute(call).unwrap();
 
     // Commit the abi-encoded output.

@@ -20,9 +20,6 @@ sol! {
 /// Address of the multiplexer contract on Ethereum Mainnet.
 const CONTRACT: Address = address!("0A8c00EcFA0816F4f09289ac52Fcb88eA5337526");
 
-/// Address of the caller.
-const CALLER: Address = address!("0000000000000000000000000000000000000000");
-
 /// Inputs to the contract call.
 const COLLATERALS: [Address; 12] = [
     address!("E95A203B1a91a908F9B9CE46459d101078c2c3cb"),
@@ -62,14 +59,14 @@ async fn main() -> eyre::Result<()> {
     let block_hash = host_executor.header.hash_slow();
 
     // Describes the call to the getRates function.
-    let call = ContractInput {
-        contract_address: CONTRACT,
-        caller_address: CALLER,
-        calldata: IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() },
-    };
+    let call = ContractInput::new_call(
+        CONTRACT,
+        Address::default(),
+        IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() },
+    );
 
     // Call getRates from the host executor.
-    let _rates = host_executor.execute(call).await?._0;
+    let _encoded_rates = host_executor.execute(call).await?;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let input = host_executor.finalize().await?;
