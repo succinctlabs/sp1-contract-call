@@ -1,9 +1,9 @@
 [workspace]
 members = [
-    "examples/example-deploy/host",
-    "examples/uniswap/host",
+    # "examples/example-deploy/host",
+    # "examples/uniswap/host",
     "examples/multiplexer/host",
-    "examples/verify-quorum/host",
+    # "examples/verify-quorum/host",
     "crates/client-executor",
     "crates/host-executor",
 ]

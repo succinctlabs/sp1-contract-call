@@ -5,8 +5,11 @@ edition = "2021"
 
 [dependencies]
 # workspace
-sp1-cc-host-executor = { path = "../../../crates/host-executor" }
-sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+# sp1-cc-host-executor = { path = "../../../crates/host-executor" }
+# sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+
+sp1-cc-host-executor = { git = "https://github.com/succinctlabs/sp1-contract-call", branch = "main" }
+sp1-cc-client-executor = { git = "https://github.com/succinctlabs/sp1-contract-call", branch = "main" }
 
 alloy-primitives.workspace = true
 alloy-sol-types.workspace = true
@@ -26,11 +29,11 @@ serde_json.workspace = true
 clap = { version = "4.0", features = ["derive"] }
 
 # sp1
-sp1-sdk = "2.0.0"
+sp1-sdk = "3.0.0"
 
 
 [build-dependencies]
-sp1-helper = "2.0.0"
+sp1-helper = "3.0.0"
 
 
 [features]

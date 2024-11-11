@@ -6,7 +6,10 @@ edition = "2021"
 
 [dependencies]
 # workspace
-sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+# sp1-cc-client-executor = { git = "https://github.com/succinctlabs/sp1-contract-call", branch = "main" }
+
+sp1-cc-client-executor = { git = "https://github.com/succinctlabs/sp1-contract-call", branch = "main" }
+
 
 # alloy
 alloy-primitives = { version = "0.8" }
@@ -14,7 +17,7 @@ alloy-sol-types = { version = "0.8" }
 alloy-sol-macro = { version = "0.8" }
 
 # sp1
-sp1-zkvm = "2.0.0"
+sp1-zkvm = "3.0.0"
 
 # misc
 bincode = "1.3.3"

@@ -95,3 +95,32 @@ jobs:
           cd examples/uniswap/contracts
           forge test -vvv
         id: test
+
+  test-arm:
+    name: arm test
+    runs-on: ["runs-on", "runner=32cpu-linux-arm64", "run-id=${{ github.run_id }}"]
+    env:
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup CI
+        uses: ./.github/actions/setup
+
+      - name: "Install sp1up"
+        run: |
+            curl -L https://sp1.succinct.xyz | bash
+            echo "$HOME/.sp1/bin" >> $GITHUB_PATH
+
+      - name: "Install SP1 toolchain"
+        run: |
+            sp1up
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cargo prove build --docker
+        run: |
+          cd ./examples/uniswap/client
+          cargo prove build --docker
