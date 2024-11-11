@@ -5,8 +5,11 @@ edition = "2021"
 
 [dependencies]
 # workspace
-sp1-cc-host-executor = { path = "../../../crates/host-executor" }
-sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+# sp1-cc-host-executor = { path = "../../../crates/host-executor" }
+# sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+
+sp1-cc-host-executor = { git = "https://github.com/succinctlabs/sp1-contract-call", branch = "main" }
+sp1-cc-client-executor = { git = "https://github.com/succinctlabs/sp1-contract-call", branch = "main" }
 
 alloy-primitives.workspace = true
 alloy-sol-types.workspace = true

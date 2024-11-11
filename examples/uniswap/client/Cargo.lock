@@ -3007,6 +3007,7 @@ dependencies = [
 [[package]]
 name = "sp1-cc-client-executor"
 version = "0.1.0"
+source = "git+https://github.com/succinctlabs/sp1-contract-call?branch=main#54a464089e697a5b245ab49ec5acf91a088ae296"
 dependencies = [
  "alloy-sol-types",
  "eyre",
@@ -3038,34 +3039,27 @@ dependencies = [
 
 [[package]]
 name = "sp1-lib"
-version = "2.0.0"
+version = "3.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413956de14568d7fb462213b9505ad4607d75c875301b9eca567cfb2e58eaac1"
+checksum = "1c8744af050832df5ca44fcd63979a83b93ca3010b2d5a5ce2a2b91f7438065c"
 dependencies = [
- "anyhow",
  "bincode",
- "cfg-if",
- "hex",
  "serde",
- "snowbridge-amcl",
 ]
 
 [[package]]
 name = "sp1-zkvm"
-version = "2.0.0"
+version = "3.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66c525f67cfd3f65950f01c713a72c41a5d44d289155644c8ace4ec264098039"
+checksum = "c801c78c061c34136e370ecba67e6570d785b27177a120108050d626ee4590c9"
 dependencies = [
- "bincode",
  "cfg-if",
  "getrandom",
  "lazy_static",
  "libm",
- "once_cell",
  "rand",
- "serde",
  "sha2",
- "sp1-lib 2.0.0",
+ "sp1-lib 3.2.1",
 ]
 
 [[package]]
