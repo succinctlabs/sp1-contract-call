@@ -102,8 +102,6 @@ jobs:
       [
         runs-on,
         runner=64cpu-linux-arm64,
-        spot=false,
-        "run-id=${{ github.run_id }}",
       ]
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
