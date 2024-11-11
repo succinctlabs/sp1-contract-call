@@ -97,12 +97,8 @@ jobs:
         id: test
 
   test-arm:
-    name: Test (ARM)
-    runs-on:
-      [
-        runs-on,
-        runner=64cpu-linux-arm64,
-      ]
+    name: arm test
+    runs-on: ["runs-on", "runner=64cpu-linux-arm64", "run-id=${{ github.run_id }}"]
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
