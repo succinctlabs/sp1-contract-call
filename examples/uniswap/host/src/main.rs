@@ -100,10 +100,10 @@ async fn main() -> eyre::Result<()> {
     stdin.write(&input_bytes);
 
     // Create a `ProverClient`.
-    let client = ProverClient::new();
+    let client = ProverClient::from_env();
 
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
-    let (_, report) = client.execute(ELF, stdin.clone()).run().unwrap();
+    let (_, report) = client.execute(ELF, &stdin).run().unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
 
     // If the prove flag is not set, we return here.
@@ -113,7 +113,7 @@ async fn main() -> eyre::Result<()> {
 
     // Generate the proof for the given program and input.
     let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, stdin).plonk().run().unwrap();
+    let proof = client.prove(&pk, &stdin).plonk().run().unwrap();
     println!("generated proof");
 
     // Read the public values, and deserialize them.
