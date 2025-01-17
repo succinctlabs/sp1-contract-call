@@ -4946,7 +4946,7 @@ dependencies = [
 [[package]]
 name = "rsp-client-executor"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp#48053d9038603cf37cf3abbb78c19373a043048b"
+source = "git+https://github.com/succinctlabs/rsp?rev=3522dd944108de631171299e5273485b5329eddb#3522dd944108de631171299e5273485b5329eddb"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -4979,7 +4979,7 @@ dependencies = [
 [[package]]
 name = "rsp-mpt"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp#48053d9038603cf37cf3abbb78c19373a043048b"
+source = "git+https://github.com/succinctlabs/rsp?rev=3522dd944108de631171299e5273485b5329eddb#3522dd944108de631171299e5273485b5329eddb"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -5001,7 +5001,7 @@ dependencies = [
 [[package]]
 name = "rsp-primitives"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp#48053d9038603cf37cf3abbb78c19373a043048b"
+source = "git+https://github.com/succinctlabs/rsp?rev=3522dd944108de631171299e5273485b5329eddb#3522dd944108de631171299e5273485b5329eddb"
 dependencies = [
  "alloy-rpc-types",
  "eyre",
@@ -5021,7 +5021,7 @@ dependencies = [
 [[package]]
 name = "rsp-rpc-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp#48053d9038603cf37cf3abbb78c19373a043048b"
+source = "git+https://github.com/succinctlabs/rsp?rev=3522dd944108de631171299e5273485b5329eddb#3522dd944108de631171299e5273485b5329eddb"
 dependencies = [
  "alloy-provider",
  "alloy-rlp",
@@ -5043,7 +5043,7 @@ dependencies = [
 [[package]]
 name = "rsp-witness-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp#48053d9038603cf37cf3abbb78c19373a043048b"
+source = "git+https://github.com/succinctlabs/rsp?rev=3522dd944108de631171299e5273485b5329eddb#3522dd944108de631171299e5273485b5329eddb"
 dependencies = [
  "reth-primitives",
  "reth-storage-errors",
