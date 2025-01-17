@@ -2,8 +2,11 @@
 members = [
     "examples/example-deploy/host",
     "examples/uniswap/host",
+    "examples/uniswap/client",
     "examples/multiplexer/host",
+    "examples/multiplexer/client",
     "examples/verify-quorum/host",
+    "examples/verify-quorum/client",
     "crates/client-executor",
     "crates/host-executor",
 ]
