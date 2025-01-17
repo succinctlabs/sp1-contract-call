@@ -4,7 +4,6 @@ sp1_zkvm::entrypoint!(main);
 use alloy_primitives::{address, Address, Bytes, B256};
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
-use bincode;
 use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
 
 sol! {
