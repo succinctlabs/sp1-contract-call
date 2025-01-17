@@ -65,6 +65,8 @@ fn save_fixture(vkey: String, proof: &SP1ProofWithPublicValues) {
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().ok();
+
     // Setup logging.
     utils::setup_logger();
 

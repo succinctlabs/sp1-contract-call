@@ -40,6 +40,8 @@ const SEED: u64 = 12;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().ok();
+
     // Setup logging.
     utils::setup_logger();
 

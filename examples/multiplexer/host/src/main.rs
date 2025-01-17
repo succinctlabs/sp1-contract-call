@@ -41,6 +41,8 @@ const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf"
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().ok();
+
     // Setup logging.
     utils::setup_logger();
 

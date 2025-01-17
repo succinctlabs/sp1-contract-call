@@ -32,6 +32,8 @@ const BYTECODE: &str = "0x6080604052348015600e575f5ffd5b50415f5260205ff3fe";
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().ok();
+
     // Get a recent blob to get the hash from.
     let block_number = BlockNumberOrTag::Safe;
 
