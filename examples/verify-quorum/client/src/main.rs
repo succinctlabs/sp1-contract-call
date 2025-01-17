@@ -43,5 +43,5 @@ pub fn main() {
     let public_vals = executor.execute(verify_signed_call).unwrap();
 
     // Commit the result.
-    sp1_zkvm::io::commit(&public_vals.abi_encode());
+    sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
 }
