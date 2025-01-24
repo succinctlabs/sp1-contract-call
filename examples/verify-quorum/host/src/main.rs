@@ -9,7 +9,7 @@ use reth_primitives::public_key_to_address;
 use secp256k1::{generate_keypair, Message, SECP256K1};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
-use sp1_sdk::{utils, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
 use SimpleStaking::verifySignedCall;
 
@@ -26,7 +26,7 @@ sol! {
 const CONTRACT: Address = address!("C82bbB1719271318282fe332795935f39B89b5cf");
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
+const ELF: &[u8] = include_elf!("verify-quorum-client");
 
 /// The number of stakers.
 const NUM_STAKERS: usize = 3;
@@ -40,6 +40,8 @@ const SEED: u64 = 12;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().ok();
+
     // Setup logging.
     utils::setup_logger();
 

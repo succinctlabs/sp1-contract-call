@@ -5,7 +5,7 @@ use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
-use sp1_sdk::{utils, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
 use IOracleHelper::getRatesCall;
 
@@ -37,10 +37,12 @@ const COLLATERALS: [Address; 12] = [
 ];
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
+const ELF: &[u8] = include_elf!("multiplexer-client");
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().ok();
+
     // Setup logging.
     utils::setup_logger();
 

@@ -19,6 +19,7 @@ url.workspace = true
 tokio.workspace = true
 eyre.workspace = true
 bincode.workspace = true
+dotenv.workspace = true
 
 # sp1
 sp1-sdk = "4.0.0"

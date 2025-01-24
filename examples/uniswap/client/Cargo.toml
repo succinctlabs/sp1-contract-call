@@ -1,4 +1,3 @@
-[workspace.package]
 [package]
 name = "uniswap-client"
 description = ""

@@ -10,7 +10,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
-use sp1_sdk::{utils, HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::{include_elf, utils, HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
 use url::Url;
 use IUniswapV3PoolState::slot0Call;
 
@@ -25,7 +25,7 @@ sol! {
 const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_bytes!("../../client/elf/riscv32im-succinct-zkvm-elf");
+const ELF: &[u8] = include_elf!("uniswap-client");
 
 /// A fixture that can be used to test the verification of SP1 zkVM proofs inside Solidity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,6 +65,8 @@ fn save_fixture(vkey: String, proof: &SP1ProofWithPublicValues) {
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().ok();
+
     // Setup logging.
     utils::setup_logger();
 
