@@ -1,5 +1,5 @@
 use alloy_primitives::{address, Address};
-use alloy_provider::ReqwestProvider;
+use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolCall;
@@ -127,7 +127,7 @@ async fn test_contract_creation() -> eyre::Result<()> {
     // Use `ETH_SEPOLIA_RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
-    let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
+    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
@@ -154,7 +154,7 @@ async fn test_e2e(contract_input: ContractInput) -> eyre::Result<ContractPublicV
     //
     // Use `RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing RPC_URL"));
-    let provider = ReqwestProvider::new_http(Url::parse(&rpc_url)?);
+    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
     let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
     let _contract_output = host_executor.execute(contract_input.clone()).await?;
@@ -162,7 +162,7 @@ async fn test_e2e(contract_input: ContractInput) -> eyre::Result<ContractPublicV
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let state_sketch = host_executor.finalize().await?;
 
-    let client_executor = ClientExecutor::new(state_sketch)?;
+    let client_executor = ClientExecutor::new(&state_sketch)?;
 
     let public_values = client_executor.execute(contract_input)?;
 

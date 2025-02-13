@@ -8,7 +8,7 @@ edition = "2021"
 sp1-cc-host-executor = { path = "../../../crates/host-executor" }
 sp1-cc-client-executor = { path = "../../../crates/client-executor" }
 
-alloy-primitives.workspace = true
+alloy-primitives = { workspace = true, features = ["rand"] }
 alloy-sol-types.workspace = true
 alloy-rpc-types.workspace = true
 alloy-sol-macro.workspace = true

@@ -30,7 +30,7 @@ pub fn main() {
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
-    let executor = ClientExecutor::new(state_sketch).unwrap();
+    let executor = ClientExecutor::new(&state_sketch).unwrap();
 
     // Set up the call to `verifySigned`.
     let verify_signed_call = ContractInput::new_call(
