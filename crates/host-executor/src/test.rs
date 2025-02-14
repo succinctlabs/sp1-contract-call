@@ -119,6 +119,9 @@ async fn test_wrapped_eth() -> eyre::Result<()> {
 /// This tests contract creation transactions.
 #[tokio::test(flavor = "multi_thread")]
 async fn test_contract_creation() -> eyre::Result<()> {
+    // Load environment variables.
+    dotenv::dotenv().ok();
+
     let bytecode = "0x6080604052348015600e575f5ffd5b50415f5260205ff3fe";
 
     // Get a recent blob to get the hash from.
