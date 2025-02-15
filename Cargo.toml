@@ -39,11 +39,11 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "3522dd944108de631171299e5273485b5329eddb" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "3522dd944108de631171299e5273485b5329eddb" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "3522dd944108de631171299e5273485b5329eddb" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "3522dd944108de631171299e5273485b5329eddb" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "3522dd944108de631171299e5273485b5329eddb" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.2.0" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.2.0" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.2.0" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.2.0" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.2.0" }
 
 # rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
 # rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
@@ -52,53 +52,54 @@ rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "3522dd944108de63
 # rsp-mpt = { path = "../rsp/crates/mpt"}
 
 # reth
-reth-primitives = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false, features = [
     "alloy-compat",
     "std",
 ] }
-reth-codecs = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-consensus = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-evm = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-revm = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+reth-codecs = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false, features = [
     "std",
 ] }
-reth-evm-ethereum = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false, features = [
     "std",
 ] }
-reth-storage-errors = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false, features = [
+reth-storage-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false, features = [
     "std",
 ] }
-reth-trie = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-trie-common = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-chainspec = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-execution-errors = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-execution-types = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-db = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-errors = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
-reth-ethereum-consensus = { git = "https://github.com/sp1-patches/reth", tag = "rsp-20240830", default-features = false }
+reth-trie = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-execution-types = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
+reth-ethereum-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.2.0", default-features = false }
 
 # revm
-revm = { version = "14.0.0", features = [
+revm = { version = "19.5.0", features = [
     "std",
 ], default-features = false }
-revm-primitives = { version = "9.0.0", features = [
+revm-primitives = { version = "15.2.0", features = [
     "std",
 ], default-features = false }
 
 # alloy
-alloy-primitives = "0.8"
-alloy-provider = { version = "0.3", default-features = false, features = [
+alloy-primitives = "0.8.15"
+alloy-consensus = { version = "0.11.1", default-features = false }
+alloy-provider = { version = "0.11.1", default-features = false, features = [
     "reqwest",
 ] }
-alloy-rpc-types = { version = "0.3", default-features = false, features = [
+alloy-rpc-types = { version = "0.11.1", default-features = false, features = [
     "eth",
 ] }
-alloy-rlp = "0.3.4"
-alloy-transport = { version = "0.3" }
+alloy-rlp = "0.3.10"
+alloy-transport = { version = "0.11.1" }
 
 alloy-sol-types = { version = "0.8" }
 alloy-sol-macro = { version = "0.8" }
-alloy = { version = "0.3" }
+alloy = { version = "0.11.1" }
 
 [workspace.lints]
 rust.missing_debug_implementations = "warn"

@@ -1,14 +1,15 @@
 pub mod io;
+use std::sync::Arc;
+
 use alloy_sol_types::{sol, SolCall};
 use eyre::OptionExt;
 use io::EVMStateSketch;
-use reth_evm::ConfigureEvmEnv;
+use reth_evm::{ConfigureEvmEnv, EvmEnv};
 use reth_evm_ethereum::EthEvmConfig;
 use reth_primitives::Header;
 use revm::{db::CacheDB, Database, Evm, EvmBuilder, State};
-use revm_primitives::{Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, SpecId, TxKind, B256, U256};
-use rsp_client_executor::io::WitnessInput;
-use rsp_witness_db::WitnessDb;
+use revm_primitives::{Address, Bytes, CfgEnvWithHandlerCfg, SpecId, TxKind, B256, U256};
+use rsp_client_executor::io::{TrieDB, WitnessInput};
 
 /// Input to a contract call.
 ///
@@ -100,18 +101,18 @@ impl ContractPublicValues {
 
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
-pub struct ClientExecutor {
+pub struct ClientExecutor<'a> {
     /// The database that the executor uses to access state.
-    pub witness_db: WitnessDb,
+    pub witness_db: TrieDB<'a>,
     /// The block header.
-    pub header: Header,
+    pub header: &'a Header,
 }
 
-impl ClientExecutor {
+impl<'a> ClientExecutor<'a> {
     /// Instantiates a new [`ClientExecutor`]
-    pub fn new(state_sketch: EVMStateSketch) -> eyre::Result<Self> {
+    pub fn new(state_sketch: &'a EVMStateSketch) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
-        Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: state_sketch.header })
+        Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: &state_sketch.header })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
@@ -119,7 +120,7 @@ impl ClientExecutor {
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
+        let mut evm = new_evm(cache_db, self.header, U256::ZERO, &call);
         let tx_output = evm.transact()?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
         Ok(ContractPublicValues::new(call, tx_output_bytes.clone(), self.header.hash_slow()))
@@ -137,24 +138,22 @@ pub fn new_evm<'a, D>(
 where
     D: Database,
 {
-    let mut cfg_env = CfgEnvWithHandlerCfg::new_with_spec_id(Default::default(), SpecId::LATEST);
-    let mut block_env = BlockEnv::default();
+    let chain_spec = Arc::new(rsp_primitives::chain_spec::mainnet().unwrap());
 
-    EthEvmConfig::default().fill_cfg_and_block_env(
-        &mut cfg_env,
-        &mut block_env,
-        &rsp_primitives::chain_spec::mainnet(),
-        header,
-        total_difficulty,
-    );
+    let EvmEnv { cfg_env, mut block_env, .. } = EthEvmConfig::new(chain_spec).evm_env(header);
+
     // Set the base fee to 0 to enable 0 gas price transactions.
     block_env.basefee = U256::from(0);
+    block_env.difficulty = total_difficulty;
 
     let state = State::builder().with_database(db).build();
 
     let mut evm = EvmBuilder::default()
         .with_db(state)
-        .with_cfg_env_with_handler_cfg(cfg_env)
+        .with_cfg_env_with_handler_cfg(CfgEnvWithHandlerCfg::new_with_spec_id(
+            cfg_env,
+            SpecId::LATEST,
+        ))
         .modify_block_env(|evm_block_env| *evm_block_env = block_env)
         .build();
 

@@ -5,11 +5,10 @@ use std::collections::BTreeSet;
 
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{BlockId, BlockNumberOrTag, BlockTransactionsKind};
-use alloy_transport::Transport;
-use eyre::{eyre, OptionExt};
-use reth_primitives::{Block, Bytes, Header};
+use eyre::eyre;
+use reth_primitives::Header;
 use revm::db::CacheDB;
-use revm_primitives::{B256, U256};
+use revm_primitives::{Bytes, B256, U256};
 use rsp_mpt::EthereumState;
 use rsp_primitives::account_proof::eip1186_proof_to_account_proof;
 use rsp_rpc_db::RpcDb;
@@ -21,26 +20,32 @@ use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
 /// This executor keeps track of the state being accessed, and eventually compresses it into an
 /// [`EVMStateSketch`].
 #[derive(Debug, Clone)]
-pub struct HostExecutor<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> {
+pub struct HostExecutor<P: Provider<AnyNetwork> + Clone> {
     /// The header of the block to execute our view functions on.
     pub header: Header,
     /// The [`RpcDb`] used to back the EVM.
-    pub rpc_db: RpcDb<T, P>,
+    pub rpc_db: RpcDb<P, AnyNetwork>,
     /// The provider used to fetch data.
     pub provider: P,
 }
 
-impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P> {
+impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
     /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
     pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
         let block = provider
-            .get_block_by_number(block_number, true)
+            .get_block_by_number(block_number, BlockTransactionsKind::Full)
             .await?
-            .map(|block| Block::try_from(block.inner))
-            .ok_or(eyre!("couldn't fetch block: {}", block_number))??;
+            .ok_or(eyre!("couldn't fetch block: {}", block_number))?;
 
         let rpc_db = RpcDb::new(provider.clone(), block.header.number);
-        Ok(Self { header: block.header, rpc_db, provider })
+        let header = block
+            .inner
+            .header
+            .inner
+            .try_into_header()
+            .map_err(|_| eyre!("fail to convert header"))?;
+
+        Ok(Self { header, rpc_db, provider })
     }
 
     /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockId`].
@@ -48,11 +53,16 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
         let block = provider
             .get_block(block_identifier, BlockTransactionsKind::Full)
             .await?
-            .map(|block| Block::try_from(block.inner))
-            .ok_or(eyre!("couldn't fetch block: {}", block_identifier))??;
+            .ok_or(eyre!("couldn't fetch block: {}", block_identifier))?;
 
         let rpc_db = RpcDb::new(provider.clone(), block.header.number);
-        Ok(Self { header: block.header, rpc_db, provider })
+        let header = block
+            .inner
+            .header
+            .inner
+            .try_into_header()
+            .map_err(|_| eyre!("fail to convert header"))?;
+        Ok(Self { header, rpc_db, provider })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`].
@@ -60,7 +70,7 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
         let cache_db = CacheDB::new(&self.rpc_db);
         let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
         let output = evm.transact()?;
-        let output_bytes = output.result.output().ok_or_eyre("Error getting result")?;
+        let output_bytes = output.result.output().ok_or(eyre!("Error getting result"))?;
 
         Ok(output_bytes.clone())
     }
@@ -96,8 +106,19 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
         let mut ancestor_headers = vec![];
         tracing::info!("fetching {} ancestor headers", block_number - oldest_ancestor);
         for height in (oldest_ancestor..=(block_number - 1)).rev() {
-            let block = self.provider.get_block_by_number(height.into(), false).await?.unwrap();
-            ancestor_headers.push(block.inner.header.try_into()?);
+            let block = self
+                .provider
+                .get_block_by_number(height.into(), BlockTransactionsKind::Full)
+                .await?
+                .unwrap();
+            ancestor_headers.push(
+                block
+                    .inner
+                    .header
+                    .inner
+                    .try_into_header()
+                    .map_err(|_| eyre!("fail to convert header"))?,
+            );
         }
 
         Ok(EVMStateSketch {

@@ -43,7 +43,9 @@ contract UniswapCallTest is Test {
         console.log(rate);
     }
 
-    function testFail_InvalidUniswapCallProof() public view {
+    function test_Revert_InvalidUniswapCallProof() public {
+        vm.expectRevert();
+        
         SP1ProofFixtureJson memory fixture = loadFixture();
 
         // Create a fake proof.

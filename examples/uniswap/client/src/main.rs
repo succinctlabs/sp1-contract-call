@@ -24,7 +24,7 @@ pub fn main() {
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
-    let executor = ClientExecutor::new(state_sketch).unwrap();
+    let executor = ClientExecutor::new(&state_sketch).unwrap();
 
     // Execute the slot0 call using the client executor.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
