@@ -143,7 +143,7 @@ where `[example]` is one of the following
 * `uniswap`
     * Fetches the price of the UNI / WETH pair on Uniswap V3. By default, this does not generate a proof.  
     * Running `RUST_LOG=info cargo run --bin [example] --release -- --prove` will generate a plonk proof. This requires 
-    significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/generating-proofs/prover-network).
+    significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/sp1/generating-proofs/prover-network).
         * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain. 
         * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory. 
 * `multiplexer`
