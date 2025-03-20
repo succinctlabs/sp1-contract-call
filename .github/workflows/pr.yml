@@ -50,7 +50,7 @@ jobs:
           echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
           echo "ETH_SEPOLIA_RPC_URL=${{secrets.ETH_SEPOLIA_RPC_URL}}" >> $GITHUB_ENV
 
-      - name: Run uniswap script
+      - name: Run ${{ matrix.example }}
         uses: actions-rs/cargo@v1   
         with:
           command: run
