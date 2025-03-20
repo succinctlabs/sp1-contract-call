@@ -38,6 +38,11 @@ dotenv = "0.15.0"
 sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
+# sp1
+sp1-sdk = "4.1.3"
+sp1-zkvm = "4.1.3"
+sp1-build = "4.1.3"
+
 # rsp
 rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "7f954c7d8ca25e76199749a9b90285b07008adac" }
 rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "7f954c7d8ca25e76199749a9b90285b07008adac" }
