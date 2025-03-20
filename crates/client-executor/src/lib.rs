@@ -1,14 +1,17 @@
 pub mod io;
 use std::sync::Arc;
 
+use alloy_evm::{Database, Evm, IntoTxEnv};
 use alloy_sol_types::{sol, SolCall};
 use eyre::OptionExt;
 use io::EVMStateSketch;
 use reth_evm::{ConfigureEvmEnv, EvmEnv};
-use reth_evm_ethereum::EthEvmConfig;
+use reth_evm_ethereum::{EthEvm, EthEvmConfig};
 use reth_primitives::Header;
-use revm::{db::CacheDB, Database, Evm, EvmBuilder, State};
-use revm_primitives::{Address, Bytes, CfgEnvWithHandlerCfg, SpecId, TxKind, B256, U256};
+use revm::{
+    context::TxEnv, database::CacheDB, inspector::NoOpInspector, Context, MainBuilder, MainContext,
+};
+use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
 
 /// Input to a contract call.
@@ -70,6 +73,22 @@ impl ContractInput {
     }
 }
 
+impl IntoTxEnv<TxEnv> for &ContractInput {
+    fn into_tx_env(self) -> TxEnv {
+        TxEnv {
+            caller: self.caller_address,
+            data: self.calldata.to_bytes(),
+            // Set the gas price to 0 to avoid lack of funds (0) error.
+            gas_price: 0,
+            kind: match self.calldata {
+                ContractCalldata::Create(_) => TxKind::Create,
+                ContractCalldata::Call(_) => TxKind::Call(self.contract_address),
+            },
+            ..Default::default()
+        }
+    }
+}
+
 sol! {
     /// Public values of a contract call.
     ///
@@ -120,8 +139,8 @@ impl<'a> ClientExecutor<'a> {
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, self.header, U256::ZERO, &call);
-        let tx_output = evm.transact()?;
+        let mut evm = new_evm(cache_db, self.header, U256::ZERO);
+        let tx_output = evm.transact(&call)?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
         Ok(ContractPublicValues::new(call, tx_output_bytes.clone(), self.header.hash_slow()))
     }
@@ -129,43 +148,26 @@ impl<'a> ClientExecutor<'a> {
 
 /// TODO Add support for other chains besides Ethereum Mainnet.
 /// Instantiates a new EVM, which is ready to run `call`.
-pub fn new_evm<'a, D>(
-    db: D,
-    header: &Header,
-    total_difficulty: U256,
-    call: &ContractInput,
-) -> Evm<'a, (), State<D>>
+pub fn new_evm<DB>(db: DB, header: &Header, total_difficulty: U256) -> EthEvm<DB, NoOpInspector>
 where
-    D: Database,
+    DB: Database,
 {
     let chain_spec = Arc::new(rsp_primitives::chain_spec::mainnet().unwrap());
 
     let EvmEnv { cfg_env, mut block_env, .. } = EthEvmConfig::new(chain_spec).evm_env(header);
 
     // Set the base fee to 0 to enable 0 gas price transactions.
-    block_env.basefee = U256::from(0);
+    block_env.basefee = 0;
     block_env.difficulty = total_difficulty;
 
-    let state = State::builder().with_database(db).build();
+    let evm = Context::mainnet()
+        .with_db(db)
+        .with_cfg(cfg_env)
+        .with_block(block_env)
+        .modify_tx_chained(|tx_env| {
+            tx_env.gas_limit = header.gas_limit;
+        })
+        .build_mainnet_with_inspector(NoOpInspector {});
 
-    let mut evm = EvmBuilder::default()
-        .with_db(state)
-        .with_cfg_env_with_handler_cfg(CfgEnvWithHandlerCfg::new_with_spec_id(
-            cfg_env,
-            SpecId::LATEST,
-        ))
-        .modify_block_env(|evm_block_env| *evm_block_env = block_env)
-        .build();
-
-    let tx_env = evm.tx_mut();
-    tx_env.caller = call.caller_address;
-    tx_env.data = call.calldata.to_bytes();
-    tx_env.gas_limit = header.gas_limit;
-    // Set the gas price to 0 to avoid lack of funds (0) error.
-    tx_env.gas_price = U256::from(0);
-    tx_env.transact_to = match call.calldata {
-        ContractCalldata::Create(_) => TxKind::Create,
-        ContractCalldata::Call(_) => TxKind::Call(call.contract_address),
-    };
-    evm
+    EthEvm::new(evm, false)
 }

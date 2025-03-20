@@ -3,11 +3,12 @@ mod test;
 
 use std::collections::BTreeSet;
 
+use alloy_evm::Evm;
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{BlockId, BlockNumberOrTag, BlockTransactionsKind};
 use eyre::eyre;
 use reth_primitives::Header;
-use revm::db::CacheDB;
+use revm::database::CacheDB;
 use revm_primitives::{Bytes, B256, U256};
 use rsp_mpt::EthereumState;
 use rsp_primitives::account_proof::eip1186_proof_to_account_proof;
@@ -68,8 +69,8 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
     /// Executes the smart contract call with the given [`ContractInput`].
     pub async fn execute(&mut self, call: ContractInput) -> eyre::Result<Bytes> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &call);
-        let output = evm.transact()?;
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO);
+        let output = evm.transact(&call)?;
         let output_bytes = output.result.output().ok_or(eyre!("Error getting result"))?;
 
         Ok(output_bytes.clone())
@@ -102,7 +103,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
         let state = EthereumState::from_proofs(self.header.state_root, &storage_proofs_by_address)?;
 
         // Fetch the parent headers needed to constrain the BLOCKHASH opcode.
-        let oldest_ancestor = *self.rpc_db.oldest_ancestor.borrow();
+        let oldest_ancestor = *self.rpc_db.oldest_ancestor.read().unwrap();
         let mut ancestor_headers = vec![];
         tracing::info!("fetching {} ancestor headers", block_number - oldest_ancestor);
         for height in (oldest_ancestor..=(block_number - 1)).rev() {

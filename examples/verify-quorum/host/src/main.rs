@@ -1,12 +1,11 @@
-use alloy_primitives::{address, Address, Bytes, B256};
+use alloy_primitives::{address, keccak256, Address, Bytes, B256};
 use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
-use reth_primitives::public_key_to_address;
-use secp256k1::{generate_keypair, Message, SECP256K1};
+use secp256k1::{generate_keypair, Message, PublicKey, SECP256K1};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
@@ -154,4 +153,13 @@ async fn main() -> eyre::Result<()> {
     client.verify(&proof, &vk).expect("verification failed");
     println!("successfully generated and verified proof for the program!");
     Ok(())
+}
+
+// We can't use `public_key_to_address()` from `reth_primitives`` because Reth depend on
+// `secp256k1` 0.30 while we are still on 0.29.
+pub fn public_key_to_address(public: PublicKey) -> Address {
+    // strip out the first byte because that should be the SECP256K1_TAG_PUBKEY_UNCOMPRESSED
+    // tag returned by libsecp's uncompressed pubkey serialization
+    let hash = keccak256(&public.serialize_uncompressed()[1..]);
+    Address::from_slice(&hash[12..])
 }

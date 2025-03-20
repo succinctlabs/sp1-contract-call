@@ -34,6 +34,7 @@ alloy-transport.workspace = true
 alloy-sol-macro.workspace = true
 alloy-sol-types.workspace = true
 alloy-rpc-types.workspace = true
+alloy-evm.workspace = true
 
 [dev-dependencies]
 alloy-primitives.workspace = true

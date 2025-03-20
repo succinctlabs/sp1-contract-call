@@ -29,5 +29,6 @@ revm-primitives.workspace = true
 # alloy
 alloy-consensus.workspace = true
 alloy-sol-types.workspace = true
+alloy-evm.workspace = true
 
 [dev-dependencies]
