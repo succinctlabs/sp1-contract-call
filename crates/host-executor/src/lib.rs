@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 
 use alloy_evm::Evm;
 use alloy_provider::{network::AnyNetwork, Provider};
-use alloy_rpc_types::{BlockId, BlockNumberOrTag, BlockTransactionsKind};
+use alloy_rpc_types::{BlockId, BlockNumberOrTag};
 use eyre::eyre;
 use reth_primitives::Header;
 use revm::database::CacheDB;
@@ -34,7 +34,8 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
     /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
     pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
         let block = provider
-            .get_block_by_number(block_number, BlockTransactionsKind::Full)
+            .get_block_by_number(block_number)
+            .full()
             .await?
             .ok_or(eyre!("couldn't fetch block: {}", block_number))?;
 
@@ -43,6 +44,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
             .inner
             .header
             .inner
+            .clone()
             .try_into_header()
             .map_err(|_| eyre!("fail to convert header"))?;
 
@@ -52,7 +54,8 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
     /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockId`].
     pub async fn new_with_blockid(provider: P, block_identifier: BlockId) -> eyre::Result<Self> {
         let block = provider
-            .get_block(block_identifier, BlockTransactionsKind::Full)
+            .get_block(block_identifier)
+            .full()
             .await?
             .ok_or(eyre!("couldn't fetch block: {}", block_identifier))?;
 
@@ -61,6 +64,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
             .inner
             .header
             .inner
+            .clone()
             .try_into_header()
             .map_err(|_| eyre!("fail to convert header"))?;
         Ok(Self { header, rpc_db, provider })
@@ -107,16 +111,13 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
         let mut ancestor_headers = vec![];
         tracing::info!("fetching {} ancestor headers", block_number - oldest_ancestor);
         for height in (oldest_ancestor..=(block_number - 1)).rev() {
-            let block = self
-                .provider
-                .get_block_by_number(height.into(), BlockTransactionsKind::Full)
-                .await?
-                .unwrap();
+            let block = self.provider.get_block_by_number(height.into()).full().await?.unwrap();
             ancestor_headers.push(
                 block
                     .inner
                     .header
                     .inner
+                    .clone()
                     .try_into_header()
                     .map_err(|_| eyre!("fail to convert header"))?,
             );

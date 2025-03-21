@@ -5,7 +5,7 @@ use alloy_evm::{Database, Evm, IntoTxEnv};
 use alloy_sol_types::{sol, SolCall};
 use eyre::OptionExt;
 use io::EVMStateSketch;
-use reth_evm::{ConfigureEvmEnv, EvmEnv};
+use reth_evm::{ConfigureEvm, EvmEnv};
 use reth_evm_ethereum::{EthEvm, EthEvmConfig};
 use reth_primitives::Header;
 use revm::{
