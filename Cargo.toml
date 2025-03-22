@@ -39,17 +39,17 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "4.1.3"
-sp1-zkvm = "4.1.3"
-sp1-build = "4.1.3"
+sp1-sdk = "4.1.4"
+sp1-zkvm = "4.1.4"
+sp1-build = "4.1.4"
 
 # rsp
 # TODO: Replace with a proper RSP release once out
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "4a630ae58b1637449b17f5cedb1fe73efbd205bf" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "4a630ae58b1637449b17f5cedb1fe73efbd205bf" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "4a630ae58b1637449b17f5cedb1fe73efbd205bf" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "4a630ae58b1637449b17f5cedb1fe73efbd205bf" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "4a630ae58b1637449b17f5cedb1fe73efbd205bf" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
 
 # rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
 # rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
@@ -84,10 +84,10 @@ reth-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.3", def
 reth-ethereum-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.3", default-features = false }
 
 # revm
-revm = { version = "20.0.0-alpha.6", features = [
+revm = { version = "20.0.0-alpha.7", features = [
     "std",
 ], default-features = false }
-revm-primitives = { version = "16.0.0-alpha.4", features = [
+revm-primitives = { version = "16.0.0-alpha.5", features = [
     "std",
 ], default-features = false }
 
@@ -107,7 +107,7 @@ alloy-sol-types = { version = "0.8" }
 alloy-sol-macro = { version = "0.8" }
 alloy = { version = "0.12.6" }
 
-alloy-evm = { version = "0.1.0-alpha.2", default-features = false }
+alloy-evm = { version = "0.1.0-alpha.3", default-features = false }
 
 [workspace.lints]
 rust.missing_debug_implementations = "warn"
