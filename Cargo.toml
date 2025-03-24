@@ -44,7 +44,6 @@ sp1-zkvm = "4.1.4"
 sp1-build = "4.1.4"
 
 # rsp
-# TODO: Replace with a proper RSP release once out
 rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
 rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
 rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.3.3" }
