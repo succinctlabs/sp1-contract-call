@@ -155,11 +155,11 @@ async fn main() -> eyre::Result<()> {
     Ok(())
 }
 
-// We can't use `public_key_to_address()` from `reth_primitives`` because Reth depend on
-// `secp256k1` 0.30 while we are still on 0.29.
+// Can't use `public_key_to_address()` from `reth_primitives` because Reth depends on
+// `secp256k1` 0.30 while this crate is still on 0.29.
 pub fn public_key_to_address(public: PublicKey) -> Address {
-    // strip out the first byte because that should be the SECP256K1_TAG_PUBKEY_UNCOMPRESSED
-    // tag returned by libsecp's uncompressed pubkey serialization
+    // Strip out the first byte because that should be the SECP256K1_TAG_PUBKEY_UNCOMPRESSED
+    // tag returned by libsecp's uncompressed pubkey serialization.
     let hash = keccak256(&public.serialize_uncompressed()[1..]);
     Address::from_slice(&hash[12..])
 }
