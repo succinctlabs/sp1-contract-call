@@ -1,7 +1,8 @@
 use std::iter::once;
 
-use reth_primitives::{EthPrimitives, Header};
-use revm_primitives::{Address, Bytecode, HashMap, B256, U256};
+use reth_primitives::Header;
+use revm::state::Bytecode;
+use revm_primitives::{Address, HashMap, B256, U256};
 use rsp_client_executor::io::WitnessInput;
 use rsp_mpt::EthereumState;
 use serde::{Deserialize, Serialize};
@@ -30,7 +31,7 @@ pub struct EVMStateSketch {
     pub bytecodes: Vec<Bytecode>,
 }
 
-impl WitnessInput<EthPrimitives> for EVMStateSketch {
+impl WitnessInput for EVMStateSketch {
     #[inline(always)]
     fn state(&self) -> &EthereumState {
         &self.state
