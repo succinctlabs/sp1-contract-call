@@ -8,9 +8,9 @@ edition = "2021"
 sp1-cc-client-executor = { path = "../../../crates/client-executor" }
 
 # alloy
-alloy-primitives = { version = "0.8" }
-alloy-sol-types = { version = "0.8" }
-alloy-sol-macro = { version = "0.8" }
+alloy-primitives = { workspace = true, features = ["serde"] }
+alloy-sol-types.workspace = true
+alloy-sol-macro.workspace = true
 
 # sp1
 sp1-zkvm.workspace = true

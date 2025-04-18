@@ -71,7 +71,7 @@ async fn test_multiplexer() -> eyre::Result<()> {
 
     let public_values = test_e2e(contract_input).await?;
 
-    let rates = getRatesCall::abi_decode_returns(&public_values.contractOutput, true)?._0;
+    let rates = getRatesCall::abi_decode_returns(&public_values.contractOutput)?;
 
     println!("rates: {:?}", rates);
 
@@ -91,7 +91,7 @@ async fn test_uniswap() -> eyre::Result<()> {
     let public_values = test_e2e(contract_input).await?;
 
     let _price_x96_bytes =
-        IUniswapV3PoolState::slot0Call::abi_decode_returns(&public_values.contractOutput, true)?
+        IUniswapV3PoolState::slot0Call::abi_decode_returns(&public_values.contractOutput)?
             .sqrtPriceX96;
 
     Ok(())
@@ -110,7 +110,7 @@ async fn test_wrapped_eth() -> eyre::Result<()> {
 
     let public_values = test_e2e(contract_input).await?;
 
-    let name = nameCall::abi_decode_returns(&public_values.contractOutput, true)?._0;
+    let name = nameCall::abi_decode_returns(&public_values.contractOutput)?;
     assert_eq!(name, String::from("Wrapped Ether"));
 
     Ok(())

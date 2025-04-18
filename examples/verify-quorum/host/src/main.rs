@@ -4,7 +4,7 @@ use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use rand_chacha::ChaCha20Rng;
-use rand_core::SeedableRng;
+use rand_core::{RngCore, SeedableRng};
 use secp256k1::{generate_keypair, Message, PublicKey, SECP256K1};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
 use sp1_cc_host_executor::HostExecutor;
@@ -71,7 +71,8 @@ async fn main() -> eyre::Result<()> {
     for _ in 0..NUM_STAKERS {
         // Generate a random signing key and message, and sign the message with the key.
         let (sk, pk) = generate_keypair(&mut test_rng);
-        let message = B256::random_with(&mut test_rng);
+        let mut message = B256::ZERO;
+        test_rng.fill_bytes(&mut message.0);
         let message_hash = alloy_primitives::keccak256(message);
         let signature = SECP256K1.sign_ecdsa_recoverable(&Message::from_digest(*message_hash), &sk);
 
@@ -106,7 +107,7 @@ async fn main() -> eyre::Result<()> {
 
     // The host executes the call to `verifySigned`.
     let total_stake_bytes = host_executor.execute(verify_signed_call).await?;
-    let total_stake = verifySignedCall::abi_decode_returns(&total_stake_bytes, true)?._0;
+    let total_stake = verifySignedCall::abi_decode_returns(&total_stake_bytes)?;
     println!("total_stake: {}", total_stake);
 
     // Now that we've executed the call, get the `EVMStateSketch` from the host executor.
@@ -134,7 +135,7 @@ async fn main() -> eyre::Result<()> {
     println!("generated proof");
 
     // Read the public values, and deserialize them.
-    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice(), true)?;
+    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice())?;
 
     // Check that the provided block hash matches the one in the proof.
     assert_eq!(public_vals.blockHash, block_hash);
@@ -144,8 +145,7 @@ async fn main() -> eyre::Result<()> {
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let client_total_stake =
-        verifySignedCall::abi_decode_returns(&public_vals.contractOutput, true)?._0;
+    let client_total_stake = verifySignedCall::abi_decode_returns(&public_vals.contractOutput)?;
     assert_eq!(client_total_stake, total_stake);
     println!("verified total stake calculation");
 
