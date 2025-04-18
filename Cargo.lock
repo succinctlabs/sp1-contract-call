@@ -6297,6 +6297,7 @@ dependencies = [
 name = "sp1-cc-host-executor"
 version = "0.1.0"
 dependencies = [
+ "alloy-consensus",
  "alloy-evm",
  "alloy-primitives",
  "alloy-provider",
@@ -6307,7 +6308,6 @@ dependencies = [
  "bincode",
  "dotenv",
  "eyre",
- "reth-primitives",
  "revm",
  "revm-primitives",
  "rsp-mpt",
