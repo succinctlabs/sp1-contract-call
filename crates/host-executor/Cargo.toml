@@ -21,13 +21,13 @@ sp1-cc-client-executor.workspace = true
 rsp-rpc-db.workspace = true
 rsp-primitives.workspace = true
 rsp-mpt.workspace = true
-reth-primitives = { workspace = true, features = ["secp256k1"] }
 
 # revm
 revm.workspace = true
 revm-primitives.workspace = true
 
 # alloy
+alloy-consensus.workspace = true
 alloy-primitives.workspace = true
 alloy-provider.workspace = true
 alloy-transport.workspace = true

@@ -3,11 +3,11 @@ mod test;
 
 use std::collections::BTreeSet;
 
+use alloy_consensus::Header;
 use alloy_evm::Evm;
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{BlockId, BlockNumberOrTag};
 use eyre::eyre;
-use reth_primitives::Header;
 use revm::database::CacheDB;
 use revm_primitives::{Bytes, B256, U256};
 use rsp_mpt::EthereumState;

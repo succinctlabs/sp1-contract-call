@@ -1,6 +1,7 @@
 //! The following contact will be ephemerally deployed to retrieve a coinbase from a block.
 //! This trick can be used to retrieve whatever on chain logic without needing to deploy a contract.
-//! Just write the information that you want to retrieve on solidity in the constructor and return it.
+//! Just write the information that you want to retrieve on solidity in the constructor and return
+//! it.
 
 use alloy::hex;
 use alloy_primitives::{Address, Bytes};
@@ -49,7 +50,7 @@ async fn main() -> eyre::Result<()> {
     let contract_input = ContractInput::new_create(Address::default(), Bytes::from(bytes));
     let check_coinbase = host_executor.execute(contract_input).await?;
 
-    let decoded_address: Address = Address::abi_decode(&check_coinbase, true)?;
+    let decoded_address: Address = Address::abi_decode(&check_coinbase)?;
 
     println!("Coinbase address: {:?}", decoded_address);
     Ok(())

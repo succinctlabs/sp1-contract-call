@@ -119,7 +119,7 @@ async fn main() -> eyre::Result<()> {
     println!("generated proof");
 
     // Read the public values, and deserialize them.
-    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice(), true)?;
+    let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice())?;
 
     // Check that the provided block hash matches the one in the proof.
     assert_eq!(public_vals.blockHash, block_hash);
@@ -129,8 +129,7 @@ async fn main() -> eyre::Result<()> {
     //
     // Note that this output is read from values commited to in the program using
     // `sp1_zkvm::io::commit`.
-    let sqrt_price_x96 =
-        slot0Call::abi_decode_returns(&public_vals.contractOutput, true)?.sqrtPriceX96;
+    let sqrt_price_x96 = slot0Call::abi_decode_returns(&public_vals.contractOutput)?.sqrtPriceX96;
     let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
     println!("Proven exchange rate is: {}%", price);
