@@ -7,7 +7,7 @@ use rand_chacha::ChaCha20Rng;
 use rand_core::{RngCore, SeedableRng};
 use secp256k1::{generate_keypair, Message, PublicKey, SECP256K1};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
-use sp1_cc_host_executor::HostExecutor;
+use sp1_cc_host_executor::{Genesis, HostExecutor};
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
 use SimpleStaking::verifySignedCall;
@@ -58,7 +58,7 @@ async fn main() -> eyre::Result<()> {
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let host_executor = HostExecutor::new(provider.clone(), block_number, Genesis::Sepolia).await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
     let block_hash = host_executor.header.hash_slow();

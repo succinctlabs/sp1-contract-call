@@ -4,7 +4,7 @@ use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
-use sp1_cc_host_executor::HostExecutor;
+use sp1_cc_host_executor::{Genesis, HostExecutor};
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
 use IOracleHelper::getRatesCall;
@@ -55,7 +55,7 @@ async fn main() -> eyre::Result<()> {
     let rpc_url =
         std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let host_executor = HostExecutor::new(provider.clone(), block_number, Genesis::Mainnet).await?;
 
     // Keep track of the block hash. Later, the client's execution will be validated against this.
     let block_hash = host_executor.header.hash_slow();

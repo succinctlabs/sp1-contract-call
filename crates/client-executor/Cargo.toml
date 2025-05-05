@@ -18,6 +18,9 @@ rsp-witness-db.workspace = true
 rsp-primitives.workspace = true
 rsp-client-executor.workspace = true
 rsp-mpt.workspace = true
+
+# reth
+reth-chainspec.workspace = true
 reth-primitives.workspace = true
 reth-evm.workspace = true
 reth-evm-ethereum.workspace = true

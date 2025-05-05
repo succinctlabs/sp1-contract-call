@@ -5,6 +5,7 @@ use revm::state::Bytecode;
 use revm_primitives::{Address, HashMap, B256, U256};
 use rsp_client_executor::io::WitnessInput;
 use rsp_mpt::EthereumState;
+use rsp_primitives::genesis::Genesis;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
@@ -16,6 +17,8 @@ use serde_with::serde_as;
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EVMStateSketch {
+    /// The genesis block specification.
+    pub genesis: Genesis,
     /// The current block header.
     #[serde_as(as = "alloy_consensus::serde_bincode_compat::Header")]
     pub header: Header,

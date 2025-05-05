@@ -4,6 +4,7 @@ use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolCall;
 use revm_primitives::{hex, Bytes};
+use rsp_primitives::genesis::Genesis;
 use sp1_cc_client_executor::{ClientExecutor, ContractInput, ContractPublicValues};
 use url::Url;
 use ERC20Basic::nameCall;
@@ -131,7 +132,7 @@ async fn test_contract_creation() -> eyre::Result<()> {
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let host_executor = HostExecutor::new(provider.clone(), block_number, Genesis::Sepolia).await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
     let bytes = hex::decode(bytecode).expect("Decoding failed");
@@ -158,7 +159,7 @@ async fn test_e2e(contract_input: ContractInput) -> eyre::Result<ContractPublicV
     // Use `RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing RPC_URL"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let host_executor = HostExecutor::new(provider.clone(), block_number, Genesis::Sepolia).await?;
 
     let _contract_output = host_executor.execute(contract_input.clone()).await?;
 
