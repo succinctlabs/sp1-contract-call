@@ -9,7 +9,7 @@ use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_types::SolValue;
 use sp1_cc_client_executor::ContractInput;
-use sp1_cc_host_executor::HostExecutor;
+use sp1_cc_host_executor::{Genesis, HostExecutor};
 use url::Url;
 
 /// The following bytecode corresponds to the following solidity contract:
@@ -42,7 +42,8 @@ async fn main() -> eyre::Result<()> {
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let host_executor =
+        HostExecutor::new_with_genesis(provider.clone(), block_number, Genesis::Sepolia).await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
     let bytes = hex::decode(BYTECODE).expect("Decoding failed");

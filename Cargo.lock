@@ -6273,6 +6273,7 @@ dependencies = [
  "alloy-evm",
  "alloy-sol-types",
  "eyre",
+ "reth-chainspec",
  "reth-evm",
  "reth-evm-ethereum",
  "reth-primitives",

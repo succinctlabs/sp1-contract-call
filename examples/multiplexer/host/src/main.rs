@@ -55,7 +55,7 @@ async fn main() -> eyre::Result<()> {
     let rpc_url =
         std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let mut host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let host_executor = HostExecutor::new(provider.clone(), block_number).await?;
 
     // Keep track of the block hash. Later, the client's execution will be validated against this.
     let block_hash = host_executor.header.hash_slow();

@@ -5,6 +5,7 @@ use alloy_evm::{Database, Evm, IntoTxEnv};
 use alloy_sol_types::{sol, SolCall};
 use eyre::OptionExt;
 use io::EVMStateSketch;
+use reth_chainspec::ChainSpec;
 use reth_evm::{ConfigureEvm, EvmEnv};
 use reth_evm_ethereum::{EthEvm, EthEvmConfig};
 use reth_primitives::Header;
@@ -13,6 +14,7 @@ use revm::{
 };
 use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
+use rsp_primitives::genesis::Genesis;
 
 /// Input to a contract call.
 ///
@@ -84,6 +86,7 @@ impl IntoTxEnv<TxEnv> for &ContractInput {
                 ContractCalldata::Create(_) => TxKind::Create,
                 ContractCalldata::Call(_) => TxKind::Call(self.contract_address),
             },
+            chain_id: None,
             ..Default::default()
         }
     }
@@ -121,6 +124,8 @@ impl ContractPublicValues {
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
 pub struct ClientExecutor<'a> {
+    /// The genesis block specification.
+    pub genesis: &'a Genesis,
     /// The database that the executor uses to access state.
     pub witness_db: TrieDB<'a>,
     /// The block header.
@@ -131,7 +136,11 @@ impl<'a> ClientExecutor<'a> {
     /// Instantiates a new [`ClientExecutor`]
     pub fn new(state_sketch: &'a EVMStateSketch) -> eyre::Result<Self> {
         // let header = state_sketch.header.clone();
-        Ok(Self { witness_db: state_sketch.witness_db().unwrap(), header: &state_sketch.header })
+        Ok(Self {
+            genesis: &state_sketch.genesis,
+            witness_db: state_sketch.witness_db().unwrap(),
+            header: &state_sketch.header,
+        })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
@@ -139,26 +148,30 @@ impl<'a> ClientExecutor<'a> {
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, self.header, U256::ZERO);
+        let mut evm = new_evm(cache_db, self.header, U256::ZERO, self.genesis);
         let tx_output = evm.transact(&call)?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
         Ok(ContractPublicValues::new(call, tx_output_bytes.clone(), self.header.hash_slow()))
     }
 }
 
-/// TODO Add support for other chains besides Ethereum Mainnet.
 /// Instantiates a new EVM, which is ready to run `call`.
-pub fn new_evm<DB>(db: DB, header: &Header, total_difficulty: U256) -> EthEvm<DB, NoOpInspector>
+pub fn new_evm<DB>(
+    db: DB,
+    header: &Header,
+    difficulty: U256,
+    genesis: &Genesis,
+) -> EthEvm<DB, NoOpInspector>
 where
     DB: Database,
 {
-    let chain_spec = Arc::new(rsp_primitives::chain_spec::mainnet().unwrap());
+    let chain_spec = Arc::new(ChainSpec::try_from(genesis).unwrap());
 
     let EvmEnv { cfg_env, mut block_env, .. } = EthEvmConfig::new(chain_spec).evm_env(header);
 
     // Set the base fee to 0 to enable 0 gas price transactions.
     block_env.basefee = 0;
-    block_env.difficulty = total_difficulty;
+    block_env.difficulty = difficulty;
 
     let evm = Context::mainnet()
         .with_db(db)

@@ -6,8 +6,8 @@ use std::collections::BTreeSet;
 use alloy_consensus::Header;
 use alloy_evm::Evm;
 use alloy_provider::{network::AnyNetwork, Provider};
-use alloy_rpc_types::{BlockId, BlockNumberOrTag};
-use eyre::eyre;
+use alloy_rpc_types::BlockId;
+use eyre::{eyre, Ok};
 use revm::database::CacheDB;
 use revm_primitives::{Bytes, B256, U256};
 use rsp_mpt::EthereumState;
@@ -16,12 +16,16 @@ use rsp_rpc_db::RpcDb;
 
 use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
 
+pub use rsp_primitives::genesis::Genesis;
+
 /// An executor that fetches data from a [`Provider`].
 ///
 /// This executor keeps track of the state being accessed, and eventually compresses it into an
 /// [`EVMStateSketch`].
 #[derive(Debug, Clone)]
 pub struct HostExecutor<P: Provider<AnyNetwork> + Clone> {
+    /// The genesis block specification.
+    pub genesis: Genesis,
     /// The header of the block to execute our view functions on.
     pub header: Header,
     /// The [`RpcDb`] used to back the EVM.
@@ -31,28 +35,20 @@ pub struct HostExecutor<P: Provider<AnyNetwork> + Clone> {
 }
 
 impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
-    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
-    pub async fn new(provider: P, block_number: BlockNumberOrTag) -> eyre::Result<Self> {
-        let block = provider
-            .get_block_by_number(block_number)
-            .full()
-            .await?
-            .ok_or(eyre!("couldn't fetch block: {}", block_number))?;
-
-        let rpc_db = RpcDb::new(provider.clone(), block.header.number);
-        let header = block
-            .inner
-            .header
-            .inner
-            .clone()
-            .try_into_header()
-            .map_err(|_| eyre!("fail to convert header"))?;
-
-        Ok(Self { header, rpc_db, provider })
+    /// Creates a new [`HostExecutor`] with a specific [`Provider`] and `block_identifier`
+    /// on Ethereum Mainnet. For a custom chain, use [`HostExecutor::new_with_genesis`].
+    pub async fn new<B: Into<BlockId>>(provider: P, block_identifier: B) -> eyre::Result<Self> {
+        Self::new_with_genesis(provider, block_identifier, Genesis::Mainnet).await
     }
 
-    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockId`].
-    pub async fn new_with_blockid(provider: P, block_identifier: BlockId) -> eyre::Result<Self> {
+    /// Creates a new [`HostExecutor`] with a specific [`Provider`] and `block_identifier`
+    /// on a custom chain using the provided [`Genesis`].
+    pub async fn new_with_genesis<B: Into<BlockId>>(
+        provider: P,
+        block_identifier: B,
+        genesis: Genesis,
+    ) -> eyre::Result<Self> {
+        let block_identifier = block_identifier.into();
         let block = provider
             .get_block(block_identifier)
             .full()
@@ -67,15 +63,26 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
             .clone()
             .try_into_header()
             .map_err(|_| eyre!("fail to convert header"))?;
-        Ok(Self { header, rpc_db, provider })
+
+        Ok(Self { genesis, header, rpc_db, provider })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`].
-    pub async fn execute(&mut self, call: ContractInput) -> eyre::Result<Bytes> {
+    pub async fn execute(&self, call: ContractInput) -> eyre::Result<Bytes> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO);
+        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &self.genesis);
+
         let output = evm.transact(&call)?;
-        let output_bytes = output.result.output().ok_or(eyre!("Error getting result"))?;
+
+        let output_bytes = match output.result {
+            revm::context::result::ExecutionResult::Success { output, .. } => {
+                Ok(output.data().clone())
+            }
+            revm::context::result::ExecutionResult::Revert { output, .. } => Ok(output),
+            revm::context::result::ExecutionResult::Halt { reason, .. } => {
+                Err(eyre!("Execution halted: {reason:?}"))
+            }
+        }?;
 
         Ok(output_bytes.clone())
     }
@@ -124,6 +131,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
         }
 
         Ok(EVMStateSketch {
+            genesis: self.genesis.clone(),
             header: self.header.clone(),
             ancestor_headers,
             state,
