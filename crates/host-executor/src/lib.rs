@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use alloy_consensus::Header;
 use alloy_evm::Evm;
 use alloy_provider::{network::AnyNetwork, Provider};
-use alloy_rpc_types::{BlockId, BlockNumberOrTag};
+use alloy_rpc_types::BlockId;
 use eyre::{eyre, Ok};
 use revm::database::CacheDB;
 use revm_primitives::{Bytes, B256, U256};
@@ -35,36 +35,20 @@ pub struct HostExecutor<P: Provider<AnyNetwork> + Clone> {
 }
 
 impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
-    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
-    pub async fn new(
-        provider: P,
-        block_number: BlockNumberOrTag,
-        genesis: Genesis,
-    ) -> eyre::Result<Self> {
-        let block = provider
-            .get_block_by_number(block_number)
-            .full()
-            .await?
-            .ok_or(eyre!("couldn't fetch block: {}", block_number))?;
-
-        let rpc_db = RpcDb::new(provider.clone(), block.header.number);
-        let header = block
-            .inner
-            .header
-            .inner
-            .clone()
-            .try_into_header()
-            .map_err(|_| eyre!("fail to convert header"))?;
-
-        Ok(Self { genesis, header, rpc_db, provider })
+    /// Creates a new [`HostExecutor`] with a specific [`Provider`] and `block_identifier`
+    /// on Ethereum Mainnet. For a custom chain, use [`HostExecutor::new_with_genesis`].
+    pub async fn new<B: Into<BlockId>>(provider: P, block_identifier: B) -> eyre::Result<Self> {
+        Self::new_with_genesis(provider, block_identifier, Genesis::Mainnet).await
     }
 
-    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockId`].
-    pub async fn new_with_blockid(
+    /// Creates a new [`HostExecutor`] with a specific [`Provider`] and `block_identifier`
+    /// on a custom chain using the provided [`Genesis`].
+    pub async fn new_with_genesis<B: Into<BlockId>>(
         provider: P,
-        block_identifier: BlockId,
+        block_identifier: B,
         genesis: Genesis,
     ) -> eyre::Result<Self> {
+        let block_identifier = block_identifier.into();
         let block = provider
             .get_block(block_identifier)
             .full()
@@ -79,6 +63,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
             .clone()
             .try_into_header()
             .map_err(|_| eyre!("fail to convert header"))?;
+
         Ok(Self { genesis, header, rpc_db, provider })
     }
 
