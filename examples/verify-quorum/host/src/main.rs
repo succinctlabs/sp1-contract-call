@@ -58,7 +58,8 @@ async fn main() -> eyre::Result<()> {
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let host_executor = HostExecutor::new(provider.clone(), block_number, Genesis::Sepolia).await?;
+    let host_executor =
+        HostExecutor::new_with_genesis(provider.clone(), block_number, Genesis::Sepolia).await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
     let block_hash = host_executor.header.hash_slow();
