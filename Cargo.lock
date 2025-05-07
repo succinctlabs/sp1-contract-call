@@ -6271,6 +6271,10 @@ version = "0.1.0"
 dependencies = [
  "alloy-consensus",
  "alloy-evm",
+ "alloy-primitives",
+ "alloy-rpc-types",
+ "alloy-rpc-types-eth",
+ "alloy-serde",
  "alloy-sol-types",
  "eyre",
  "reth-chainspec",
@@ -6285,6 +6289,7 @@ dependencies = [
  "rsp-witness-db",
  "serde",
  "serde_with",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -6308,6 +6313,7 @@ dependencies = [
  "rsp-primitives",
  "rsp-rpc-db",
  "sp1-cc-client-executor",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "tracing-subscriber 0.3.19",
@@ -6880,6 +6886,35 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
+
+[[package]]
+name = "swap-events"
+version = "0.1.0"
+dependencies = [
+ "alloy",
+ "alloy-sol-macro",
+ "alloy-sol-types",
+ "clap",
+ "dotenv",
+ "eyre",
+ "sp1-build",
+ "sp1-cc-client-executor",
+ "sp1-cc-host-executor",
+ "sp1-sdk",
+ "swap-events-client",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "swap-events-client"
+version = "0.0.0"
+dependencies = [
+ "alloy-primitives",
+ "alloy-sol-types",
+ "sp1-cc-client-executor",
+ "sp1-zkvm",
+]
 
 [[package]]
 name = "syn"

@@ -1,0 +1,29 @@
+[package]
+name = "swap-events"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# workspace
+sp1-cc-host-executor = { path = "../../../crates/host-executor" }
+sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+swap-events-client = { path = "../client" }
+
+# misc
+clap = { version = "4.0", features = ["derive"] }
+dotenv.workspace = true
+eyre.workspace = true
+tokio.workspace = true
+url.workspace = true
+
+# alloy
+alloy.workspace = true
+alloy-sol-macro.workspace = true
+alloy-sol-types.workspace = true
+
+# sp1
+sp1-sdk.workspace = true
+
+
+[build-dependencies]
+sp1-build.workspace = true

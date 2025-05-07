@@ -13,6 +13,7 @@ eyre.workspace = true
 url.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+thiserror.workspace = true
 
 # workspace
 sp1-cc-client-executor.workspace = true

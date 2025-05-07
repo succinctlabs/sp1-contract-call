@@ -16,6 +16,12 @@ use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
 use rsp_primitives::genesis::Genesis;
 
+mod errors;
+pub use errors::ClientError;
+
+mod events;
+pub use events::{EventsInput, LogsInput};
+
 /// Input to a contract call.
 ///
 /// Can be used to call an existing contract or create a new one. If used to create a new one,

@@ -12,6 +12,7 @@ workspace = true
 eyre.workspace = true
 serde.workspace = true
 serde_with = "3.12.0"
+thiserror.workspace = true
 
 # rsp
 rsp-witness-db.workspace = true
@@ -32,6 +33,10 @@ revm-primitives.workspace = true
 # alloy
 alloy-consensus.workspace = true
 alloy-sol-types.workspace = true
+alloy-primitives.workspace = true
+alloy-rpc-types = { workspace = true }
+alloy-rpc-types-eth = { workspace = true, features = ["serde"] }
 alloy-evm.workspace = true
+alloy-serde.workspace = true
 
 [dev-dependencies]

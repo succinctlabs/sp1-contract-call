@@ -1,0 +1,23 @@
+[package]
+name = "swap-events-client"
+description = ""
+edition = "2021"
+
+[[bin]]
+name = "decoded"
+path = "src/decoded.rs"
+
+[[bin]]
+name = "metadata"
+path = "src/metadata.rs"
+
+[dependencies]
+# workspace
+sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+
+# alloy
+alloy-primitives.workspace = true
+alloy-sol-types.workspace = true
+
+# sp1
+sp1-zkvm.workspace = true

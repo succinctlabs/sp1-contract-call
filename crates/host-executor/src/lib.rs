@@ -18,6 +18,12 @@ use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
 
 pub use rsp_primitives::genesis::Genesis;
 
+mod errors;
+pub use errors::HostError;
+
+mod events;
+pub use events::EventLogsPrefetcher;
+
 /// An executor that fetches data from a [`Provider`].
 ///
 /// This executor keeps track of the state being accessed, and eventually compresses it into an
