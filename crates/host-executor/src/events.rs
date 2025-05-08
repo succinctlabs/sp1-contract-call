@@ -1,38 +1,58 @@
+use alloy_consensus::{Header, ReceiptEnvelope};
+use alloy_eips::{eip2718::Eip2718Error, Decodable2718, Encodable2718};
 use alloy_provider::{network::AnyNetwork, Provider};
-use alloy_rpc_types::Filter;
-use alloy_sol_types::SolEvent;
-use sp1_cc_client_executor::{EventsInput, LogsInput};
+use alloy_rpc_types::{AnyReceiptEnvelope, Log as RpcLog};
 
 use crate::HostError;
 
-#[derive(Debug)]
-pub struct EventLogsPrefetcher<P: Provider<AnyNetwork> + Clone> {
+#[derive(Debug, Clone)]
+pub struct LogsPrefetcher<P: Provider<AnyNetwork> + Clone> {
     provider: P,
+    prefetch: bool,
 }
 
-impl<P: Provider<AnyNetwork> + Clone> EventLogsPrefetcher<P> {
-    /// Create a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
+impl<P: Provider<AnyNetwork> + Clone> LogsPrefetcher<P> {
+    /// Creates a new [`HostExecutor`] with a specific [`Provider`] and [`BlockNumberOrTag`].
     pub fn new(provider: P) -> Self {
-        Self { provider }
+        Self { provider, prefetch: false }
     }
 
-    /// Returns an input containing all logs data and metadata that can be sent to the zkVM.
-    ///
-    /// If you only need to interact with decoded events, you can use [`prefetch_events`]
-    /// That is more cycle efficient.
-    pub async fn prefetch_logs(&self, filter: &Filter) -> Result<LogsInput, HostError> {
-        let logs = self.provider.get_logs(filter).await?;
-
-        Ok(LogsInput::new(logs))
+    /// Trigger receipts prefetching.
+    pub fn trigger_prefetch(&mut self) {
+        self.prefetch = true;
     }
 
-    /// Returns an input containing only the data needed to decode the event inside the zkVM.
-    pub async fn prefetch_events<E: SolEvent>(
+    /// Prefetch receipts for inclusion in [`sp1_cc_client_executor::EVMStateSketch`].
+    pub async fn prefetch_receipts(
         &self,
-        filter: &Filter,
-    ) -> Result<EventsInput, HostError> {
-        let logs = self.provider.get_logs(filter).await?;
+        header: &Header,
+    ) -> Result<Vec<ReceiptEnvelope>, HostError> {
+        if !self.prefetch {
+            return Ok(vec![]);
+        }
 
-        Ok(EventsInput::new(logs))
+        self.provider
+            .get_block_receipts(header.number.into())
+            .await?
+            .unwrap_or_default()
+            .into_iter()
+            .map(|r| convert_receipt_envelope(r.inner.inner))
+            .collect::<Result<_, _>>()
+            .map_err(Into::into)
     }
+}
+
+fn convert_receipt_envelope(
+    any_receipt_envelope: AnyReceiptEnvelope<RpcLog>,
+) -> Result<ReceiptEnvelope, Eip2718Error> {
+    let any_receipt_envelope = AnyReceiptEnvelope {
+        inner: any_receipt_envelope.inner.map_logs(|l| l.inner),
+        r#type: any_receipt_envelope.r#type,
+    };
+
+    let mut buf = vec![];
+
+    any_receipt_envelope.encode_2718(&mut buf);
+
+    ReceiptEnvelope::decode_2718(&mut buf.as_slice())
 }

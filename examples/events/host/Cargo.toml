@@ -1,5 +1,5 @@
 [package]
-name = "swap-events"
+name = "events"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 # workspace
 sp1-cc-host-executor = { path = "../../../crates/host-executor" }
 sp1-cc-client-executor = { path = "../../../crates/client-executor" }
-swap-events-client = { path = "../client" }
+events-client = { path = "../client" }
 
 # misc
 clap = { version = "4.0", features = ["derive"] }

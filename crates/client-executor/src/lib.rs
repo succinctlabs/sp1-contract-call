@@ -1,8 +1,12 @@
 pub mod io;
 use std::sync::Arc;
 
+use alloy_eips::Encodable2718;
 use alloy_evm::{Database, Evm, IntoTxEnv};
-use alloy_sol_types::{sol, SolCall};
+use alloy_primitives::Log;
+use alloy_rpc_types::{Filter, FilteredParams};
+use alloy_sol_types::{sol, SolCall, SolEvent};
+use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::OptionExt;
 use io::EVMStateSketch;
 use reth_chainspec::ChainSpec;
@@ -18,9 +22,6 @@ use rsp_primitives::genesis::Genesis;
 
 mod errors;
 pub use errors::ClientError;
-
-mod events;
-pub use events::{EventsInput, LogsInput};
 
 /// Input to a contract call.
 ///
@@ -136,16 +137,27 @@ pub struct ClientExecutor<'a> {
     pub witness_db: TrieDB<'a>,
     /// The block header.
     pub header: &'a Header,
+    /// All logs in the block.
+    pub logs: Vec<Log>,
 }
 
 impl<'a> ClientExecutor<'a> {
     /// Instantiates a new [`ClientExecutor`]
     pub fn new(state_sketch: &'a EVMStateSketch) -> eyre::Result<Self> {
-        // let header = state_sketch.header.clone();
+        if !state_sketch.receipts.is_empty() {
+            // verify the receipts root hash
+            let root =
+                ordered_trie_root_with_encoder(&state_sketch.receipts, |r, out| r.encode_2718(out));
+            assert_eq!(state_sketch.header.receipts_root, root, "Receipts root mismatch");
+        }
+
+        let logs = state_sketch.receipts.iter().flat_map(|r| r.logs().to_vec()).collect();
+
         Ok(Self {
             genesis: &state_sketch.genesis,
             witness_db: state_sketch.witness_db().unwrap(),
             header: &state_sketch.header,
+            logs,
         })
     }
 
@@ -158,6 +170,20 @@ impl<'a> ClientExecutor<'a> {
         let tx_output = evm.transact(&call)?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
         Ok(ContractPublicValues::new(call, tx_output_bytes.clone(), self.header.hash_slow()))
+    }
+
+    /// Returns the decoded logs matching the provided `filter`.
+    ///
+    /// To be avaliable in the client, the logs need to be prefetched in the host first.
+    pub fn get_logs<E: SolEvent>(&self, filter: Filter) -> Result<Vec<Log<E>>, ClientError> {
+        let params = FilteredParams::new(Some(filter));
+
+        self.logs
+            .iter()
+            .filter(|log| params.filter_address(&log.address) && params.filter_topics(log.topics()))
+            .map(|log| E::decode_log(log))
+            .collect::<Result<_, _>>()
+            .map_err(Into::into)
     }
 }
 

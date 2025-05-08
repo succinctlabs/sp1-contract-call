@@ -6,8 +6,8 @@ use std::collections::BTreeSet;
 use alloy_consensus::Header;
 use alloy_evm::Evm;
 use alloy_provider::{network::AnyNetwork, Provider};
-use alloy_rpc_types::BlockId;
-use eyre::{eyre, Ok};
+use alloy_rpc_types::{BlockId, Filter, Log};
+use eyre::eyre;
 use revm::database::CacheDB;
 use revm_primitives::{Bytes, B256, U256};
 use rsp_mpt::EthereumState;
@@ -22,7 +22,7 @@ mod errors;
 pub use errors::HostError;
 
 mod events;
-pub use events::EventLogsPrefetcher;
+pub use events::LogsPrefetcher;
 
 /// An executor that fetches data from a [`Provider`].
 ///
@@ -38,6 +38,8 @@ pub struct HostExecutor<P: Provider<AnyNetwork> + Clone> {
     pub rpc_db: RpcDb<P, AnyNetwork>,
     /// The provider used to fetch data.
     pub provider: P,
+    /// The [`LogsPrefetcher`] used to retrieve and prepare the logs for the client.
+    pub logs_prefetcher: LogsPrefetcher<P>,
 }
 
 impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
@@ -69,8 +71,13 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
             .clone()
             .try_into_header()
             .map_err(|_| eyre!("fail to convert header"))?;
-
-        Ok(Self { genesis, header, rpc_db, provider })
+        Ok(Self {
+            genesis,
+            header,
+            rpc_db,
+            provider: provider.clone(),
+            logs_prefetcher: LogsPrefetcher::new(provider),
+        })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`].
@@ -91,6 +98,20 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
         }?;
 
         Ok(output_bytes.clone())
+    }
+
+    /// Prefetch the logs matching the provided `filter`, allowing them to be retrieved in the
+    /// client using [`get_logs`].
+    ///
+    /// [`get_logs`]: sp1_cc_client_executor::ClientExecutor::get_logs
+    pub async fn prefetch_logs(&mut self, filter: &Filter) -> Result<Vec<Log>, HostError> {
+        let logs = self.provider.get_logs(filter).await?;
+
+        if !logs.is_empty() {
+            self.logs_prefetcher.trigger_prefetch();
+        }
+
+        Ok(logs)
     }
 
     /// Returns the cumulative [`EVMStateSketch`] after executing some smart contracts.
@@ -136,6 +157,8 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
             );
         }
 
+        let receipts = self.logs_prefetcher.prefetch_receipts(&self.header).await?;
+
         Ok(EVMStateSketch {
             genesis: self.genesis.clone(),
             header: self.header.clone(),
@@ -143,6 +166,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
             state,
             state_requests,
             bytecodes: self.rpc_db.get_bytecodes(),
+            receipts,
         })
     }
 }

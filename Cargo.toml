@@ -96,6 +96,7 @@ revm-primitives = { version = "18.0.0", features = [
 # alloy
 alloy-primitives = "1.0"
 alloy-consensus = { version = "0.14.0", default-features = false }
+alloy-eips = { version = "0.14.0", default-features = false }
 alloy-provider = { version = "0.14.0", default-features = false, features = [
     "reqwest",
 ] }
@@ -107,6 +108,7 @@ alloy-serde = { version = "0.14.0" }
 alloy-transport = { version = "0.14.0" }
 
 alloy-rlp = "0.3.10"
+alloy-trie = "0.8.1"
 alloy-sol-types = { version = "1.0" }
 alloy-sol-macro = { version = "1.0" }
 alloy = { version = "0.14.0" }
