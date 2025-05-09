@@ -1,5 +1,6 @@
 use std::iter::once;
 
+use alloy_consensus::ReceiptEnvelope;
 use reth_primitives::Header;
 use revm::state::Bytecode;
 use revm_primitives::{Address, HashMap, B256, U256};
@@ -32,6 +33,9 @@ pub struct EVMStateSketch {
     pub state_requests: HashMap<Address, Vec<U256>>,
     /// Account bytecodes.
     pub bytecodes: Vec<Bytecode>,
+    /// Receipts.
+    #[serde_as(as = "Vec<alloy_consensus::serde_bincode_compat::ReceiptEnvelope>")]
+    pub receipts: Vec<ReceiptEnvelope>,
 }
 
 impl WitnessInput for EVMStateSketch {
