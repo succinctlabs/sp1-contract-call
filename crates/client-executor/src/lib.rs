@@ -143,7 +143,7 @@ pub struct ClientExecutor<'a> {
 
 impl<'a> ClientExecutor<'a> {
     /// Instantiates a new [`ClientExecutor`]
-    pub fn new(state_sketch: &'a EVMStateSketch) -> eyre::Result<Self> {
+    pub fn new(state_sketch: &'a EVMStateSketch) -> Result<Self, ClientError> {
         if !state_sketch.receipts.is_empty() {
             // verify the receipts root hash
             let root =
@@ -155,7 +155,7 @@ impl<'a> ClientExecutor<'a> {
 
         Ok(Self {
             genesis: &state_sketch.genesis,
-            witness_db: state_sketch.witness_db().unwrap(),
+            witness_db: state_sketch.witness_db()?,
             header: &state_sketch.header,
             logs,
         })

@@ -115,7 +115,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
     }
 
     /// Returns the cumulative [`EVMStateSketch`] after executing some smart contracts.
-    pub async fn finalize(&self) -> eyre::Result<EVMStateSketch> {
+    pub async fn finalize(&self) -> Result<EVMStateSketch, HostError> {
         let block_number = self.header.number;
 
         // For every account touched, fetch the storage proofs for all the slots touched.
@@ -153,7 +153,7 @@ impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
                     .inner
                     .clone()
                     .try_into_header()
-                    .map_err(|_| eyre!("fail to convert header"))?,
+                    .map_err(|h| HostError::HeaderConversionError(h.number))?,
             );
         }
 

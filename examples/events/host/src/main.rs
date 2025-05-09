@@ -1,4 +1,4 @@
-use alloy::{providers::RootProvider, rpc::types::Filter};
+use alloy::{eips::BlockNumberOrTag, providers::RootProvider, rpc::types::Filter};
 use alloy_sol_types::SolEvent;
 use clap::Parser;
 use events_client::{IERC20, WETH};
@@ -27,11 +27,13 @@ async fn main() -> eyre::Result<()> {
     // Parse the command line arguments.
     let args = Args::parse();
 
+    let block_number = BlockNumberOrTag::Number(22417000);
+
     let rpc_url =
         std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
     let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
 
-    let mut host_executor = HostExecutor::new(provider, 22417000.into()).await?;
+    let mut host_executor = HostExecutor::new(provider, block_number).await?;
 
     // Create a `ProverClient`.
     let client = ProverClient::from_env();
