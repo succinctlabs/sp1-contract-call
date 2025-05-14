@@ -11,11 +11,13 @@ use url::Url;
 
 use crate::{beacon_client::BeaconClient, HostError};
 
+/// Abstracts [`Anchor`] creation.
 #[async_trait]
 pub trait AnchorBuilder {
     async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError>;
 }
 
+/// A builder for [`HeaderAnchor`].
 #[derive(Debug)]
 pub struct HeaderAnchorBuilder<P> {
     provider: P,
@@ -56,6 +58,7 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for HeaderAnchorBuilder<P> {
     }
 }
 
+/// A builder for [`BeaconAnchor`].
 pub struct BeaconAnchorBuilder<P> {
     header_anchor_builder: HeaderAnchorBuilder<P>,
     client: BeaconClient,

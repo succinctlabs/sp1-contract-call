@@ -9,6 +9,7 @@ use crate::{
     EvmSketch, HostError,
 };
 
+/// A builder for [`EvmSketch`].
 #[derive(Debug)]
 pub struct EvmSketchBuilder<P, A> {
     block: BlockId,
@@ -18,11 +19,12 @@ pub struct EvmSketchBuilder<P, A> {
 }
 
 impl<P, A> EvmSketchBuilder<P, A> {
+    /// Sets the block on which the contract will be called.
     pub fn at_block<B: Into<BlockId>>(mut self, block: B) -> Self {
         self.block = block.into();
         self
     }
-
+    /// Sets the chain on which the contract will be called.
     pub fn with_genesis(mut self, genesis: Genesis) -> Self {
         self.genesis = genesis;
         self
@@ -30,6 +32,7 @@ impl<P, A> EvmSketchBuilder<P, A> {
 }
 
 impl EvmSketchBuilder<(), ()> {
+    /// Sets the Ethereum HTTP RPC endpoint that will be used.
     pub fn el_rpc_url(
         self,
         rpc_url: Url,
@@ -49,6 +52,7 @@ impl<P> EvmSketchBuilder<P, HeaderAnchorBuilder<P>>
 where
     P: Provider<AnyNetwork>,
 {
+    /// Sets the Beacon HTTP RPC endpoint that will be used.
     pub fn cl_rpc_url(self, rpc_url: Url) -> EvmSketchBuilder<P, BeaconAnchorBuilder<P>> {
         EvmSketchBuilder {
             block: self.block,
@@ -64,6 +68,7 @@ where
     P: Provider<AnyNetwork> + Clone,
     A: AnchorBuilder,
 {
+    /// Builds an [`EvmSketch`].
     pub async fn build(self) -> Result<EvmSketch<P>, HostError> {
         let anchor = self.anchor_prefetcher.build(self.block).await?;
         let block_number = anchor.header().number;
