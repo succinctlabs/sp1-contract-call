@@ -15,6 +15,7 @@ use sp1_cc_client_executor::{io::EvmSketchInput, new_evm, Anchor, ContractInput}
 
 use crate::{EvmSketchBuilder, HostError};
 
+/// ['EvmSketch'] is used to prefetch all the data required to execute a block and query logs in the zkVM.
 #[derive(Debug)]
 pub struct EvmSketch<P> {
     /// The genesis block specification.
