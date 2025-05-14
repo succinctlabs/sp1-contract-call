@@ -1,5 +1,4 @@
 use alloy_primitives::{address, Address};
-use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolCall;
@@ -10,7 +9,7 @@ use url::Url;
 use ERC20Basic::nameCall;
 use IOracleHelper::getRatesCall;
 
-use crate::HostExecutor;
+use crate::EvmSketch;
 
 sol! {
     /// Simplified interface of the ERC20Basic interface.
@@ -125,21 +124,22 @@ async fn test_contract_creation() -> eyre::Result<()> {
 
     let bytecode = "0x6080604052348015600e575f5ffd5b50415f5260205ff3fe";
 
-    // Get a recent blob to get the hash from.
-    let block_number = BlockNumberOrTag::Safe;
-
     // Use `ETH_SEPOLIA_RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
-    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let host_executor =
-        HostExecutor::new_with_genesis(provider.clone(), block_number, Genesis::Sepolia).await?;
+
+    let sketch = EvmSketch::builder()
+        .at_block(BlockNumberOrTag::Safe) // Get a recent blob to get the hash from.
+        .with_genesis(Genesis::Sepolia)
+        .el_rpc_url(Url::parse(&rpc_url)?)
+        .build()
+        .await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
     let bytes = hex::decode(bytecode).expect("Decoding failed");
     println!("Checking coinbase");
     let contract_input = ContractInput::new_create(Address::default(), Bytes::from(bytes));
-    let _check_coinbase = host_executor.execute(contract_input).await?;
+    let _check_coinbase = sketch.call(contract_input).await?;
     Ok(())
 }
 
@@ -152,21 +152,21 @@ async fn test_e2e(contract_input: ContractInput) -> eyre::Result<ContractPublicV
     // Load environment variables.
     dotenv::dotenv().ok();
 
-    // Which block transactions are executed on.
-    let block_number = BlockNumberOrTag::Latest;
-
     // Prepare the host executor.
     //
     // Use `RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing RPC_URL"));
-    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let host_executor =
-        HostExecutor::new_with_genesis(provider.clone(), block_number, Genesis::Sepolia).await?;
+    let sketch = EvmSketch::builder()
+        .at_block(BlockNumberOrTag::Latest) // Which block transactions are executed on.
+        .with_genesis(Genesis::Sepolia)
+        .el_rpc_url(Url::parse(&rpc_url)?)
+        .build()
+        .await?;
 
-    let _contract_output = host_executor.execute(contract_input.clone()).await?;
+    let _contract_output = sketch.call(contract_input.clone()).await?;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
-    let state_sketch = host_executor.finalize().await?;
+    let state_sketch = sketch.finalize().await?;
 
     let client_executor = ClientExecutor::new(&state_sketch)?;
 

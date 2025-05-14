@@ -8,7 +8,7 @@ use alloy_rpc_types::{Filter, FilteredParams};
 use alloy_sol_types::{sol, SolCall, SolEvent};
 use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::OptionExt;
-use io::EVMStateSketch;
+use io::EvmSketchInput;
 use reth_chainspec::ChainSpec;
 use reth_evm::{ConfigureEvm, EvmEnv};
 use reth_evm_ethereum::{EthEvm, EthEvmConfig};
@@ -19,6 +19,9 @@ use revm::{
 use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
 use rsp_primitives::genesis::Genesis;
+
+mod anchor;
+pub use anchor::{rebuild_merkle_root, Anchor, BeaconAnchor, HeaderAnchor, BLOCK_HASH_LEAF_INDEX};
 
 mod errors;
 pub use errors::ClientError;
@@ -100,11 +103,17 @@ impl IntoTxEnv<TxEnv> for &ContractInput {
 }
 
 sol! {
+    #[derive(Debug)]
+    enum AnchorType { BlockHash, BeaconRoot }
+
     /// Public values of a contract call.
     ///
     /// These outputs can easily be abi-encoded, for use on-chain.
+    #[derive(Debug)]
     struct ContractPublicValues {
-        bytes32 blockHash;
+        uint256 id;
+        bytes32 anchorHash;
+        AnchorType anchorType;
         address callerAddress;
         address contractAddress;
         bytes contractCalldata;
@@ -117,13 +126,21 @@ impl ContractPublicValues {
     ///
     /// By default, commit the contract input, the output, and the block hash to public values of
     /// the proof. More can be committed if necessary.
-    pub fn new(call: ContractInput, output: Bytes, block_hash: B256) -> Self {
+    pub fn new(
+        call: ContractInput,
+        output: Bytes,
+        id: U256,
+        anchor: B256,
+        anchor_type: AnchorType,
+    ) -> Self {
         Self {
+            id,
+            anchorHash: anchor,
+            anchorType: anchor_type,
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
             contractCalldata: call.calldata.to_bytes(),
             contractOutput: output,
-            blockHash: block_hash,
         }
     }
 }
@@ -131,32 +148,43 @@ impl ContractPublicValues {
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
 pub struct ClientExecutor<'a> {
+    /// The block anchor.
+    pub anchor: &'a Anchor,
     /// The genesis block specification.
     pub genesis: &'a Genesis,
     /// The database that the executor uses to access state.
     pub witness_db: TrieDB<'a>,
-    /// The block header.
-    pub header: &'a Header,
     /// All logs in the block.
     pub logs: Vec<Log>,
 }
 
 impl<'a> ClientExecutor<'a> {
     /// Instantiates a new [`ClientExecutor`]
-    pub fn new(state_sketch: &'a EVMStateSketch) -> Result<Self, ClientError> {
-        if !state_sketch.receipts.is_empty() {
+    pub fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
+        assert_eq!(
+            state_sketch.anchor.header().state_root,
+            state_sketch.state.state_root(),
+            "State root mismatch"
+        );
+
+        if let Some(receipts) = &state_sketch.receipts {
             // verify the receipts root hash
-            let root =
-                ordered_trie_root_with_encoder(&state_sketch.receipts, |r, out| r.encode_2718(out));
-            assert_eq!(state_sketch.header.receipts_root, root, "Receipts root mismatch");
+            let root = ordered_trie_root_with_encoder(receipts, |r, out| r.encode_2718(out));
+            assert_eq!(state_sketch.anchor.header().receipts_root, root, "Receipts root mismatch");
         }
 
-        let logs = state_sketch.receipts.iter().flat_map(|r| r.logs().to_vec()).collect();
+        let logs = state_sketch
+            .receipts
+            .as_ref()
+            .unwrap_or(&vec![])
+            .iter()
+            .flat_map(|r| r.logs().to_vec())
+            .collect();
 
         Ok(Self {
+            anchor: &state_sketch.anchor,
             genesis: &state_sketch.genesis,
             witness_db: state_sketch.witness_db()?,
-            header: &state_sketch.header,
             logs,
         })
     }
@@ -166,10 +194,19 @@ impl<'a> ClientExecutor<'a> {
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, self.header, U256::ZERO, self.genesis);
+        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, self.genesis);
         let tx_output = evm.transact(&call)?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
-        Ok(ContractPublicValues::new(call, tx_output_bytes.clone(), self.header.hash_slow()))
+
+        let public_values = ContractPublicValues::new(
+            call,
+            tx_output_bytes.clone(),
+            self.anchor.id(),
+            self.anchor.hash(),
+            self.anchor.ty(),
+        );
+
+        Ok(public_values)
     }
 
     /// Returns the decoded logs matching the provided `filter`.

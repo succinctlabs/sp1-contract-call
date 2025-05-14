@@ -10,6 +10,8 @@ use rsp_primitives::genesis::Genesis;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+use crate::Anchor;
+
 /// Information about how the contract executions accessed state, which is needed to execute the
 /// contract in SP1.
 ///
@@ -17,12 +19,11 @@ use serde_with::serde_as;
 /// for the storage slots that were modified and accessed are passed in.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct EVMStateSketch {
+pub struct EvmSketchInput {
+    /// The current block anchor.
+    pub anchor: Anchor,
     /// The genesis block specification.
     pub genesis: Genesis,
-    /// The current block header.
-    #[serde_as(as = "alloy_consensus::serde_bincode_compat::Header")]
-    pub header: Header,
     /// The previous block headers starting from the most recent. These are used for calls to the
     /// blockhash opcode.
     #[serde_as(as = "Vec<alloy_consensus::serde_bincode_compat::Header>")]
@@ -34,11 +35,11 @@ pub struct EVMStateSketch {
     /// Account bytecodes.
     pub bytecodes: Vec<Bytecode>,
     /// Receipts.
-    #[serde_as(as = "Vec<alloy_consensus::serde_bincode_compat::ReceiptEnvelope>")]
-    pub receipts: Vec<ReceiptEnvelope>,
+    #[serde_as(as = "Option<Vec<alloy_consensus::serde_bincode_compat::ReceiptEnvelope>>")]
+    pub receipts: Option<Vec<ReceiptEnvelope>>,
 }
 
-impl WitnessInput for EVMStateSketch {
+impl WitnessInput for EvmSketchInput {
     #[inline(always)]
     fn state(&self) -> &EthereumState {
         &self.state
@@ -46,7 +47,7 @@ impl WitnessInput for EVMStateSketch {
 
     #[inline(always)]
     fn state_anchor(&self) -> B256 {
-        self.header.state_root
+        self.anchor.header().state_root
     }
 
     #[inline(always)]
@@ -61,6 +62,6 @@ impl WitnessInput for EVMStateSketch {
 
     #[inline(always)]
     fn headers(&self) -> impl Iterator<Item = &Header> {
-        once(&self.header).chain(self.ancestor_headers.iter())
+        once(self.anchor.header()).chain(self.ancestor_headers.iter())
     }
 }

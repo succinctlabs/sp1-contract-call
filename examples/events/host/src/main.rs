@@ -1,8 +1,8 @@
-use alloy::{eips::BlockNumberOrTag, providers::RootProvider, rpc::types::Filter};
+use alloy::{eips::BlockNumberOrTag, rpc::types::Filter};
 use alloy_sol_types::SolEvent;
 use clap::Parser;
 use events_client::{IERC20, WETH};
-use sp1_cc_host_executor::HostExecutor;
+use sp1_cc_host_executor::EvmSketch;
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
 
@@ -31,9 +31,11 @@ async fn main() -> eyre::Result<()> {
 
     let rpc_url =
         std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
-    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-
-    let mut host_executor = HostExecutor::new(provider, block_number).await?;
+    let mut sketch = EvmSketch::builder()
+        .at_block(block_number) // Get a recent blob to get the hash from.
+        .el_rpc_url(Url::parse(&rpc_url)?)
+        .build()
+        .await?;
 
     // Create a `ProverClient`.
     let client = ProverClient::from_env();
@@ -41,12 +43,12 @@ async fn main() -> eyre::Result<()> {
 
     let filter = Filter::new()
         .address(WETH)
-        .at_block_hash(host_executor.header.hash_slow())
+        .at_block_hash(sketch.anchor.hash())
         .event(IERC20::Transfer::SIGNATURE);
 
-    host_executor.prefetch_logs(&filter).await.unwrap();
+    let _ = sketch.get_logs(&filter).await.unwrap();
 
-    let input = host_executor.finalize().await?;
+    let input = sketch.finalize().await?;
 
     stdin.write(&input);
 
