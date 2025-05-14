@@ -5,11 +5,10 @@
 
 use alloy::hex;
 use alloy_primitives::{Address, Bytes};
-use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_types::SolValue;
 use sp1_cc_client_executor::ContractInput;
-use sp1_cc_host_executor::{Genesis, HostExecutor};
+use sp1_cc_host_executor::{EvmSketch, Genesis};
 use url::Url;
 
 /// The following bytecode corresponds to the following solidity contract:
@@ -35,21 +34,21 @@ const BYTECODE: &str = "0x6080604052348015600e575f5ffd5b50415f5260205ff3fe";
 async fn main() -> eyre::Result<()> {
     dotenv::dotenv().ok();
 
-    // Get a recent blob to get the hash from.
-    let block_number = BlockNumberOrTag::Safe;
-
     // Use `ETH_SEPOLIA_RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
-    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let host_executor =
-        HostExecutor::new_with_genesis(provider.clone(), block_number, Genesis::Sepolia).await?;
+    let sketch = EvmSketch::builder()
+        .at_block(BlockNumberOrTag::Safe) // Get a recent blob to get the hash from.
+        .with_genesis(Genesis::Sepolia)
+        .el_rpc_url(Url::parse(&rpc_url)?)
+        .build()
+        .await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
     let bytes = hex::decode(BYTECODE).expect("Decoding failed");
     println!("Checking coinbase");
     let contract_input = ContractInput::new_create(Address::default(), Bytes::from(bytes));
-    let check_coinbase = host_executor.execute(contract_input).await?;
+    let check_coinbase = sketch.call(contract_input).await?;
 
     let decoded_address: Address = Address::abi_decode(&check_coinbase)?;
 

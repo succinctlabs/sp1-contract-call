@@ -1,5 +1,4 @@
 use alloy_primitives::{address, keccak256, Address, Bytes, B256};
-use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
@@ -7,7 +6,7 @@ use rand_chacha::ChaCha20Rng;
 use rand_core::{RngCore, SeedableRng};
 use secp256k1::{generate_keypair, Message, PublicKey, SECP256K1};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
-use sp1_cc_host_executor::{Genesis, HostExecutor};
+use sp1_cc_host_executor::{EvmSketch, Genesis};
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
 use SimpleStaking::verifySignedCall;
@@ -44,9 +43,6 @@ async fn main() -> eyre::Result<()> {
     // Setup logging.
     utils::setup_logger();
 
-    // Which block transactions are executed on.
-    let block_number = BlockNumberOrTag::Latest;
-
     // The testing rng we use to generate messages and secret keys.
     //
     // Note: this is deterministic based on the `SEED`.
@@ -57,12 +53,14 @@ async fn main() -> eyre::Result<()> {
     // Use `ETH_SEPOLIA_RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
-    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let host_executor =
-        HostExecutor::new_with_genesis(provider.clone(), block_number, Genesis::Sepolia).await?;
-
+    let sketch = EvmSketch::builder()
+        .at_block(BlockNumberOrTag::Latest)
+        .with_genesis(Genesis::Sepolia)
+        .el_rpc_url(Url::parse(&rpc_url)?)
+        .build()
+        .await?;
     // Keep track of the block hash. Later, validate the client's execution against this.
-    let block_hash = host_executor.header.hash_slow();
+    let block_hash = sketch.anchor.hash();
 
     // Generate messages and signatures, with random (but deterministic) signing keys.
     let mut addresses = Vec::with_capacity(NUM_STAKERS);
@@ -107,12 +105,12 @@ async fn main() -> eyre::Result<()> {
     );
 
     // The host executes the call to `verifySigned`.
-    let total_stake_bytes = host_executor.execute(verify_signed_call).await?;
+    let total_stake_bytes = sketch.call(verify_signed_call).await?;
     let total_stake = verifySignedCall::abi_decode_returns(&total_stake_bytes)?;
     println!("total_stake: {}", total_stake);
 
     // Now that we've executed the call, get the `EVMStateSketch` from the host executor.
-    let input = host_executor.finalize().await?;
+    let input = sketch.finalize().await?;
 
     // Feed the sketch into the client.
     let input_bytes = bincode::serialize(&input)?;
@@ -139,7 +137,7 @@ async fn main() -> eyre::Result<()> {
     let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice())?;
 
     // Check that the provided block hash matches the one in the proof.
-    assert_eq!(public_vals.blockHash, block_hash);
+    assert_eq!(public_vals.anchorHash, block_hash);
     println!("verified block hash");
 
     // Read the output, and then calculate the total stake associated with valid signatures.

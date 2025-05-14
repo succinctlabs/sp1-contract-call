@@ -2,14 +2,13 @@ use std::path::PathBuf;
 
 use alloy::hex;
 use alloy_primitives::{address, Address};
-use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
-use sp1_cc_host_executor::HostExecutor;
+use sp1_cc_host_executor::EvmSketch;
 use sp1_sdk::{include_elf, utils, HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
 use url::Url;
 use IUniswapV3PoolState::slot0Call;
@@ -40,8 +39,11 @@ struct SP1CCProofFixture {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[clap(long, default_value = "false")]
+    #[clap(long)]
     prove: bool,
+
+    #[clap(long, env)]
+    eth_rpc_url: Url,
 }
 
 /// Generate a `SP1CCProofFixture`, and save it as a json file.
@@ -77,24 +79,19 @@ async fn main() -> eyre::Result<()> {
     let block_number = BlockNumberOrTag::Number(20600000);
 
     // Prepare the host executor.
-    //
-    // Use `ETH_RPC_URL` to get all of the necessary state for the smart contract call.
-    let rpc_url =
-        std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
-    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let sketch =
+        EvmSketch::builder().at_block(block_number).el_rpc_url(args.eth_rpc_url).build().await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
-    let block_hash = host_executor.header.hash_slow();
+    let block_hash = sketch.anchor.hash();
 
     // Make the call to the slot0 function.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
-    let _price_x96_bytes = host_executor
-        .execute(ContractInput::new_call(CONTRACT, Address::default(), slot0_call))
-        .await?;
+    let _price_x96_bytes =
+        sketch.call(ContractInput::new_call(CONTRACT, Address::default(), slot0_call)).await?;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
-    let input = host_executor.finalize().await?;
+    let input = sketch.finalize().await?;
 
     // Feed the sketch into the client.
     let input_bytes = bincode::serialize(&input)?;
@@ -122,7 +119,7 @@ async fn main() -> eyre::Result<()> {
     let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice())?;
 
     // Check that the provided block hash matches the one in the proof.
-    assert_eq!(public_vals.blockHash, block_hash);
+    assert_eq!(public_vals.anchorHash, block_hash);
     println!("verified block hash");
 
     // Read the output, and then calculate the uniswap exchange rate.

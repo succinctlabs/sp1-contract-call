@@ -1,22 +1,10 @@
-#[cfg(test)]
-mod test;
-
-use std::collections::BTreeSet;
-
-use alloy_consensus::Header;
-use alloy_evm::Evm;
-use alloy_provider::{network::AnyNetwork, Provider};
-use alloy_rpc_types::{BlockId, Filter, Log};
-use eyre::eyre;
-use revm::database::CacheDB;
-use revm_primitives::{Bytes, B256, U256};
-use rsp_mpt::EthereumState;
-use rsp_primitives::account_proof::eip1186_proof_to_account_proof;
-use rsp_rpc_db::RpcDb;
-
-use sp1_cc_client_executor::{io::EVMStateSketch, new_evm, ContractInput};
-
 pub use rsp_primitives::genesis::Genesis;
+
+mod anchor_builder;
+pub use anchor_builder::{AnchorBuilder, BeaconAnchorBuilder, HeaderAnchorBuilder};
+
+mod beacon_client;
+pub use beacon_client::BeaconClient;
 
 mod errors;
 pub use errors::HostError;
@@ -24,149 +12,11 @@ pub use errors::HostError;
 mod events;
 pub use events::LogsPrefetcher;
 
-/// An executor that fetches data from a [`Provider`].
-///
-/// This executor keeps track of the state being accessed, and eventually compresses it into an
-/// [`EVMStateSketch`].
-#[derive(Debug, Clone)]
-pub struct HostExecutor<P: Provider<AnyNetwork> + Clone> {
-    /// The genesis block specification.
-    pub genesis: Genesis,
-    /// The header of the block to execute our view functions on.
-    pub header: Header,
-    /// The [`RpcDb`] used to back the EVM.
-    pub rpc_db: RpcDb<P, AnyNetwork>,
-    /// The provider used to fetch data.
-    pub provider: P,
-    /// The [`LogsPrefetcher`] used to retrieve and prepare the logs for the client.
-    pub logs_prefetcher: LogsPrefetcher<P>,
-}
+mod sketch;
+pub use sketch::EvmSketch;
 
-impl<P: Provider<AnyNetwork> + Clone> HostExecutor<P> {
-    /// Creates a new [`HostExecutor`] with a specific [`Provider`] and `block_identifier`
-    /// on Ethereum Mainnet. For a custom chain, use [`HostExecutor::new_with_genesis`].
-    pub async fn new<B: Into<BlockId>>(provider: P, block_identifier: B) -> eyre::Result<Self> {
-        Self::new_with_genesis(provider, block_identifier, Genesis::Mainnet).await
-    }
+mod sketch_builder;
+pub use sketch_builder::EvmSketchBuilder;
 
-    /// Creates a new [`HostExecutor`] with a specific [`Provider`] and `block_identifier`
-    /// on a custom chain using the provided [`Genesis`].
-    pub async fn new_with_genesis<B: Into<BlockId>>(
-        provider: P,
-        block_identifier: B,
-        genesis: Genesis,
-    ) -> eyre::Result<Self> {
-        let block_identifier = block_identifier.into();
-        let block = provider
-            .get_block(block_identifier)
-            .full()
-            .await?
-            .ok_or(eyre!("couldn't fetch block: {}", block_identifier))?;
-
-        let rpc_db = RpcDb::new(provider.clone(), block.header.number);
-        let header = block
-            .inner
-            .header
-            .inner
-            .clone()
-            .try_into_header()
-            .map_err(|_| eyre!("fail to convert header"))?;
-        Ok(Self {
-            genesis,
-            header,
-            rpc_db,
-            provider: provider.clone(),
-            logs_prefetcher: LogsPrefetcher::new(provider),
-        })
-    }
-
-    /// Executes the smart contract call with the given [`ContractInput`].
-    pub async fn execute(&self, call: ContractInput) -> eyre::Result<Bytes> {
-        let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, &self.header, U256::ZERO, &self.genesis);
-
-        let output = evm.transact(&call)?;
-
-        let output_bytes = match output.result {
-            revm::context::result::ExecutionResult::Success { output, .. } => {
-                Ok(output.data().clone())
-            }
-            revm::context::result::ExecutionResult::Revert { output, .. } => Ok(output),
-            revm::context::result::ExecutionResult::Halt { reason, .. } => {
-                Err(eyre!("Execution halted: {reason:?}"))
-            }
-        }?;
-
-        Ok(output_bytes.clone())
-    }
-
-    /// Prefetch the logs matching the provided `filter`, allowing them to be retrieved in the
-    /// client using [`get_logs`].
-    ///
-    /// [`get_logs`]: sp1_cc_client_executor::ClientExecutor::get_logs
-    pub async fn prefetch_logs(&mut self, filter: &Filter) -> Result<Vec<Log>, HostError> {
-        let logs = self.provider.get_logs(filter).await?;
-
-        if !logs.is_empty() {
-            self.logs_prefetcher.trigger_prefetch();
-        }
-
-        Ok(logs)
-    }
-
-    /// Returns the cumulative [`EVMStateSketch`] after executing some smart contracts.
-    pub async fn finalize(&self) -> Result<EVMStateSketch, HostError> {
-        let block_number = self.header.number;
-
-        // For every account touched, fetch the storage proofs for all the slots touched.
-        let state_requests = self.rpc_db.get_state_requests();
-        tracing::info!("fetching storage proofs");
-        let mut storage_proofs = Vec::new();
-
-        for (address, used_keys) in state_requests.iter() {
-            let keys = used_keys
-                .iter()
-                .map(|key| B256::from(*key))
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect::<Vec<_>>();
-
-            let storage_proof =
-                self.provider.get_proof(*address, keys).block_id(block_number.into()).await?;
-            storage_proofs.push(eip1186_proof_to_account_proof(storage_proof));
-        }
-
-        let storage_proofs_by_address =
-            storage_proofs.iter().map(|item| (item.address, item.clone())).collect();
-        let state = EthereumState::from_proofs(self.header.state_root, &storage_proofs_by_address)?;
-
-        // Fetch the parent headers needed to constrain the BLOCKHASH opcode.
-        let oldest_ancestor = *self.rpc_db.oldest_ancestor.read().unwrap();
-        let mut ancestor_headers = vec![];
-        tracing::info!("fetching {} ancestor headers", block_number - oldest_ancestor);
-        for height in (oldest_ancestor..=(block_number - 1)).rev() {
-            let block = self.provider.get_block_by_number(height.into()).full().await?.unwrap();
-            ancestor_headers.push(
-                block
-                    .inner
-                    .header
-                    .inner
-                    .clone()
-                    .try_into_header()
-                    .map_err(|h| HostError::HeaderConversionError(h.number))?,
-            );
-        }
-
-        let receipts = self.logs_prefetcher.prefetch_receipts(&self.header).await?;
-
-        Ok(EVMStateSketch {
-            genesis: self.genesis.clone(),
-            header: self.header.clone(),
-            ancestor_headers,
-            state,
-            state_requests,
-            bytecodes: self.rpc_db.get_bytecodes(),
-            receipts,
-        })
-    }
-}
+#[cfg(test)]
+mod test;
