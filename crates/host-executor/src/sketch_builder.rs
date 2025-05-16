@@ -5,7 +5,9 @@ use rsp_rpc_db::RpcDb;
 use url::Url;
 
 use crate::{
-    anchor_builder::{AnchorBuilder, BeaconAnchorBuilder, HeaderAnchorBuilder},
+    anchor_builder::{
+        AnchorBuilder, BeaconAnchorBuilder, ChainedBeaconAnchorBuilder, HeaderAnchorBuilder,
+    },
     EvmSketch, HostError,
 };
 
@@ -15,7 +17,7 @@ pub struct EvmSketchBuilder<P, A> {
     block: BlockId,
     genesis: Genesis,
     provider: P,
-    anchor_prefetcher: A,
+    anchor_builder: A,
 }
 
 impl<P, A> EvmSketchBuilder<P, A> {
@@ -43,7 +45,7 @@ impl EvmSketchBuilder<(), ()> {
             block: self.block,
             genesis: self.genesis,
             provider: provider.clone(),
-            anchor_prefetcher: HeaderAnchorBuilder::new(provider),
+            anchor_builder: HeaderAnchorBuilder::new(provider),
         }
     }
 }
@@ -58,7 +60,25 @@ where
             block: self.block,
             genesis: self.genesis,
             provider: self.provider,
-            anchor_prefetcher: BeaconAnchorBuilder::new(self.anchor_prefetcher, rpc_url),
+            anchor_builder: BeaconAnchorBuilder::new(self.anchor_builder, rpc_url),
+        }
+    }
+}
+
+impl<P> EvmSketchBuilder<P, BeaconAnchorBuilder<P>>
+where
+    P: Provider<AnyNetwork>,
+{
+    /// Sets the Beacon HTTP RPC endpoint that will be used.
+    pub fn at_reference_block<B: Into<BlockId>>(
+        self,
+        block_id: B,
+    ) -> EvmSketchBuilder<P, ChainedBeaconAnchorBuilder<P>> {
+        EvmSketchBuilder {
+            block: self.block,
+            genesis: self.genesis,
+            provider: self.provider,
+            anchor_builder: ChainedBeaconAnchorBuilder::new(self.anchor_builder, block_id.into()),
         }
     }
 }
@@ -70,7 +90,7 @@ where
 {
     /// Builds an [`EvmSketch`].
     pub async fn build(self) -> Result<EvmSketch<P>, HostError> {
-        let anchor = self.anchor_prefetcher.build(self.block).await?;
+        let anchor = self.anchor_builder.build(self.block).await?;
         let block_number = anchor.header().number;
 
         let sketch = EvmSketch {
@@ -91,7 +111,7 @@ impl Default for EvmSketchBuilder<(), ()> {
             block: BlockId::default(),
             genesis: Genesis::Mainnet,
             provider: (),
-            anchor_prefetcher: (),
+            anchor_builder: (),
         }
     }
 }

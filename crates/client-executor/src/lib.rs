@@ -21,7 +21,11 @@ use rsp_client_executor::io::{TrieDB, WitnessInput};
 use rsp_primitives::genesis::Genesis;
 
 mod anchor;
-pub use anchor::{rebuild_merkle_root, Anchor, BeaconAnchor, HeaderAnchor, BLOCK_HASH_LEAF_INDEX};
+pub use anchor::{
+    get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconBlockField,
+    BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
+    HISTORY_BUFFER_LENGTH,
+};
 
 mod errors;
 pub use errors::ClientError;
@@ -197,12 +201,13 @@ impl<'a> ClientExecutor<'a> {
         let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, self.genesis);
         let tx_output = evm.transact(&call)?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
+        let resolved = self.anchor.resolve();
 
         let public_values = ContractPublicValues::new(
             call,
             tx_output_bytes.clone(),
-            self.anchor.id(),
-            self.anchor.hash(),
+            resolved.id,
+            resolved.hash,
             self.anchor.ty(),
         );
 
