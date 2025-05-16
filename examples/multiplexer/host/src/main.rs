@@ -57,7 +57,7 @@ async fn main() -> eyre::Result<()> {
         .await?;
 
     // Keep track of the block hash. Later, the client's execution will be validated against this.
-    let block_hash = sketch.anchor.hash();
+    let block_hash = sketch.anchor.resolve().hash;
 
     // Describes the call to the getRates function.
     let call = ContractInput::new_call(

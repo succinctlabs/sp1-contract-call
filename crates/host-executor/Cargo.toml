@@ -22,6 +22,7 @@ thiserror.workspace = true
 sp1-cc-client-executor.workspace = true
 
 # rsp
+rsp-client-executor.workspace = true
 rsp-rpc-db.workspace = true
 rsp-primitives.workspace = true
 rsp-mpt.workspace = true

@@ -1,18 +1,29 @@
+use std::{collections::HashMap, fmt::Display};
+
 use alloy_consensus::Header;
-use alloy_primitives::{B256, U256};
+use alloy_eips::eip4788::BEACON_ROOTS_ADDRESS;
+use alloy_primitives::{uint, B256, U256};
+use revm::DatabaseRef;
+use rsp_client_executor::io::TrieDB;
+use rsp_mpt::EthereumState;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use sha2::{Digest, Sha256};
 
 use crate::AnchorType;
 
+// https://eips.ethereum.org/EIPS/eip-4788
+pub const HISTORY_BUFFER_LENGTH: U256 = uint!(8191_U256);
 /// The generalized Merkle tree index of the `block_hash` field in the `BeaconBlock`.
-pub const BLOCK_HASH_LEAF_INDEX: usize = 6444;
+const BLOCK_HASH_LEAF_INDEX: usize = 6444;
+/// The generalized Merkle tree index of the `state_root` field in the `BeaconBlock`.
+const STATE_ROOT_LEAF_INDEX: usize = 6434;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Anchor {
     Header(HeaderAnchor),
-    Beacon(BeaconAnchor),
+    Beacon(BeaconWithHeaderAnchor),
+    Chained(ChainedBeaconAnchor),
 }
 
 impl Anchor {
@@ -20,23 +31,41 @@ impl Anchor {
         match self {
             Anchor::Header(header_anchor) => &header_anchor.header,
             Anchor::Beacon(beacon_anchor) => &beacon_anchor.inner.header,
+            Anchor::Chained(chained_anchor) => &chained_anchor.inner.inner.header,
         }
     }
 
-    pub fn id(&self) -> U256 {
+    pub fn resolve(&self) -> ResolvedAnchor {
         match self {
-            Anchor::Header(header_anchor) => U256::from(header_anchor.header.number),
-            Anchor::Beacon(beacon_anchor) => U256::from(beacon_anchor.timestamp),
-        }
-    }
-
-    pub fn hash(&self) -> B256 {
-        match self {
-            Anchor::Header(header_anchor) => header_anchor.header.hash_slow(),
+            Anchor::Header(header_anchor) => ResolvedAnchor {
+                id: U256::from(header_anchor.header.number),
+                hash: header_anchor.header.hash_slow(),
+            },
             Anchor::Beacon(beacon_anchor) => {
                 let block_hash = beacon_anchor.inner.header.hash_slow();
+                let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
 
-                rebuild_merkle_root(block_hash, BLOCK_HASH_LEAF_INDEX, &beacon_anchor.proof)
+                ResolvedAnchor { id: beacon_anchor.timestamp(), hash }
+            }
+            Anchor::Chained(chained_anchor) => {
+                let mut beacon_root = chained_anchor.inner.beacon_root();
+                let mut timestamp = chained_anchor.inner.timestamp();
+
+                for state_anchor in &chained_anchor.state_anchors {
+                    let state_root = state_anchor.state.state_root();
+                    let reference_beacon_root =
+                        get_beacon_root_from_state(&state_anchor.state, timestamp);
+
+                    assert_eq!(reference_beacon_root, beacon_root, "Beacon root should match");
+
+                    beacon_root =
+                        state_anchor.anchor.beacon_root(state_root, STATE_ROOT_LEAF_INDEX);
+                    timestamp = state_anchor.anchor.timestamp();
+
+                    eprintln!("{}: {beacon_root}", timestamp.to::<u64>());
+                }
+
+                ResolvedAnchor { id: timestamp, hash: beacon_root }
             }
         }
     }
@@ -44,7 +73,7 @@ impl Anchor {
     pub fn ty(&self) -> AnchorType {
         match self {
             Anchor::Header(_) => AnchorType::BlockHash,
-            Anchor::Beacon(_) => AnchorType::BeaconRoot,
+            Anchor::Beacon(_) | Anchor::Chained(_) => AnchorType::BeaconRoot,
         }
     }
 }
@@ -55,6 +84,12 @@ impl From<Header> for Anchor {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct ResolvedAnchor {
+    pub id: U256,
+    pub hash: B256,
+}
+
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct HeaderAnchor {
@@ -63,15 +98,112 @@ pub struct HeaderAnchor {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct BeaconAnchor {
+pub struct BeaconWithHeaderAnchor {
     inner: HeaderAnchor,
+    anchor: BeaconAnchor,
+}
+
+impl BeaconWithHeaderAnchor {
+    pub fn new(header: Header, anchor: BeaconAnchor) -> Self {
+        Self { inner: HeaderAnchor { header }, anchor }
+    }
+
+    pub fn proof(&self) -> &[B256] {
+        self.anchor.proof()
+    }
+
+    pub fn timestamp(&self) -> U256 {
+        self.anchor.timestamp()
+    }
+
+    pub fn beacon_root(&self) -> B256 {
+        self.anchor.beacon_root(self.inner.header.hash_slow(), BLOCK_HASH_LEAF_INDEX)
+    }
+}
+
+impl From<BeaconWithHeaderAnchor> for BeaconAnchor {
+    fn from(value: BeaconWithHeaderAnchor) -> Self {
+        value.anchor
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BeaconAnchor {
     proof: Vec<B256>,
-    timestamp: u64,
+    timestamp: U256,
 }
 
 impl BeaconAnchor {
-    pub fn new(header: Header, proof: Vec<B256>, timestamp: u64) -> Self {
-        Self { inner: HeaderAnchor { header }, proof, timestamp }
+    pub fn new(proof: Vec<B256>, timestamp: U256) -> Self {
+        Self { proof, timestamp }
+    }
+
+    pub fn proof(&self) -> &[B256] {
+        &self.proof
+    }
+
+    pub fn timestamp(&self) -> U256 {
+        self.timestamp
+    }
+
+    pub fn beacon_root(&self, leaf: B256, generalized_index: usize) -> B256 {
+        rebuild_merkle_root(leaf, generalized_index, &self.proof)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ChainedBeaconAnchor {
+    inner: BeaconWithHeaderAnchor,
+    state_anchors: Vec<BeaconStateAnchor>,
+}
+
+impl ChainedBeaconAnchor {
+    pub fn new(inner: BeaconWithHeaderAnchor, state_anchors: Vec<BeaconStateAnchor>) -> Self {
+        Self { inner, state_anchors }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BeaconStateAnchor {
+    state: EthereumState,
+    anchor: BeaconAnchor,
+}
+
+impl BeaconStateAnchor {
+    pub fn new(state: EthereumState, anchor: BeaconAnchor) -> Self {
+        Self { state, anchor }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum BeaconBlockField {
+    BlockHash,
+    StateRoot,
+}
+
+impl Display for BeaconBlockField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BeaconBlockField::BlockHash => write!(f, "block_hash"),
+            BeaconBlockField::StateRoot => write!(f, "state_root"),
+        }
+    }
+}
+
+impl PartialEq<BeaconBlockField> for usize {
+    fn eq(&self, other: &BeaconBlockField) -> bool {
+        let other = usize::from(other);
+
+        *self == other
+    }
+}
+
+impl From<&BeaconBlockField> for usize {
+    fn from(value: &BeaconBlockField) -> Self {
+        match value {
+            BeaconBlockField::BlockHash => BLOCK_HASH_LEAF_INDEX,
+            BeaconBlockField::StateRoot => STATE_ROOT_LEAF_INDEX,
+        }
     }
 }
 
@@ -102,4 +234,14 @@ pub fn rebuild_merkle_root(leaf: B256, generalized_index: usize, branch: &[B256]
     }
 
     current_hash
+}
+
+pub fn get_beacon_root_from_state(state: &EthereumState, timestamp: U256) -> B256 {
+    let db = TrieDB::new(state, HashMap::default(), HashMap::default());
+    let timestamp_idx = timestamp % HISTORY_BUFFER_LENGTH;
+    let root_idx = timestamp_idx + HISTORY_BUFFER_LENGTH;
+
+    let root = db.storage_ref(BEACON_ROOTS_ADDRESS, root_idx).unwrap();
+
+    root.into()
 }

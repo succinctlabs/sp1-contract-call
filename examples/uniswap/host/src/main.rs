@@ -83,7 +83,7 @@ async fn main() -> eyre::Result<()> {
         EvmSketch::builder().at_block(block_number).el_rpc_url(args.eth_rpc_url).build().await?;
 
     // Keep track of the block hash. Later, validate the client's execution against this.
-    let block_hash = sketch.anchor.hash();
+    let block_hash = sketch.anchor.resolve().hash;
 
     // Make the call to the slot0 function.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
