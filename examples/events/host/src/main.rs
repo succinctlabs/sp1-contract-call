@@ -43,7 +43,7 @@ async fn main() -> eyre::Result<()> {
 
     let filter = Filter::new()
         .address(WETH)
-        .at_block_hash(sketch.anchor.hash())
+        .at_block_hash(sketch.anchor.header().hash_slow())
         .event(IERC20::Transfer::SIGNATURE);
 
     let _ = sketch.get_logs(&filter).await.unwrap();

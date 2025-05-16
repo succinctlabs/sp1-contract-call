@@ -1,13 +1,15 @@
 pub use rsp_primitives::genesis::Genesis;
 
 mod anchor_builder;
-pub use anchor_builder::{AnchorBuilder, BeaconAnchorBuilder, HeaderAnchorBuilder};
+pub use anchor_builder::{
+    AnchorBuilder, BeaconAnchorBuilder, ChainedBeaconAnchorBuilder, HeaderAnchorBuilder,
+};
 
 mod beacon_client;
 pub use beacon_client::BeaconClient;
 
 mod errors;
-pub use errors::HostError;
+pub use errors::{BeaconError, HostError};
 
 mod events;
 pub use events::LogsPrefetcher;
