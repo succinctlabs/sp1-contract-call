@@ -1,5 +1,5 @@
 use alloy_primitives::B256;
-use ethereum_consensus::Fork;
+use ethereum_consensus::{phase0::SignedBeaconBlockHeader, Fork};
 use reqwest::Client as ReqwestClient;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
@@ -16,9 +16,15 @@ pub struct BeaconClient {
     client: ReqwestClient,
 }
 
-/// The data format returned by official Eth Beacon Node APIs.
+/// The raw response returned by the Beacon Node APIs.
 #[derive(Debug, Serialize, Deserialize)]
-struct BeaconResponse<'a> {
+struct BeaconResponse<T> {
+    data: T,
+}
+
+/// The raw response returned by the Beacon Node APIs.
+#[derive(Debug, Serialize, Deserialize)]
+struct BeaconRawResponse<'a> {
     pub version: Fork,
     pub execution_optimistic: bool,
     pub finalized: bool,
@@ -26,12 +32,20 @@ struct BeaconResponse<'a> {
     data: &'a RawValue,
 }
 
+/// The response returned by the `get_block_header` API.
+#[derive(Debug, Serialize, Deserialize)]
+struct BlockHeaderResponse {
+    pub root: B256,
+    pub canonical: bool,
+    pub header: SignedBeaconBlockHeader,
+}
+
 impl<'de> serde::Deserialize<'de> for SignedBeaconBlock {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        let BeaconResponse { version, data, .. } = BeaconResponse::deserialize(deserializer)?;
+        let BeaconRawResponse { version, data, .. } = BeaconRawResponse::deserialize(deserializer)?;
         let data = match version {
             Fork::Phase0 => serde_json::from_str(data.get()).map(SignedBeaconBlock::Phase0),
             Fork::Altair => serde_json::from_str(data.get()).map(SignedBeaconBlock::Altair),
@@ -51,7 +65,7 @@ impl BeaconClient {
         Self { rpc_url, client: ReqwestClient::new() }
     }
 
-    /// Gets the block header at the given `beacon_id`.
+    /// Gets the block at the given `beacon_id`.
     pub async fn get_block(&self, beacon_id: String) -> Result<SignedBeaconBlock, BeaconError> {
         let endpoint = format!("{}eth/v2/beacon/blocks/{}", self.rpc_url, beacon_id);
 
@@ -61,7 +75,22 @@ impl BeaconClient {
         Ok(block)
     }
 
-    /// Retrieves the execution bock hash  at the given `beacon_id`.
+    /// Gets the block header at the given given parent root.
+    pub async fn get_header_from_parent_root(
+        &self,
+        parent_root: String,
+    ) -> Result<(B256, SignedBeaconBlockHeader), BeaconError> {
+        let endpoint = format!("{}eth/v1/beacon/headers", self.rpc_url);
+
+        let response =
+            self.client.get(&endpoint).query(&[("parent_root", parent_root)]).send().await?;
+        let response =
+            response.error_for_status()?.json::<BeaconResponse<Vec<BlockHeaderResponse>>>().await?;
+
+        Ok((response.data[0].root, response.data[0].header.clone()))
+    }
+
+    /// Retrieves the execution bock hash at the given `beacon_id`.
     pub async fn get_execution_payload_block_hash(
         &self,
         beacon_id: String,

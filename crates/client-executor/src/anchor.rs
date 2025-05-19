@@ -45,12 +45,12 @@ impl Anchor {
                 let block_hash = beacon_anchor.inner.header.hash_slow();
                 let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
 
-                ResolvedAnchor { id: beacon_anchor.timestamp(), hash }
+                ResolvedAnchor { id: beacon_anchor.id().into(), hash }
             }
             Anchor::Chained(chained_anchor) => {
                 // Retrieve the execution block beacon root and timestamp
                 let mut beacon_root = chained_anchor.inner.beacon_root();
-                let mut timestamp = chained_anchor.inner.timestamp();
+                let mut timestamp = U256::from(chained_anchor.inner.id().as_timestamp().unwrap());
 
                 // Iterate over all the state anchors stating from the execution block
                 // to the reference block
@@ -65,7 +65,7 @@ impl Anchor {
                     // Retrieve the beacon root and timestamp of the current state
                     beacon_root =
                         state_anchor.anchor.beacon_root(state_root, STATE_ROOT_LEAF_INDEX);
-                    timestamp = state_anchor.anchor.timestamp();
+                    timestamp = U256::from(state_anchor.anchor.id().as_timestamp().unwrap());
                 }
 
                 // If the full chain is valid, return the resolved anchor containing
@@ -117,8 +117,8 @@ impl BeaconWithHeaderAnchor {
         self.anchor.proof()
     }
 
-    pub fn timestamp(&self) -> U256 {
-        self.anchor.timestamp()
+    pub fn id(&self) -> &BeaconAnchorId {
+        self.anchor.id()
     }
 
     pub fn beacon_root(&self) -> B256 {
@@ -135,24 +135,48 @@ impl From<BeaconWithHeaderAnchor> for BeaconAnchor {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct BeaconAnchor {
     proof: Vec<B256>,
-    timestamp: U256,
+    id: BeaconAnchorId,
 }
 
 impl BeaconAnchor {
-    pub fn new(proof: Vec<B256>, timestamp: U256) -> Self {
-        Self { proof, timestamp }
+    pub fn new(proof: Vec<B256>, id: BeaconAnchorId) -> Self {
+        Self { proof, id }
     }
 
     pub fn proof(&self) -> &[B256] {
         &self.proof
     }
 
-    pub fn timestamp(&self) -> U256 {
-        self.timestamp
+    pub fn id(&self) -> &BeaconAnchorId {
+        &self.id
     }
 
     pub fn beacon_root(&self, leaf: B256, generalized_index: usize) -> B256 {
         rebuild_merkle_root(leaf, generalized_index, &self.proof)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum BeaconAnchorId {
+    Timestamp(u64),
+    Slot(u64),
+}
+
+impl BeaconAnchorId {
+    pub fn as_timestamp(&self) -> Option<u64> {
+        match self {
+            BeaconAnchorId::Timestamp(t) => Some(*t),
+            BeaconAnchorId::Slot(_) => None,
+        }
+    }
+}
+
+impl From<&BeaconAnchorId> for U256 {
+    fn from(value: &BeaconAnchorId) -> Self {
+        match value {
+            BeaconAnchorId::Timestamp(t) => U256::from(*t),
+            BeaconAnchorId::Slot(s) => U256::from(*s),
+        }
     }
 }
 

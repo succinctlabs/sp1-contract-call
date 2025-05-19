@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, marker::PhantomData};
 
 use alloy_consensus::{Header, Sealed};
 use alloy_eips::{eip4788::BEACON_ROOTS_ADDRESS, BlockId};
@@ -8,8 +8,9 @@ use async_trait::async_trait;
 use ethereum_consensus::ssz::prelude::Prove;
 use rsp_mpt::EthereumState;
 use sp1_cc_client_executor::{
-    get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconBlockField,
-    BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HISTORY_BUFFER_LENGTH,
+    get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconAnchorId,
+    BeaconBlockField, BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor,
+    HISTORY_BUFFER_LENGTH,
 };
 use url::Url;
 
@@ -22,6 +23,76 @@ use crate::{
 #[async_trait]
 pub trait AnchorBuilder {
     async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError>;
+}
+
+#[async_trait]
+pub trait BeaconAnchorKind: Sized {
+    async fn build_beacon_anchor_from_header<P: Provider<AnyNetwork>>(
+        header: &Sealed<Header>,
+        field: BeaconBlockField,
+        beacon_anchor_builder: &BeaconAnchorBuilder<P, Self>,
+    ) -> Result<(B256, BeaconAnchor), HostError>;
+}
+
+#[derive(Debug)]
+pub struct Eip4788BeaconAnchor;
+
+#[async_trait]
+impl BeaconAnchorKind for Eip4788BeaconAnchor {
+    async fn build_beacon_anchor_from_header<P: Provider<AnyNetwork>>(
+        header: &Sealed<Header>,
+        field: BeaconBlockField,
+        beacon_anchor_builder: &BeaconAnchorBuilder<P, Self>,
+    ) -> Result<(B256, BeaconAnchor), HostError> {
+        let child_header =
+            beacon_anchor_builder.header_anchor_builder.get_header(header.number + 1).await?;
+        assert_eq!(child_header.parent_hash, header.seal());
+
+        let beacon_root = child_header
+            .parent_beacon_block_root
+            .ok_or_else(|| HostError::ParentBeaconBlockRootMissing)?;
+
+        let anchor = beacon_anchor_builder
+            .build_beacon_anchor(
+                beacon_root,
+                BeaconAnchorId::Timestamp(child_header.timestamp),
+                field,
+            )
+            .await?;
+
+        Ok((beacon_root, anchor))
+    }
+}
+
+#[derive(Debug)]
+pub struct ConsensusBeaconAnchor;
+
+#[async_trait]
+impl BeaconAnchorKind for ConsensusBeaconAnchor {
+    async fn build_beacon_anchor_from_header<P: Provider<AnyNetwork>>(
+        header: &Sealed<Header>,
+        field: BeaconBlockField,
+        beacon_anchor_builder: &BeaconAnchorBuilder<P, Self>,
+    ) -> Result<(B256, BeaconAnchor), HostError> {
+        let parent_root = header
+            .parent_beacon_block_root
+            .ok_or_else(|| HostError::ParentBeaconBlockRootMissing)?;
+
+        let (beacon_root, beacon_header) = beacon_anchor_builder
+            .client
+            .get_header_from_parent_root(parent_root.to_string())
+            .await?;
+
+        let anchor = beacon_anchor_builder
+            .build_beacon_anchor(
+                beacon_root,
+                BeaconAnchorId::Slot(beacon_header.message.slot),
+                field,
+            )
+            .await?;
+
+        Ok((beacon_root, anchor))
+    }
 }
 
 /// A builder for [`HeaderAnchor`].
@@ -69,33 +140,33 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for HeaderAnchorBuilder<P> {
 }
 
 /// A builder for [`BeaconAnchor`].
-pub struct BeaconAnchorBuilder<P> {
+pub struct BeaconAnchorBuilder<P, K> {
     header_anchor_builder: HeaderAnchorBuilder<P>,
     client: BeaconClient,
+    phantom: PhantomData<K>,
 }
 
-impl<P> BeaconAnchorBuilder<P> {
+impl<P> BeaconAnchorBuilder<P, Eip4788BeaconAnchor> {
     pub fn new(header_anchor_builder: HeaderAnchorBuilder<P>, cl_rpc_url: Url) -> Self {
-        Self { header_anchor_builder, client: BeaconClient::new(cl_rpc_url) }
+        Self { header_anchor_builder, client: BeaconClient::new(cl_rpc_url), phantom: PhantomData }
+    }
+
+    pub fn into_consensus(self) -> BeaconAnchorBuilder<P, ConsensusBeaconAnchor> {
+        BeaconAnchorBuilder {
+            header_anchor_builder: self.header_anchor_builder,
+            client: self.client,
+            phantom: PhantomData,
+        }
     }
 }
 
-impl<P: Provider<AnyNetwork>> BeaconAnchorBuilder<P> {
+impl<P: Provider<AnyNetwork>, K: BeaconAnchorKind> BeaconAnchorBuilder<P, K> {
     pub async fn build_beacon_anchor_with_header(
         &self,
         header: &Sealed<Header>,
         field: BeaconBlockField,
     ) -> Result<BeaconWithHeaderAnchor, HostError> {
-        let child_header = self.header_anchor_builder.get_header(header.number + 1).await?;
-        assert_eq!(child_header.parent_hash, header.seal());
-
-        let beacon_root = child_header
-            .parent_beacon_block_root
-            .ok_or_else(|| HostError::ParentBeaconBlockRootMissing)?;
-
-        let anchor = self
-            .build_beacon_anchor(beacon_root, U256::from(child_header.timestamp), field)
-            .await?;
+        let (beacon_root, anchor) = K::build_beacon_anchor_from_header(header, field, self).await?;
 
         if matches!(field, BeaconBlockField::BlockHash) {
             assert!(
@@ -110,7 +181,7 @@ impl<P: Provider<AnyNetwork>> BeaconAnchorBuilder<P> {
     pub async fn build_beacon_anchor(
         &self,
         beacon_root: B256,
-        timestamp: U256,
+        id: BeaconAnchorId,
         field: BeaconBlockField,
     ) -> Result<BeaconAnchor, HostError> {
         let signed_beacon_block = self.client.get_block(beacon_root.to_string()).await?;
@@ -137,14 +208,16 @@ impl<P: Provider<AnyNetwork>> BeaconAnchorBuilder<P> {
 
         let proof = proof.branch.iter().map(|n| n.0.into()).collect::<Vec<_>>();
 
-        let anchor = BeaconAnchor::new(proof, timestamp);
+        let anchor = BeaconAnchor::new(proof, id);
 
         Ok(anchor)
     }
 }
 
 #[async_trait]
-impl<P: Provider<AnyNetwork>> AnchorBuilder for BeaconAnchorBuilder<P> {
+impl<P: Provider<AnyNetwork>, K: BeaconAnchorKind + Sync> AnchorBuilder
+    for BeaconAnchorBuilder<P, K>
+{
     async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError> {
         let header = self.header_anchor_builder.get_header(block_id).await?;
         let anchor =
@@ -154,7 +227,7 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for BeaconAnchorBuilder<P> {
     }
 }
 
-impl<P: Debug> Debug for BeaconAnchorBuilder<P> {
+impl<P: Debug, K: Debug> Debug for BeaconAnchorBuilder<P, K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("BeaconAnchorBuilder")
             .field("header_anchor_builder", &self.header_anchor_builder)
@@ -165,13 +238,16 @@ impl<P: Debug> Debug for BeaconAnchorBuilder<P> {
 /// A builder for [`ChainedBeaconAnchor`].
 #[derive(Debug)]
 pub struct ChainedBeaconAnchorBuilder<P> {
-    beacon_anchor_builder: BeaconAnchorBuilder<P>,
+    beacon_anchor_builder: BeaconAnchorBuilder<P, Eip4788BeaconAnchor>,
     /// The reference is a successor of the execution block.
     reference: BlockId,
 }
 
 impl<P> ChainedBeaconAnchorBuilder<P> {
-    pub fn new(beacon_anchor_builder: BeaconAnchorBuilder<P>, reference: BlockId) -> Self {
+    pub fn new(
+        beacon_anchor_builder: BeaconAnchorBuilder<P, Eip4788BeaconAnchor>,
+        reference: BlockId,
+    ) -> Self {
         Self { beacon_anchor_builder, reference }
     }
 }
@@ -246,7 +322,10 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
         // Loop backwards until we reach the execution block beacon root
         loop {
             let timestamp = self
-                .get_eip_4788_timestamp(execution_anchor.timestamp(), current_state_block_hash)
+                .get_eip_4788_timestamp(
+                    U256::from(execution_anchor.id().as_timestamp().unwrap()),
+                    current_state_block_hash,
+                )
                 .await?;
             // Prefetch the beacon roots contract call for timestamp
             let state = self.retrieve_state(timestamp, current_state_block_hash).await?;
@@ -255,7 +334,7 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
             state_anchors.insert(0, BeaconStateAnchor::new(state, current_anchor.take().unwrap()));
 
             // Check if we've reached the execution block beacon root
-            if timestamp == U256::from(execution_anchor.timestamp()) {
+            if timestamp == U256::from(execution_anchor.id().as_timestamp().unwrap()) {
                 assert!(
                     parent_beacon_root == execution_anchor.beacon_root(),
                     "failed to validate final beacon anchor"
@@ -272,7 +351,11 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
             // Update the current anchor with the new beacon root
             let _ = current_anchor.replace(
                 self.beacon_anchor_builder
-                    .build_beacon_anchor(parent_beacon_root, timestamp, BeaconBlockField::StateRoot)
+                    .build_beacon_anchor(
+                        parent_beacon_root,
+                        BeaconAnchorId::Timestamp(timestamp.to()),
+                        BeaconBlockField::StateRoot,
+                    )
                     .await?,
             );
         }

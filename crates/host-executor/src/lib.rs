@@ -2,7 +2,8 @@ pub use rsp_primitives::genesis::Genesis;
 
 mod anchor_builder;
 pub use anchor_builder::{
-    AnchorBuilder, BeaconAnchorBuilder, ChainedBeaconAnchorBuilder, HeaderAnchorBuilder,
+    AnchorBuilder, BeaconAnchorBuilder, BeaconAnchorKind, ChainedBeaconAnchorBuilder,
+    ConsensusBeaconAnchor, Eip4788BeaconAnchor, HeaderAnchorBuilder,
 };
 
 mod beacon;
