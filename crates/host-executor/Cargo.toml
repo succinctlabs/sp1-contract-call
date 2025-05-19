@@ -13,6 +13,7 @@ eyre.workspace = true
 url.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+thiserror.workspace = true
 
 # workspace
 sp1-cc-client-executor.workspace = true
@@ -28,6 +29,7 @@ revm-primitives.workspace = true
 
 # alloy
 alloy-consensus.workspace = true
+alloy-eips.workspace = true
 alloy-primitives.workspace = true
 alloy-provider.workspace = true
 alloy-transport.workspace = true

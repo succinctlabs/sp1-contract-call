@@ -1,0 +1,16 @@
+[package]
+name = "events-client"
+description = ""
+edition = "2021"
+
+[dependencies]
+# workspace
+sp1-cc-client-executor = { path = "../../../crates/client-executor" }
+
+# alloy
+alloy-primitives.workspace = true
+alloy-rpc-types.workspace = true
+alloy-sol-types.workspace = true
+
+# sp1
+sp1-zkvm.workspace = true

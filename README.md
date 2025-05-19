@@ -1,6 +1,6 @@
 # SP1 Contract Calls
 
-Generates zero-knowledge proofs of Ethereum smart contract execution. 
+Generates zero-knowledge proofs of Ethereum smart contract execution.
 
 > [!CAUTION]
 >
@@ -14,7 +14,7 @@ This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers w
 
 First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol_macro` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
 
-In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` -- this is to make it easy later to use those public values on chain. The code below is taken from [`examples/uniswap/client/src/main.rs`](./examples/uniswap/client/src/main.rs) which contains all of the code needed for the SP1 client program. 
+In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` -- this is to make it easy later to use those public values on chain. The code below is taken from [`examples/uniswap/client/src/main.rs`](./examples/uniswap/client/src/main.rs) which contains all of the code needed for the SP1 client program.
 
 ```rs
 sol! {
@@ -87,11 +87,11 @@ stdin.write(&input_bytes);
 
 ```
 
-After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Here is part of a sample contract that verifies this proof; check out [`examples/uniswap/contracts`](./examples/uniswap/contracts/) for more details. 
+After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Here is part of a sample contract that verifies this proof; check out [`examples/uniswap/contracts`](./examples/uniswap/contracts/) for more details.
 
 ```sol
 /// @title SP1 UniswapCall.
-/// @notice This contract implements a simple example of verifying the proof of call to a smart 
+/// @notice This contract implements a simple example of verifying the proof of call to a smart
 ///         contract.
 contract UniswapCall {
     /// @notice The address of the SP1 verifier contract.
@@ -131,21 +131,21 @@ To use SP1-contract-call, you must first have Rust installed and SP1 installed t
 ```
 export ETH_RPC_URL=[YOUR ETH RPC URL HERE]
 export ETH_SEPOLIA_RPC_URL=[YOUR ETH SEPOLIA RPC URL HERE]
-``` 
+```
 
 Alternatively, you can use a `.env` file (see [example](./.env.example)).
 
-Then, from the root directory of the repository, run 
+Then, from the root directory of the repository, run
 
-```RUST_LOG=info cargo run --bin [example] --release``` 
+```RUST_LOG=info cargo run --bin [example] --release```
 
 where `[example]` is one of the following
 * `uniswap`
-    * Fetches the price of the UNI / WETH pair on Uniswap V3. By default, this does not generate a proof.  
-    * Running `RUST_LOG=info cargo run --bin [example] --release -- --prove` will generate a plonk proof. This requires 
+    * Fetches the price of the UNI / WETH pair on Uniswap V3. By default, this does not generate a proof.
+    * Running `RUST_LOG=info cargo run --bin [example] --release -- --prove` will generate a plonk proof. This requires
     significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/generating-proofs/prover-network).
-        * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain. 
-        * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory. 
+        * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain.
+        * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory.
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
     * The source code of this contract is found [here](./examples/multiplexer/ZkOracleHelper.sol).
@@ -154,6 +154,8 @@ where `[example]` is one of the following
     * Calls a contract that verifies several ECDSA signatures on chain, and sums the stake for the addresses corresponding to valid signatures.
 * `example-deploy`
     * Demonstrates how to simulate a contract creation transaction on SP1-CC.
+* `events`
+    * Demonstrates how to prefetch log events in the host and send them to the client as inputs.
 
 ## Acknowledgments
 
