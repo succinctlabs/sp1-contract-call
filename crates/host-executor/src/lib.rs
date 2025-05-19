@@ -5,8 +5,8 @@ pub use anchor_builder::{
     AnchorBuilder, BeaconAnchorBuilder, ChainedBeaconAnchorBuilder, HeaderAnchorBuilder,
 };
 
-mod beacon_client;
-pub use beacon_client::BeaconClient;
+mod beacon;
+pub use beacon::BeaconClient;
 
 mod errors;
 pub use errors::{BeaconError, HostError};

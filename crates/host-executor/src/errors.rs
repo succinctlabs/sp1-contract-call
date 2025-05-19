@@ -26,7 +26,9 @@ pub enum HostError {
 #[derive(Error, Debug)]
 pub enum BeaconError {
     #[error("Reqwest error: {0}")]
-    ReqwestError(#[from] reqwest::Error),
+    Reqwest(#[from] reqwest::Error),
+    #[error("Serde error: {0}")]
+    Serde(#[from] serde_json::Error),
     #[error("Execution payload missing")]
     ExecutionPayloadMissing,
 }

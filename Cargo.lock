@@ -2431,7 +2431,7 @@ dependencies = [
 [[package]]
 name = "ethereum-consensus"
 version = "0.1.1"
-source = "git+https://github.com/ralexstokes/ethereum-consensus?rev=ba43147eb71b07e21e156e2904549405f87bc9a6#ba43147eb71b07e21e156e2904549405f87bc9a6"
+source = "git+https://github.com/leruaa/ethereum-consensus?branch=electra-fixes#8d6c2eb55bfde55884c100d4f08c711f98b52d2e"
 dependencies = [
  "blst",
  "bs58",
@@ -6695,6 +6695,7 @@ dependencies = [
  "rsp-primitives",
  "rsp-rpc-db",
  "serde",
+ "serde_json",
  "sp1-cc-client-executor",
  "thiserror 2.0.12",
  "tokio",
