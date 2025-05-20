@@ -4,7 +4,7 @@ sp1_zkvm::entrypoint!(main);
 use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
-use sp1_cc_client_executor::{io::EVMStateSketch, ClientExecutor, ContractInput};
+use sp1_cc_client_executor::{io::EvmSketchInput, ClientExecutor, ContractInput};
 
 sol! {
     /// Interface to the multiplexer contract. It gets the prices of many tokens, including
@@ -37,7 +37,7 @@ pub fn main() {
     // Read the state sketch from stdin. Use this during the execution in order to
     // access Ethereum state.
     let state_sketch_bytes = sp1_zkvm::io::read::<Vec<u8>>();
-    let state_sketch = bincode::deserialize::<EVMStateSketch>(&state_sketch_bytes).unwrap();
+    let state_sketch = bincode::deserialize::<EvmSketchInput>(&state_sketch_bytes).unwrap();
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.

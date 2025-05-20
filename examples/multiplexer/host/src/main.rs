@@ -1,10 +1,9 @@
 use alloy_primitives::{address, Address};
-use alloy_provider::RootProvider;
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
-use sp1_cc_host_executor::HostExecutor;
+use sp1_cc_host_executor::EvmSketch;
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
 use IOracleHelper::getRatesCall;
@@ -46,19 +45,19 @@ async fn main() -> eyre::Result<()> {
     // Setup logging.
     utils::setup_logger();
 
-    // Which block transactions are executed on.
-    let block_number = BlockNumberOrTag::Safe;
-
     // Prepare the host executor.
     //
     // Use `ETH_RPC_URL` to get all of the necessary state for the smart contract call.
     let rpc_url =
         std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL in env"));
-    let provider = RootProvider::new_http(Url::parse(&rpc_url)?);
-    let host_executor = HostExecutor::new(provider.clone(), block_number).await?;
+    let sketch = EvmSketch::builder()
+        .at_block(BlockNumberOrTag::Safe)
+        .el_rpc_url(Url::parse(&rpc_url)?)
+        .build()
+        .await?;
 
     // Keep track of the block hash. Later, the client's execution will be validated against this.
-    let block_hash = host_executor.header.hash_slow();
+    let block_hash = sketch.anchor.hash();
 
     // Describes the call to the getRates function.
     let call = ContractInput::new_call(
@@ -68,10 +67,10 @@ async fn main() -> eyre::Result<()> {
     );
 
     // Call getRates from the host executor.
-    let _encoded_rates = host_executor.execute(call).await?;
+    let _encoded_rates = sketch.call(call).await?;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
-    let input = host_executor.finalize().await?;
+    let input = sketch.finalize().await?;
 
     // Feed the sketch into the client.
     let input_bytes = bincode::serialize(&input)?;
@@ -94,7 +93,7 @@ async fn main() -> eyre::Result<()> {
     let public_vals = ContractPublicValues::abi_decode(proof.public_values.as_slice())?;
 
     // Read the block hash, and verify that it's the same as the one inputted.
-    assert_eq!(public_vals.blockHash, block_hash);
+    assert_eq!(public_vals.anchorHash, block_hash);
 
     // Print the fetched rates.
     let rates = getRatesCall::abi_decode_returns(&public_vals.contractOutput)?;

@@ -1,4 +1,4 @@
-use alloy_eips::eip2718::Eip2718Error;
+use alloy_eips::{eip2718::Eip2718Error, BlockId};
 use alloy_transport::TransportError;
 use rsp_mpt::FromProofError;
 use thiserror::Error;
@@ -7,10 +7,18 @@ use thiserror::Error;
 pub enum HostError {
     #[error("Transport error: {0}")]
     TransportError(#[from] TransportError),
+    #[error("Reqwest error: {0}")]
+    ReqwestError(#[from] reqwest::Error),
     #[error("Decoding error: {0}")]
     DecodingError(#[from] Eip2718Error),
     #[error("Trie from proof conversion error: {0}")]
     TrieFromProofError(#[from] FromProofError),
+    #[error("Merkleization error: {0}")]
+    MerkleizationError(#[from] ethereum_consensus::ssz::prelude::MerkleizationError),
     #[error("Failed to convert the header for block {0}")]
     HeaderConversionError(u64),
+    #[error("The block {0} don't exists")]
+    BlockNotFoundError(BlockId),
+    #[error("The parent beacon block root is missing in the header")]
+    ParentBeaconBlockRootMissing,
 }
