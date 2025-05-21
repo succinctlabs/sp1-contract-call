@@ -21,7 +21,11 @@ use rsp_client_executor::io::{TrieDB, WitnessInput};
 use rsp_primitives::genesis::Genesis;
 
 mod anchor;
-pub use anchor::{rebuild_merkle_root, Anchor, BeaconAnchor, HeaderAnchor, BLOCK_HASH_LEAF_INDEX};
+pub use anchor::{
+    get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconBlockField,
+    BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
+    HISTORY_BUFFER_LENGTH,
+};
 
 mod errors;
 pub use errors::ClientError;
@@ -167,6 +171,18 @@ impl<'a> ClientExecutor<'a> {
             "State root mismatch"
         );
 
+        // verify that ancestors form a valid chain
+        let mut previous_header = state_sketch.anchor.header();
+        for ancestor in &state_sketch.ancestor_headers {
+            let ancestor_hash = ancestor.hash_slow();
+            assert_eq!(
+                previous_header.parent_hash, ancestor_hash,
+                "block {} is not the parent of {}",
+                ancestor.number, previous_header.number
+            );
+            previous_header = ancestor;
+        }
+
         if let Some(receipts) = &state_sketch.receipts {
             // verify the receipts root hash
             let root = ordered_trie_root_with_encoder(receipts, |r, out| r.encode_2718(out));
@@ -197,12 +213,13 @@ impl<'a> ClientExecutor<'a> {
         let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, self.genesis);
         let tx_output = evm.transact(&call)?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
+        let resolved = self.anchor.resolve();
 
         let public_values = ContractPublicValues::new(
             call,
             tx_output_bytes.clone(),
-            self.anchor.id(),
-            self.anchor.hash(),
+            resolved.id,
+            resolved.hash,
             self.anchor.ty(),
         );
 

@@ -60,7 +60,7 @@ async fn main() -> eyre::Result<()> {
         .build()
         .await?;
     // Keep track of the block hash. Later, validate the client's execution against this.
-    let block_hash = sketch.anchor.hash();
+    let block_hash = sketch.anchor.resolve().hash;
 
     // Generate messages and signatures, with random (but deterministic) signing keys.
     let mut addresses = Vec::with_capacity(NUM_STAKERS);

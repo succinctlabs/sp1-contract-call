@@ -48,6 +48,7 @@ jobs:
       - name: "Set up RPC env"
         run: |
           echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
+          echo "BEACON_RPC_URL=${{secrets.BEACON_RPC_URL}}" >> $GITHUB_ENV
           echo "ETH_SEPOLIA_RPC_URL=${{secrets.ETH_SEPOLIA_RPC_URL}}" >> $GITHUB_ENV
 
       - name: Run ${{ matrix.example }}
@@ -73,6 +74,7 @@ jobs:
       - name: "Set up RPC env"
         run: |
           echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
+          echo "BEACON_RPC_URL=${{secrets.BEACON_RPC_URL}}" >> $GITHUB_ENV
           echo "ETH_SEPOLIA_RPC_URL=${{secrets.ETH_SEPOLIA_RPC_URL}}" >> $GITHUB_ENV
 
       - name: "Run integration test"
