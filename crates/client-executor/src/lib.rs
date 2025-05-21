@@ -171,6 +171,18 @@ impl<'a> ClientExecutor<'a> {
             "State root mismatch"
         );
 
+        // verify that ancestors form a valid chain
+        let mut previous_header = state_sketch.anchor.header();
+        for ancestor in &state_sketch.ancestor_headers {
+            let ancestor_hash = ancestor.hash_slow();
+            assert_eq!(
+                previous_header.parent_hash, ancestor_hash,
+                "block {} is not the parent of {}",
+                ancestor.number, previous_header.number
+            );
+            previous_header = ancestor;
+        }
+
         if let Some(receipts) = &state_sketch.receipts {
             // verify the receipts root hash
             let root = ordered_trie_root_with_encoder(receipts, |r, out| r.encode_2718(out));
