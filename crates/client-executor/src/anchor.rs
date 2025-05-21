@@ -48,23 +48,28 @@ impl Anchor {
                 ResolvedAnchor { id: beacon_anchor.timestamp(), hash }
             }
             Anchor::Chained(chained_anchor) => {
+                // Retrieve the execution block beacon root and timestamp
                 let mut beacon_root = chained_anchor.inner.beacon_root();
                 let mut timestamp = chained_anchor.inner.timestamp();
 
+                // Iterate over all the state anchors stating from the execution block
+                // to the reference block
                 for state_anchor in &chained_anchor.state_anchors {
                     let state_root = state_anchor.state.state_root();
-                    let reference_beacon_root =
+                    let current_beacon_root =
                         get_beacon_root_from_state(&state_anchor.state, timestamp);
 
-                    assert_eq!(reference_beacon_root, beacon_root, "Beacon root should match");
+                    // Verify that the previous anchor is valid wrt the current state
+                    assert_eq!(current_beacon_root, beacon_root, "Beacon root should match");
 
+                    // Retrieve the beacon root and timestamp of the current state
                     beacon_root =
                         state_anchor.anchor.beacon_root(state_root, STATE_ROOT_LEAF_INDEX);
                     timestamp = state_anchor.anchor.timestamp();
-
-                    eprintln!("{}: {beacon_root}", timestamp.to::<u64>());
                 }
 
+                // If the full chain is valid, return the resolved anchor containing
+                // the reference block beacon root and timestamp
                 ResolvedAnchor { id: timestamp, hash: beacon_root }
             }
         }

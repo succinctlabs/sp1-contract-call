@@ -189,7 +189,7 @@ impl<P: Provider<AnyNetwork>> ChainedBeaconAnchorBuilder<P> {
         timestamp: U256,
         block_hash: B256,
     ) -> Result<EthereumState, HostError> {
-        // compute the keys of the two storage slots that will be accessed
+        // Compute the indexes of the two storage slots that will be queried
         let timestamp_idx = timestamp % HISTORY_BUFFER_LENGTH;
         let root_idx = timestamp_idx + HISTORY_BUFFER_LENGTH;
 
@@ -218,10 +218,12 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
             "The execution block must be an ancestor of the reference block"
         );
 
+        // Build an anchor for the execution block containing the beacon root we need to verify
         let execution_anchor = self
             .beacon_anchor_builder
             .build_beacon_anchor_with_header(&execution_header, BeaconBlockField::BlockHash)
             .await?;
+        // Build an anchor for the reference block
         let mut current_anchor = Some(
             self.beacon_anchor_builder
                 .build_beacon_anchor_with_header(&reference_header, BeaconBlockField::StateRoot)
@@ -231,15 +233,18 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
         let mut current_state_block_hash = reference_header.seal();
         let mut state_anchors: Vec<BeaconStateAnchor> = vec![];
 
+        // Loop backwards until we reach the execution block beacon root
         loop {
             let timestamp = self
                 .get_eip_4788_timestamp(execution_anchor.timestamp(), current_state_block_hash)
                 .await?;
+            // Prefetch the beacon roots contract call for timestamp
             let state = self.retrieve_state(timestamp, current_state_block_hash).await?;
             let parent_beacon_root = get_beacon_root_from_state(&state, timestamp);
 
             state_anchors.insert(0, BeaconStateAnchor::new(state, current_anchor.take().unwrap()));
 
+            // Check if we've reached the execution block beacon root
             if timestamp == U256::from(execution_anchor.timestamp()) {
                 assert!(
                     parent_beacon_root == execution_anchor.beacon_root(),
@@ -254,6 +259,7 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
                 .get_execution_payload_block_hash(parent_beacon_root.to_string())
                 .await?;
 
+            // Update the current anchor with the new beacon root
             let _ = current_anchor.replace(
                 self.beacon_anchor_builder
                     .build_beacon_anchor(parent_beacon_root, timestamp, BeaconBlockField::StateRoot)
