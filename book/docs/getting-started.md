@@ -9,7 +9,7 @@ This guide will walk you through using the SP1 contract call framework with a pr
 
 First, we create a Rust program that runs the Solidity smart contract call, using the `alloy_sol_macro` interface, the contract address and the caller address. This is known as a "client" program and it is run inside SP1 to generate a ZKP of the smart contract call's execution.
 
-In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` - this is to make it easy later to use those public values on chain. The code below is taken from [`examples/uniswap/client/src/main.rs`](./examples/uniswap/client/src/main.rs) which contains all of the code needed for the SP1 client program.
+In this example, we use the `slot0` function to fetch the current price of the UNI/WETH pair on the UniswapV3 pool. Note that we abi encode the `public_values` - this is to make it easy later to use those public values on chain. The code below is taken from [`examples/uniswap/client/src/main.rs`](https://github.com/succinctlabs/sp1-contract-call/blob/main/examples/uniswap/client/src/main.rs) which contains all of the code needed for the SP1 client program.
 
 ```rust
 sol! {
@@ -85,7 +85,7 @@ stdin.write(&input_bytes);
 
 ```
 
-After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Here is part of a sample contract that verifies this proof; check out [`examples/uniswap/contracts`](./examples/uniswap/contracts/) for more details.
+After running the client program in the host, we generate a proof that can easily be verified on chain. In addition, the public values associated with our proof are abi-encoded, which allows us to use the output of the contract call on chain. Here is part of a sample contract that verifies this proof; check out [`examples/uniswap/contracts`](https://github.com/succinctlabs/sp1-contract-call/tree/main/examples/uniswap/contracts) for more details.
 
 ```sol
 /// @title SP1 UniswapCall.
