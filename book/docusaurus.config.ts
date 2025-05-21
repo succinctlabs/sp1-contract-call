@@ -11,7 +11,7 @@ const config: Config = {
 
     // Set the production url of your site here
     url: "https://succinctlabs.github.io/",
-    baseUrl: "/contract-call",
+    baseUrl: "/sp1-contract-call",
 
     // GitHub pages deployment config.
     // If you aren't using GitHub pages, you don't need these.
