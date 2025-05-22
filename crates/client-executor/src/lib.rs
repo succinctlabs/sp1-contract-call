@@ -10,15 +10,16 @@ use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::OptionExt;
 use io::EvmSketchInput;
 use reth_chainspec::ChainSpec;
+use reth_consensus::HeaderValidator;
+use reth_ethereum_consensus::EthBeaconConsensus;
 use reth_evm::{ConfigureEvm, EvmEnv};
 use reth_evm_ethereum::{EthEvm, EthEvmConfig};
-use reth_primitives::Header;
+use reth_primitives::{Header, SealedHeader};
 use revm::{
     context::TxEnv, database::CacheDB, inspector::NoOpInspector, Context, MainBuilder, MainContext,
 };
 use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
-use rsp_primitives::genesis::Genesis;
 
 mod anchor;
 pub use anchor::{
@@ -155,7 +156,7 @@ pub struct ClientExecutor<'a> {
     /// The block anchor.
     pub anchor: &'a Anchor,
     /// The genesis block specification.
-    pub genesis: &'a Genesis,
+    pub chain_spec: Arc<ChainSpec>,
     /// The database that the executor uses to access state.
     pub witness_db: TrieDB<'a>,
     /// All logs in the block.
@@ -165,16 +166,24 @@ pub struct ClientExecutor<'a> {
 impl<'a> ClientExecutor<'a> {
     /// Instantiates a new [`ClientExecutor`]
     pub fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
-        assert_eq!(
-            state_sketch.anchor.header().state_root,
-            state_sketch.state.state_root(),
-            "State root mismatch"
-        );
+        let chain_spec = Arc::new(ChainSpec::try_from(&state_sketch.genesis).unwrap());
+        let validator = EthBeaconConsensus::new(chain_spec.clone());
+        let header = state_sketch.anchor.header();
+
+        validator
+            .validate_header(&SealedHeader::new_unhashed(header.clone()))
+            .expect("the header in not valid");
+
+        assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
 
         // verify that ancestors form a valid chain
-        let mut previous_header = state_sketch.anchor.header();
+        let mut previous_header = header;
         for ancestor in &state_sketch.ancestor_headers {
             let ancestor_hash = ancestor.hash_slow();
+
+            validator
+                .validate_header(&SealedHeader::new_unhashed(ancestor.clone()))
+                .unwrap_or_else(|_| panic!("the ancestor {} header in not valid", ancestor.number));
             assert_eq!(
                 previous_header.parent_hash, ancestor_hash,
                 "block {} is not the parent of {}",
@@ -199,7 +208,7 @@ impl<'a> ClientExecutor<'a> {
 
         Ok(Self {
             anchor: &state_sketch.anchor,
-            genesis: &state_sketch.genesis,
+            chain_spec,
             witness_db: state_sketch.witness_db()?,
             logs,
         })
@@ -210,7 +219,7 @@ impl<'a> ClientExecutor<'a> {
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, self.genesis);
+        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, self.chain_spec.clone());
         let tx_output = evm.transact(&call)?;
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
         let resolved = self.anchor.resolve();
@@ -246,13 +255,11 @@ pub fn new_evm<DB>(
     db: DB,
     header: &Header,
     difficulty: U256,
-    genesis: &Genesis,
+    chain_spec: Arc<ChainSpec>,
 ) -> EthEvm<DB, NoOpInspector>
 where
     DB: Database,
 {
-    let chain_spec = Arc::new(ChainSpec::try_from(genesis).unwrap());
-
     let EvmEnv { cfg_env, mut block_env, .. } = EthEvmConfig::new(chain_spec).evm_env(header);
 
     // Set the base fee to 0 to enable 0 gas price transactions.
