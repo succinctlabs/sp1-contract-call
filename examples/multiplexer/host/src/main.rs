@@ -2,7 +2,7 @@ use alloy_primitives::{address, Address};
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
-use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
+use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::EvmSketch;
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
@@ -60,14 +60,10 @@ async fn main() -> eyre::Result<()> {
     let block_hash = sketch.anchor.resolve().hash;
 
     // Describes the call to the getRates function.
-    let call = ContractInput::new_call(
-        CONTRACT,
-        Address::default(),
-        IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() },
-    );
+    let call = IOracleHelper::getRatesCall { collaterals: COLLATERALS.to_vec() };
 
     // Call getRates from the host executor.
-    let _encoded_rates = sketch.call(call).await?;
+    let _encoded_rates = sketch.call(CONTRACT, Address::default(), call).await?;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let input = sketch.finalize().await?;

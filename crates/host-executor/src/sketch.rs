@@ -3,9 +3,10 @@ use std::{collections::BTreeSet, sync::Arc};
 use alloy_consensus::ReceiptEnvelope;
 use alloy_eips::{eip2718::Eip2718Error, Decodable2718, Encodable2718};
 use alloy_evm::Evm;
-use alloy_primitives::{Bytes, B256, U256};
+use alloy_primitives::{Address, Bytes, B256, U256};
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{AnyReceiptEnvelope, Filter, Log as RpcLog};
+use alloy_sol_types::SolCall;
 use eyre::eyre;
 use reth_chainspec::ChainSpec;
 use revm::{context::result::ExecutionResult, database::CacheDB};
@@ -42,12 +43,37 @@ impl<P> EvmSketch<P>
 where
     P: Provider<AnyNetwork> + Clone,
 {
-    /// Executes the smart contract call with the given [`ContractInput`].
-    pub async fn call(&self, input: ContractInput) -> eyre::Result<Bytes> {
+    /// Executes a smart contract call.
+    ///
+    /// The accessed accounts and storages are recorded, and included in a [`EvmSketchInput`]
+    /// when [`Self::finalize`] is called.
+    pub async fn call<C: SolCall>(
+        &self,
+        contract_address: Address,
+        caller_address: Address,
+        calldata: C,
+    ) -> eyre::Result<C::Return> {
         let cache_db = CacheDB::new(&self.rpc_db);
         let chain_spec = Arc::new(ChainSpec::try_from(&self.genesis)?);
         let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, chain_spec);
+        let input = ContractInput::new_call(contract_address, caller_address, calldata);
+        let output = evm.transact(&input)?;
 
+        let output_bytes = match output.result {
+            ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
+            ExecutionResult::Revert { output, .. } => Ok(output),
+            ExecutionResult::Halt { reason, .. } => Err(eyre!("Execution halted: {reason:?}")),
+        }?;
+
+        Ok(C::abi_decode_returns(&output_bytes)?)
+    }
+
+    /// Executes a smart contract creation.
+    pub async fn create(&self, caller_address: Address, calldata: Bytes) -> eyre::Result<Bytes> {
+        let cache_db = CacheDB::new(&self.rpc_db);
+        let chain_spec = Arc::new(ChainSpec::try_from(&self.genesis)?);
+        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, chain_spec);
+        let input = ContractInput::new_create(caller_address, calldata);
         let output = evm.transact(&input)?;
 
         let output_bytes = match output.result {
