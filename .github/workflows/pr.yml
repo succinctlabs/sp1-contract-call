@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         example:
-          - uniswap
+          - uniswap-basic
           - multiplexer
           - verify-quorum
           - example-deploy

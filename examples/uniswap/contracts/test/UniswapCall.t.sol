@@ -5,7 +5,6 @@ import {Test, console} from "forge-std/Test.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {SP1VerifierGateway} from "@sp1-contracts/SP1VerifierGateway.sol";
 import {UniswapCall} from "../src/UniswapCall.sol";
-import "forge-std/console.sol";
 
 struct SP1ProofFixtureJson {
     bytes proof;
@@ -31,6 +30,9 @@ contract UniswapCallTest is Test {
         SP1ProofFixtureJson memory fixture = loadFixture();
         verifier = address(new SP1VerifierGateway(address(1)));
         uniswapCall = new UniswapCall(verifier, fixture.vkey);
+
+        vm.roll(20600100);
+        vm.setBlockhash(20600000, 0x4804cee837fd95195099e56fc5ed546c5982c751d137c4ec3dfed763c9bb491e);
     }
 
     function test_ValidUniswapCallProof() public {
