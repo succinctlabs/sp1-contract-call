@@ -108,7 +108,7 @@ impl IntoTxEnv<TxEnv> for &ContractInput {
 
 sol! {
     #[derive(Debug)]
-    enum AnchorType { BlockHash, BeaconRoot }
+    enum AnchorType { BlockHash, Eip4788, Consensus }
 
     /// Public values of a contract call.
     ///

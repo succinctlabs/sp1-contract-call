@@ -215,15 +215,24 @@ impl<P: Provider<AnyNetwork>, K: BeaconAnchorKind> BeaconAnchorBuilder<P, K> {
 }
 
 #[async_trait]
-impl<P: Provider<AnyNetwork>, K: BeaconAnchorKind + Sync> AnchorBuilder
-    for BeaconAnchorBuilder<P, K>
-{
+impl<P: Provider<AnyNetwork>> AnchorBuilder for BeaconAnchorBuilder<P, Eip4788BeaconAnchor> {
     async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError> {
         let header = self.header_anchor_builder.get_header(block_id).await?;
         let anchor =
             self.build_beacon_anchor_with_header(&header, BeaconBlockField::BlockHash).await?;
 
-        Ok(Anchor::Beacon(anchor))
+        Ok(Anchor::Eip4788(anchor))
+    }
+}
+
+#[async_trait]
+impl<P: Provider<AnyNetwork>> AnchorBuilder for BeaconAnchorBuilder<P, ConsensusBeaconAnchor> {
+    async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError> {
+        let header = self.header_anchor_builder.get_header(block_id).await?;
+        let anchor =
+            self.build_beacon_anchor_with_header(&header, BeaconBlockField::BlockHash).await?;
+
+        Ok(Anchor::Consensus(anchor))
     }
 }
 
@@ -360,7 +369,7 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
             );
         }
 
-        Ok(Anchor::Chained(ChainedBeaconAnchor::new(execution_anchor, state_anchors)))
+        Ok(Anchor::ChainedEip4788(ChainedBeaconAnchor::new(execution_anchor, state_anchors)))
     }
 }
 

@@ -22,16 +22,19 @@ const STATE_ROOT_LEAF_INDEX: usize = 6434;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Anchor {
     Header(HeaderAnchor),
-    Beacon(BeaconWithHeaderAnchor),
-    Chained(ChainedBeaconAnchor),
+    Eip4788(BeaconWithHeaderAnchor),
+    ChainedEip4788(ChainedBeaconAnchor),
+    Consensus(BeaconWithHeaderAnchor),
 }
 
 impl Anchor {
     pub fn header(&self) -> &Header {
         match self {
             Anchor::Header(header_anchor) => &header_anchor.header,
-            Anchor::Beacon(beacon_anchor) => &beacon_anchor.inner.header,
-            Anchor::Chained(chained_anchor) => &chained_anchor.inner.inner.header,
+            Anchor::Eip4788(beacon_anchor) | Anchor::Consensus(beacon_anchor) => {
+                &beacon_anchor.inner.header
+            }
+            Anchor::ChainedEip4788(chained_anchor) => &chained_anchor.inner.inner.header,
         }
     }
 
@@ -41,13 +44,13 @@ impl Anchor {
                 id: U256::from(header_anchor.header.number),
                 hash: header_anchor.header.hash_slow(),
             },
-            Anchor::Beacon(beacon_anchor) => {
+            Anchor::Eip4788(beacon_anchor) | Anchor::Consensus(beacon_anchor) => {
                 let block_hash = beacon_anchor.inner.header.hash_slow();
                 let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
 
                 ResolvedAnchor { id: beacon_anchor.id().into(), hash }
             }
-            Anchor::Chained(chained_anchor) => {
+            Anchor::ChainedEip4788(chained_anchor) => {
                 // Retrieve the execution block beacon root and timestamp
                 let mut beacon_root = chained_anchor.inner.beacon_root();
                 let mut timestamp = U256::from(chained_anchor.inner.id().as_timestamp().unwrap());
@@ -78,7 +81,8 @@ impl Anchor {
     pub fn ty(&self) -> AnchorType {
         match self {
             Anchor::Header(_) => AnchorType::BlockHash,
-            Anchor::Beacon(_) | Anchor::Chained(_) => AnchorType::BeaconRoot,
+            Anchor::Eip4788(_) | Anchor::ChainedEip4788(_) => AnchorType::Eip4788,
+            Anchor::Consensus(_) => AnchorType::Consensus,
         }
     }
 }
