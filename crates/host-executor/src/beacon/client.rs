@@ -1,10 +1,13 @@
 use alloy_primitives::B256;
-use ethereum_consensus::types::mainnet::SignedBeaconBlock;
+use ethereum_consensus::Fork;
 use reqwest::Client as ReqwestClient;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use serde_json::value::RawValue;
 use url::Url;
 
 use crate::BeaconError;
+
+use super::SignedBeaconBlock;
 
 /// A client used for connecting and querying a beacon node.
 #[derive(Debug, Clone)]
@@ -14,13 +17,33 @@ pub struct BeaconClient {
 }
 
 /// The data format returned by official Eth Beacon Node APIs.
-#[derive(Debug, Deserialize)]
-struct BeaconData<T> {
-    #[allow(unused)]
+#[derive(Debug, Serialize, Deserialize)]
+struct BeaconResponse<'a> {
+    pub version: Fork,
     pub execution_optimistic: bool,
-    #[allow(unused)]
     pub finalized: bool,
-    pub data: T,
+    #[serde(borrow)]
+    data: &'a RawValue,
+}
+
+impl<'de> serde::Deserialize<'de> for SignedBeaconBlock {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let BeaconResponse { version, data, .. } = BeaconResponse::deserialize(deserializer)?;
+        let data = match version {
+            Fork::Phase0 => serde_json::from_str(data.get()).map(SignedBeaconBlock::Phase0),
+            Fork::Altair => serde_json::from_str(data.get()).map(SignedBeaconBlock::Altair),
+            Fork::Bellatrix => serde_json::from_str(data.get()).map(SignedBeaconBlock::Bellatrix),
+            Fork::Capella => serde_json::from_str(data.get()).map(SignedBeaconBlock::Capella),
+            Fork::Deneb => serde_json::from_str(data.get()).map(SignedBeaconBlock::Deneb),
+            Fork::Electra => serde_json::from_str(data.get()).map(SignedBeaconBlock::Electra),
+        }
+        .map_err(serde::de::Error::custom)?;
+
+        Ok(data)
+    }
 }
 
 impl BeaconClient {
@@ -33,9 +56,9 @@ impl BeaconClient {
         let endpoint = format!("{}eth/v2/beacon/blocks/{}", self.rpc_url, beacon_id);
 
         let response = self.client.get(&endpoint).send().await?;
-        let parsed = response.error_for_status()?.json::<BeaconData<SignedBeaconBlock>>().await?;
+        let block = response.error_for_status()?.json::<SignedBeaconBlock>().await?;
 
-        Ok(parsed.data)
+        Ok(block)
     }
 
     /// Retrieves the execution bock hash  at the given `beacon_id`.
@@ -50,6 +73,7 @@ impl BeaconClient {
             SignedBeaconBlock::Bellatrix(b) => Some(b.message.body.execution_payload.block_hash),
             SignedBeaconBlock::Capella(b) => Some(b.message.body.execution_payload.block_hash),
             SignedBeaconBlock::Deneb(b) => Some(b.message.body.execution_payload.block_hash),
+            SignedBeaconBlock::Electra(b) => Some(b.message.body.execution_payload.block_hash),
         };
 
         block_hash.ok_or_else(|| BeaconError::ExecutionPayloadMissing).map(|h| B256::from_slice(&h))

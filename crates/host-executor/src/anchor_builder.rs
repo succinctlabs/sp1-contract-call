@@ -5,7 +5,7 @@ use alloy_eips::{eip4788::BEACON_ROOTS_ADDRESS, BlockId};
 use alloy_primitives::{B256, U256};
 use alloy_provider::{network::AnyNetwork, Provider};
 use async_trait::async_trait;
-use ethereum_consensus::{ssz::prelude::Prove, types::SignedBeaconBlock};
+use ethereum_consensus::ssz::prelude::Prove;
 use rsp_mpt::EthereumState;
 use sp1_cc_client_executor::{
     get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconBlockField,
@@ -13,7 +13,10 @@ use sp1_cc_client_executor::{
 };
 use url::Url;
 
-use crate::{beacon_client::BeaconClient, HostError};
+use crate::{
+    beacon::{BeaconClient, SignedBeaconBlock},
+    HostError,
+};
 
 /// Abstracts [`Anchor`] creation.
 #[async_trait]
@@ -120,7 +123,14 @@ impl<P: Provider<AnyNetwork>> BeaconAnchorBuilder<P> {
                     field.to_string().as_str().into(),
                 ])?
             }
-            _ => todo!(),
+            SignedBeaconBlock::Electra(signed_beacon_block) => {
+                signed_beacon_block.message.prove(&[
+                    "body".into(),
+                    "execution_payload".into(),
+                    field.to_string().as_str().into(),
+                ])?
+            }
+            _ => unimplemented!(),
         };
 
         assert!(proof.index == field, "the field leaf index is incorrect");
