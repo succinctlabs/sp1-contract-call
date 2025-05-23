@@ -68,6 +68,22 @@ where
         Ok(C::abi_decode_returns(&output_bytes)?)
     }
 
+    /// Executes a smart contract call, using the provided [`ContractInput`].
+    pub async fn call_raw(&self, input: &ContractInput) -> eyre::Result<Bytes> {
+        let cache_db = CacheDB::new(&self.rpc_db);
+        let chain_spec = Arc::new(ChainSpec::try_from(&self.genesis)?);
+        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, chain_spec);
+        let output = evm.transact(input)?;
+
+        let output_bytes = match output.result {
+            ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
+            ExecutionResult::Revert { output, .. } => Ok(output),
+            ExecutionResult::Halt { reason, .. } => Err(eyre!("Execution halted: {reason:?}")),
+        }?;
+
+        Ok(output_bytes)
+    }
+
     /// Executes a smart contract creation.
     pub async fn create(&self, caller_address: Address, calldata: Bytes) -> eyre::Result<Bytes> {
         let cache_db = CacheDB::new(&self.rpc_db);
