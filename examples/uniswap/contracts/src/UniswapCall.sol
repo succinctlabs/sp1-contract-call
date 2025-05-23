@@ -2,20 +2,14 @@
 pragma solidity ^0.8.20;
 
 import {ISP1Verifier} from "@sp1-contracts/ISP1Verifier.sol";
-
-/// The public values returned by the contract call execution.
-struct ContractPublicValues {
-    bytes32 blockHash;
-    address callerAddress;
-    address contractAddress;
-    bytes contractCalldata;
-    bytes contractOutput;
-}
+import {ContractPublicValues, ContractCall} from "@sp1-contracts/v4.0.0-rc.3/utils/ContractCall.sol";
 
 /// @title SP1 UniswapCall.
-/// @notice This contract implements a simple example of verifying the proof of call to a smart 
+/// @notice This contract implements a simple example of verifying the proof of call to a smart
 ///         contract.
 contract UniswapCall {
+    using ContractCall for ContractPublicValues;
+
     /// @notice The address of the SP1 verifier contract.
     address public verifier;
 
@@ -37,6 +31,8 @@ contract UniswapCall {
     {
         ISP1Verifier(verifier).verifyProof(uniswapCallProgramVKey, _publicValues, _proofBytes);
         ContractPublicValues memory publicValues = abi.decode(_publicValues, (ContractPublicValues));
+        publicValues.verify();
+
         uint160 sqrtPriceX96 = abi.decode(publicValues.contractOutput, (uint160));
         return sqrtPriceX96;
     }

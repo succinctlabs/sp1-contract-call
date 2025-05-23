@@ -140,12 +140,18 @@ Then, from the root directory of the repository, run
 ```RUST_LOG=info cargo run --bin [example] --release```
 
 where `[example]` is one of the following
-* `uniswap`
+* `uniswap-basic`
     * Fetches the price of the UNI / WETH pair on Uniswap V3. By default, this does not generate a proof.
     * Running `RUST_LOG=info cargo run --bin [example] --release -- --prove` will generate a plonk proof. This requires
     significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/generating-proofs/prover-network).
         * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain.
-        * To see an example of on-chain verification, take a look at the [contracts](./examples/uniswap/contracts/) directory.
+* `uniswap-onchain-verify`
+    * Fetches the price of the WETH / USDC pair on Uniswap V3 on Sepolia.
+    * This example demonstrate on-chain verification, with the following variations:
+        * By default, the `blockhash()` opcode is used, allowing to verify up to 256 blocks old.
+        * If you provides a Beacon RPC endpoint with the `--beacon-sepolia-rpc-url` argument, the proof will be verified on chain with the beacon root using [EIP-4788](https://eips.ethereum.org/EIPS/eip-4788), up to 8191 blocks old (~27h).
+        * The window can even be extended up to the Cancun hardfork by chaining beacon roots (see the `--reference-block` argument). 
+    * The contract can be found at the [contracts](./examples/uniswap/contracts/) directory.
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
     * The source code of this contract is found [here](./examples/multiplexer/ZkOracleHelper.sol).

@@ -347,6 +347,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "alloy-node-bindings"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60dd250ffe9514728daf5e84cac7193e221b85feffe3bea7d45f2b9fcbe6b885"
+dependencies = [
+ "alloy-genesis",
+ "alloy-hardforks",
+ "alloy-network",
+ "alloy-primitives 1.0.0",
+ "alloy-signer",
+ "alloy-signer-local",
+ "k256 0.13.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.8.5",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.12",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "alloy-primitives"
 version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7992,6 +8013,8 @@ name = "uniswap"
 version = "0.1.0"
 dependencies = [
  "alloy",
+ "alloy-contract",
+ "alloy-node-bindings",
  "alloy-primitives 1.0.0",
  "alloy-provider",
  "alloy-rpc-types",

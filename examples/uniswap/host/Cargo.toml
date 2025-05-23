@@ -3,11 +3,21 @@ version = "0.1.0"
 name = "uniswap"
 edition = "2021"
 
+[[bin]]
+name = "uniswap-basic"
+path = "src/basic.rs"
+
+[[bin]]
+name = "uniswap-onchain-verify"
+path = "src/onchain_verify.rs"
+
 [dependencies]
 # workspace
 sp1-cc-host-executor = { path = "../../../crates/host-executor" }
 sp1-cc-client-executor = { path = "../../../crates/client-executor" }
 
+alloy-contract.workspace = true
+alloy-node-bindings.workspace = true
 alloy-primitives.workspace = true
 alloy-sol-types.workspace = true
 alloy-rpc-types.workspace = true

@@ -18,7 +18,6 @@ use revm::{
 };
 use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
-use rsp_primitives::genesis::Genesis;
 
 mod anchor;
 pub use anchor::{
@@ -29,6 +28,8 @@ pub use anchor::{
 
 mod errors;
 pub use errors::ClientError;
+
+pub use rsp_primitives::genesis::Genesis;
 
 /// Input to a contract call.
 ///
