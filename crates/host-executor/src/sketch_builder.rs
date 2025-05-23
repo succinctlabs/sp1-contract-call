@@ -8,7 +8,7 @@ use crate::{
     anchor_builder::{
         AnchorBuilder, BeaconAnchorBuilder, ChainedBeaconAnchorBuilder, HeaderAnchorBuilder,
     },
-    EvmSketch, HostError,
+    ConsensusBeaconAnchor, Eip4788BeaconAnchor, EvmSketch, HostError,
 };
 
 /// A builder for [`EvmSketch`].
@@ -55,7 +55,10 @@ where
     P: Provider<AnyNetwork>,
 {
     /// Sets the Beacon HTTP RPC endpoint that will be used.
-    pub fn cl_rpc_url(self, rpc_url: Url) -> EvmSketchBuilder<P, BeaconAnchorBuilder<P>> {
+    pub fn cl_rpc_url(
+        self,
+        rpc_url: Url,
+    ) -> EvmSketchBuilder<P, BeaconAnchorBuilder<P, Eip4788BeaconAnchor>> {
         EvmSketchBuilder {
             block: self.block,
             genesis: self.genesis,
@@ -65,7 +68,7 @@ where
     }
 }
 
-impl<P> EvmSketchBuilder<P, BeaconAnchorBuilder<P>>
+impl<P> EvmSketchBuilder<P, BeaconAnchorBuilder<P, Eip4788BeaconAnchor>>
 where
     P: Provider<AnyNetwork>,
 {
@@ -79,6 +82,22 @@ where
             genesis: self.genesis,
             provider: self.provider,
             anchor_builder: ChainedBeaconAnchorBuilder::new(self.anchor_builder, block_id.into()),
+        }
+    }
+
+    /// Configures the builder to generate an [`Anchor`] containing the slot number associated to
+    /// the beacon block root.
+    ///
+    /// This is useful for verification methods that have direct access to the state of the beacon
+    /// chain, such as systems using beacon light clients.
+    ///
+    /// [`Anchor`]: sp1_cc_client_executor::Anchor
+    pub fn consensus(self) -> EvmSketchBuilder<P, BeaconAnchorBuilder<P, ConsensusBeaconAnchor>> {
+        EvmSketchBuilder {
+            block: self.block,
+            genesis: self.genesis,
+            provider: self.provider,
+            anchor_builder: self.anchor_builder.into_consensus(),
         }
     }
 }

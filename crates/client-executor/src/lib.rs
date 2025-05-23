@@ -22,8 +22,8 @@ use rsp_primitives::genesis::Genesis;
 
 mod anchor;
 pub use anchor::{
-    get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconBlockField,
-    BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
+    get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconAnchorId,
+    BeaconBlockField, BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
     HISTORY_BUFFER_LENGTH,
 };
 
@@ -108,7 +108,7 @@ impl IntoTxEnv<TxEnv> for &ContractInput {
 
 sol! {
     #[derive(Debug)]
-    enum AnchorType { BlockHash, BeaconRoot }
+    enum AnchorType { BlockHash, Eip4788, Consensus }
 
     /// Public values of a contract call.
     ///

@@ -1,5 +1,5 @@
 use alloy_provider::{network::AnyNetwork, RootProvider};
-use revm_primitives::b256;
+use revm_primitives::{b256, uint};
 use sp1_cc_host_executor::{
     AnchorBuilder, BeaconAnchorBuilder, ChainedBeaconAnchorBuilder, HeaderAnchorBuilder,
 };
@@ -21,6 +21,8 @@ async fn test_deneb_beacon_anchor() {
 
     let anchor = beacon_anchor_builder.build(22300000).await.unwrap();
     let resolved = anchor.resolve();
+
+    assert_eq!(resolved.id, uint!(1745028935_U256)); // Timestamp
 
     assert_eq!(
         resolved.hash,
@@ -45,6 +47,35 @@ async fn test_electra_beacon_anchor() {
 
     let anchor = beacon_anchor_builder.build(22500000).await.unwrap();
     let resolved = anchor.resolve();
+
+    assert_eq!(resolved.id, uint!(1747451519_U256)); // Timestamp
+
+    assert_eq!(
+        resolved.hash,
+        b256!("0xd1fa05159386e8ee0ef3a158a4e37a0a807de7d7e1e2d016f364cec3efcb88f9")
+    )
+}
+
+#[tokio::test]
+async fn test_consensus_beacon_anchor() {
+    dotenv::dotenv().ok();
+
+    let eth_rpc_url =
+        std::env::var("ETH_RPC_URL").unwrap_or_else(|_| panic!("Missing ETH_RPC_URL"));
+    let beacon_rpc_url =
+        std::env::var("BEACON_RPC_URL").unwrap_or_else(|_| panic!("Missing BEACON_RPC_URL"));
+    let provider = RootProvider::<AnyNetwork>::new_http(eth_rpc_url.parse().unwrap());
+
+    let beacon_anchor_builder = BeaconAnchorBuilder::new(
+        HeaderAnchorBuilder::new(provider),
+        beacon_rpc_url.parse().unwrap(),
+    )
+    .into_consensus();
+
+    let anchor = beacon_anchor_builder.build(22500000).await.unwrap();
+    let resolved = anchor.resolve();
+
+    assert_eq!(resolved.id, uint!(11718957_U256)); // Slot
 
     assert_eq!(
         resolved.hash,
