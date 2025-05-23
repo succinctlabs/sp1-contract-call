@@ -6,7 +6,7 @@ use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
+use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::{EvmSketch, Genesis};
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
@@ -104,8 +104,7 @@ async fn main() -> eyre::Result<()> {
 
     // Make the call to the slot0 function.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
-    let _price_x96_bytes =
-        sketch.call(ContractInput::new_call(POOL_CONTRACT, Address::default(), slot0_call)).await?;
+    let _price_x96_bytes = sketch.call(POOL_CONTRACT, Address::default(), slot0_call).await?;
 
     // Now that we've executed all of the calls, get the `EvmSketchInput` from the sketch.
     let input = sketch.finalize().await?;
