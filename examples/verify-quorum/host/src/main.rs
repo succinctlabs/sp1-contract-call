@@ -5,7 +5,7 @@ use alloy_sol_types::{SolCall, SolValue};
 use rand_chacha::ChaCha20Rng;
 use rand_core::{RngCore, SeedableRng};
 use secp256k1::{generate_keypair, Message, PublicKey, SECP256K1};
-use sp1_cc_client_executor::{ContractInput, ContractPublicValues};
+use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::{EvmSketch, Genesis};
 use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
 use url::Url;
@@ -95,18 +95,13 @@ async fn main() -> eyre::Result<()> {
     }
 
     // Set up the call to `verifySigned`.
-    let verify_signed_call = ContractInput::new_call(
-        CONTRACT,
-        Address::default(),
-        SimpleStaking::verifySignedCall {
-            messageHashes: messages.clone(),
-            signatures: signatures.clone(),
-        },
-    );
+    let verify_signed_call = SimpleStaking::verifySignedCall {
+        messageHashes: messages.clone(),
+        signatures: signatures.clone(),
+    };
 
     // The host executes the call to `verifySigned`.
-    let total_stake_bytes = sketch.call(verify_signed_call).await?;
-    let total_stake = verifySignedCall::abi_decode_returns(&total_stake_bytes)?;
+    let total_stake = sketch.call(CONTRACT, Address::default(), verify_signed_call).await?;
     println!("total_stake: {}", total_stake);
 
     // Now that we've executed the call, get the `EVMStateSketch` from the host executor.

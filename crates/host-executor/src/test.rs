@@ -63,13 +63,12 @@ sol! {
 async fn test_multiplexer() -> eyre::Result<()> {
     let get_rates_call = getRatesCall { collaterals: COLLATERALS.to_vec() };
 
-    let contract_input = ContractInput::new_call(
+    let public_values = test_e2e(
         address!("0A8c00EcFA0816F4f09289ac52Fcb88eA5337526"),
         Address::default(),
         get_rates_call,
-    );
-
-    let public_values = test_e2e(contract_input).await?;
+    )
+    .await?;
 
     let rates = getRatesCall::abi_decode_returns(&public_values.contractOutput)?;
 
@@ -82,13 +81,12 @@ async fn test_multiplexer() -> eyre::Result<()> {
 async fn test_uniswap() -> eyre::Result<()> {
     let slot0_call = IUniswapV3PoolState::slot0Call {};
 
-    let contract_input = ContractInput::new_call(
+    let public_values = test_e2e(
         address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801"),
         Address::default(),
         slot0_call,
-    );
-
-    let public_values = test_e2e(contract_input).await?;
+    )
+    .await?;
 
     let _price_x96_bytes =
         IUniswapV3PoolState::slot0Call::abi_decode_returns(&public_values.contractOutput)?
@@ -102,13 +100,13 @@ async fn test_uniswap() -> eyre::Result<()> {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_wrapped_eth() -> eyre::Result<()> {
     let name_call = nameCall {};
-    let contract_input = ContractInput::new_call(
+
+    let public_values = test_e2e(
         address!("C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
         Address::default(),
         name_call,
-    );
-
-    let public_values = test_e2e(contract_input).await?;
+    )
+    .await?;
 
     let name = nameCall::abi_decode_returns(&public_values.contractOutput)?;
     assert_eq!(name, String::from("Wrapped Ether"));
@@ -138,8 +136,7 @@ async fn test_contract_creation() -> eyre::Result<()> {
     // Keep track of the block hash. Later, validate the client's execution against this.
     let bytes = hex::decode(bytecode).expect("Decoding failed");
     println!("Checking coinbase");
-    let contract_input = ContractInput::new_create(Address::default(), Bytes::from(bytes));
-    let _check_coinbase = sketch.call(contract_input).await?;
+    let _check_coinbase = sketch.create(Address::default(), Bytes::from(bytes)).await?;
     Ok(())
 }
 
@@ -148,7 +145,11 @@ async fn test_contract_creation() -> eyre::Result<()> {
 /// First, executes the smart contract call with the given [`ContractInput`] in the host executor.
 /// After getting the [`EVMStateSketch`] from the host executor, executes the same smart contract   
 /// call in the client executor.
-async fn test_e2e(contract_input: ContractInput) -> eyre::Result<ContractPublicValues> {
+async fn test_e2e<C: SolCall + Clone>(
+    contract_address: Address,
+    caller_address: Address,
+    calldata: C,
+) -> eyre::Result<ContractPublicValues> {
     // Load environment variables.
     dotenv::dotenv().ok();
 
@@ -163,12 +164,13 @@ async fn test_e2e(contract_input: ContractInput) -> eyre::Result<ContractPublicV
         .build()
         .await?;
 
-    let _contract_output = sketch.call(contract_input.clone()).await?;
+    let _contract_output = sketch.call(contract_address, caller_address, calldata.clone()).await?;
 
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let state_sketch = sketch.finalize().await?;
 
     let client_executor = ClientExecutor::new(&state_sketch)?;
+    let contract_input = ContractInput::new_call(contract_address, caller_address, calldata);
 
     let public_values = client_executor.execute(contract_input)?;
 
