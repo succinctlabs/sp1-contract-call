@@ -8,7 +8,7 @@ Generates zero-knowledge proofs of Ethereum smart contract execution.
 
 ## Overview
 
-This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers with a simple interface to efficiently generate a ZKP of Ethereum smart contract execution offchain, that can be verified cheaply onchain for ~280k gas. This enables developers to verifiably run very expensive Solidity smart contract calls and be able to use this information in their onchain applications. Developers simply specific their Solidity function interface in Rust using the [`alloy_sol_macro`](https://docs.rs/alloy-sol-macro/latest/alloy_sol_macro/) library and can write an SP1 program to generate these proofs. Let's check out an example below:
+This library (`sp1-contract-call`, or `sp1-cc` for short), provides developers with a simple interface to efficiently generate a ZKP of Ethereum smart contract execution offchain, that can be verified cheaply onchain for ~280k gas. This enables developers to verifiably run very expensive Solidity smart contract calls and be able to use this information in their onchain applications. Developers simply specify their Solidity function interface in Rust using the [`alloy_sol_macro`](https://docs.rs/alloy-sol-macro/latest/alloy_sol_macro/) library and can write an SP1 program to generate these proofs. Let's check out an example below:
 
 ### Client
 
@@ -143,7 +143,7 @@ where `[example]` is one of the following
 * `uniswap-basic`
     * Fetches the price of the UNI / WETH pair on Uniswap V3. By default, this does not generate a proof.
     * Running `RUST_LOG=info cargo run --bin [example] --release -- --prove` will generate a plonk proof. This requires
-    significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/generating-proofs/prover-network).
+    significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/network/developers/intro).
         * Outputs a file called [plonk-fixture.json](examples/uniswap/contracts/src/fixtures/plonk-fixture.json), which contains everything you need to verify the proof on chain.
 * `uniswap-onchain-verify`
     * Fetches the price of the WETH / USDC pair on Uniswap V3 on Sepolia.
@@ -155,7 +155,7 @@ where `[example]` is one of the following
 * `multiplexer`
     * Calls a contract that fetches the prices of many different collateral assets.
     * The source code of this contract is found [here](./examples/multiplexer/ZkOracleHelper.sol).
-    * Due to the size of this program, it's recommended to use the [SP1 Prover network](https://docs.succinct.xyz/docs/generating-proofs/prover-network) to generate proofs for this example.
+    * Due to the size of this program, it's recommended to use the [SP1 Prover network](https://docs.succinct.xyz/docs/network/developers/intro) to generate proofs for this example.
 * `verify-quorum`
     * Calls a contract that verifies several ECDSA signatures on chain, and sums the stake for the addresses corresponding to valid signatures.
 * `example-deploy`

@@ -267,7 +267,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
 
     /// Returns the decoded logs matching the provided `filter`.
     ///
-    /// To be avaliable in the client, the logs need to be prefetched in the host first.
+    /// To be available in the client, the logs need to be prefetched in the host first.
     pub fn get_logs<E: SolEvent>(&self, filter: Filter) -> Result<Vec<Log<E>>, ClientError> {
         let params = FilteredParams::new(Some(filter));
 
