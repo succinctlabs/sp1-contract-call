@@ -28,6 +28,9 @@ rsp-rpc-db.workspace = true
 rsp-primitives.workspace = true
 rsp-mpt.workspace = true
 
+# reth
+reth-chainspec.workspace = true
+
 # revm
 revm.workspace = true
 revm-primitives.workspace = true

@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::Arc};
 
 use alloy_consensus::ReceiptEnvelope;
 use alloy_eips::{eip2718::Eip2718Error, Decodable2718, Encodable2718};
@@ -7,6 +7,7 @@ use alloy_primitives::{Bytes, B256, U256};
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{AnyReceiptEnvelope, Filter, Log as RpcLog};
 use eyre::eyre;
+use reth_chainspec::ChainSpec;
 use revm::{context::result::ExecutionResult, database::CacheDB};
 use rsp_mpt::EthereumState;
 use rsp_primitives::{account_proof::eip1186_proof_to_account_proof, genesis::Genesis};
@@ -15,7 +16,8 @@ use sp1_cc_client_executor::{io::EvmSketchInput, new_evm, Anchor, ContractInput}
 
 use crate::{EvmSketchBuilder, HostError};
 
-/// ['EvmSketch'] is used to prefetch all the data required to execute a block and query logs in the zkVM.
+/// ['EvmSketch'] is used to prefetch all the data required to execute a block and query logs in the
+/// zkVM.
 #[derive(Debug)]
 pub struct EvmSketch<P> {
     /// The genesis block specification.
@@ -43,7 +45,8 @@ where
     /// Executes the smart contract call with the given [`ContractInput`].
     pub async fn call(&self, input: ContractInput) -> eyre::Result<Bytes> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, &self.genesis);
+        let chain_spec = Arc::new(ChainSpec::try_from(&self.genesis)?);
+        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, chain_spec);
 
         let output = evm.transact(&input)?;
 
