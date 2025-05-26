@@ -7,7 +7,6 @@ use alloy::hex;
 use alloy_primitives::{Address, Bytes};
 use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_types::SolValue;
-use sp1_cc_client_executor::ContractInput;
 use sp1_cc_host_executor::{EvmSketch, Genesis};
 use url::Url;
 
@@ -47,8 +46,7 @@ async fn main() -> eyre::Result<()> {
     // Keep track of the block hash. Later, validate the client's execution against this.
     let bytes = hex::decode(BYTECODE).expect("Decoding failed");
     println!("Checking coinbase");
-    let contract_input = ContractInput::new_create(Address::default(), Bytes::from(bytes));
-    let check_coinbase = sketch.call(contract_input).await?;
+    let check_coinbase = sketch.create(Address::default(), Bytes::from(bytes)).await?;
 
     let decoded_address: Address = Address::abi_decode(&check_coinbase)?;
 
