@@ -68,7 +68,7 @@ let block_hash = sketch.anchor.resolve().hash;;
 // Make the call to the slot0 function.
 let slot0_call = IUniswapV3PoolState::slot0Call {};
 let _price_x96_bytes = sketch
-    .call(ContractInput::new_call(CONTRACT, Address::default(), slot0_call))
+    .call(CONTRACT, Address::default(), slot0_call)
     .await?;
 
 // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
