@@ -50,6 +50,21 @@ const config: Config = {
             title: "SP1 Contract Call",
             items: [
                 {
+                    type: 'dropdown',
+                    label: 'API Docs',
+                    position: "left",
+                    items: [
+                        {
+                            label: 'sp1-cc-client-executor',
+                            href: 'api/sp1_cc_client_executor',
+                        },
+                        {
+                            label: 'sp1-cc-host-executor',
+                            href: 'api/sp1_cc_host_executor',
+                        },
+                    ],
+                },
+                {
                     href: "https://github.com/succinctlabs/sp1-contract-call",
                     label: "GitHub",
                     position: "right",
