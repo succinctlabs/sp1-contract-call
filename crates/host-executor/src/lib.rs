@@ -12,9 +12,6 @@ pub use beacon::BeaconClient;
 mod errors;
 pub use errors::{BeaconError, HostError};
 
-mod events;
-pub use events::LogsPrefetcher;
-
 mod sketch;
 pub use sketch::EvmSketch;
 
