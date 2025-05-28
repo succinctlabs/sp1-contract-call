@@ -26,11 +26,11 @@ jobs:
             - name: Build website
               run: |
                 cd book
-                yarn build-book
                 yarn build-api
-                mv ../target/doc ./build/api
-                mv ./build/api/static.files/* ./build/api
-                rmdir ./build/api/static.files
+                mv ../target/doc ./static/api
+                mv ./static/api/static.files/* ./static/api
+                rmdir ./static/api/static.files
+                yarn build-book
 
             - name: Upload Build Artifact
               uses: actions/upload-pages-artifact@v3
