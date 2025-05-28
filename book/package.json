@@ -5,7 +5,8 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build-book": "docusaurus build",
+    "build-api": "RUSTDOCFLAGS='-Z unstable-options --static-root-path /sp1-contract-call/api' cargo +nightly doc -p sp1-cc-client-executor -p sp1-cc-host-executor --no-deps",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
