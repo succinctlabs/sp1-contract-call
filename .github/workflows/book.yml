@@ -24,7 +24,13 @@ jobs:
             - name: Install dependencies
               run: cd book && yarn install --frozen-lockfile
             - name: Build website
-              run: cd book && yarn build
+              run: |
+                cd book
+                yarn build-book
+                yarn build-api
+                mv ../target/doc ./build/api
+                mv ./build/api/static.files/* ./build/api
+                rmdir ./build/api/static.files
 
             - name: Upload Build Artifact
               uses: actions/upload-pages-artifact@v3
