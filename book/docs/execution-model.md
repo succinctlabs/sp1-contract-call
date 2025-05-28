@@ -14,15 +14,15 @@ The execution model follow the following steps:
 
 ## Prefetch
 
-The EVM state capture system is built around the [`EvmSketch`](pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html) struct, which prefetches and organizes all data required to execute Ethereum smart contract calls and and retrieve events logs in the zkVM. The sketch acts as a bridge between the host environment (which has access to Ethereum RPC endpoints) and the client environment (which executes in the isolated zkVM).
+The EVM state capture system is built around the [`EvmSketch`] struct, which prefetches and organizes all data required to execute Ethereum smart contract calls and and retrieve events logs in the zkVM. The sketch acts as a bridge between the host environment (which has access to Ethereum RPC endpoints) and the client environment (which executes in the isolated zkVM).
 
 :::tip
 
-The `EvmSketch` struct can be configured with `EvmSketchBuilder`. You can have a look at `EvmSketch::Builder()`.
+The [`EvmSketch`] struct can be configured with [`EvmSketchBuilder`]. You can have a look at `EvmSketch::Builder()`.
 
 :::
 
-One an `EvmSketch` is instanciated, the following methods can be called:
+Once an [`EvmSketch`] is instanciated, the following methods can be called:
 
 * The `call()` method executes smart contract functions and records all accessed accounts and storage slots.
 * The `create()` method handles contract deployment transactions, tracking the bytecode and initialization parameters required for deterministic contract creation in the zkVM.
@@ -51,3 +51,6 @@ You can refer to the SP1 documentation for more details about [executing the pro
 SP1 provides all the tooling required to verify proofs on chain. You can find more details in the [on-chain verification](https://docs.succinct.xyz/docs/sp1/verification/getting-started#generating-sp1-proofs-for-onchain-verification) page in the SP1 documentation.
 
 In addition, the public values associated with our proof are abi-encoded, which allows to use the output of the contract call on chain. We also added a [`ContractCall`](https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v4.0.0-rc.3/utils/ContractCall.sol) library in [`sp1-contract` project](https://github.com/succinctlabs/sp1-contracts/pulls) to easily verify the public values on-chain. Check out [`examples/uniswap/contracts`](https://github.com/succinctlabs/sp1-contract-call/tree/main/examples/uniswap/contracts) for more details.
+
+[`EvmSketch`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html
+[`EvmSketchBuilder`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html

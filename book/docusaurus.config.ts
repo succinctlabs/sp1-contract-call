@@ -18,7 +18,7 @@ const config: Config = {
     organizationName: "succinctlabs", // Usually your GitHub org/user name.
     projectName: "sp1-contract-call", // Usually your repo name.
 
-    onBrokenLinks: "warn",
+    onBrokenLinks: "throw",
     onBrokenMarkdownLinks: "warn",
 
     // Even if you don't use internationalization, you can use this field to set
@@ -56,11 +56,11 @@ const config: Config = {
                     items: [
                         {
                             label: 'sp1-cc-client-executor',
-                            href: 'https://succinctlabs.github.io/sp1-contract-call/api/sp1_cc_client_executor',
+                            href: 'pathname:///api/sp1_cc_client_executor',
                         },
                         {
                             label: 'sp1-cc-host-executor',
-                            href: 'https://succinctlabs.github.io/sp1-contract-call/api/sp1_cc_host_executor',
+                            href: 'pathname:///api/sp1_cc_host_executor',
                         },
                     ],
                 },

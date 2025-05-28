@@ -96,6 +96,8 @@ impl BeaconAnchorKind for ConsensusBeaconAnchor {
 }
 
 /// A builder for [`HeaderAnchor`].
+///
+/// [`HeaderAnchor`]: sp1_cc_client_executor::HeaderAnchor
 #[derive(Debug)]
 pub struct HeaderAnchorBuilder<P> {
     provider: P,
