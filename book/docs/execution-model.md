@@ -14,7 +14,7 @@ The execution model follow the following steps:
 
 ## Prefetch
 
-The EVM state capture system is built around the [`EvmSketch`](/api/sp1_cc_host_executor/struct.EvmSketch.html) struct, which prefetches and organizes all data required to execute Ethereum smart contract calls and and retrieve events logs in the zkVM. The sketch acts as a bridge between the host environment (which has access to Ethereum RPC endpoints) and the client environment (which executes in the isolated zkVM).
+The EVM state capture system is built around the [`EvmSketch`](pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html) struct, which prefetches and organizes all data required to execute Ethereum smart contract calls and and retrieve events logs in the zkVM. The sketch acts as a bridge between the host environment (which has access to Ethereum RPC endpoints) and the client environment (which executes in the isolated zkVM).
 
 :::tip
 
