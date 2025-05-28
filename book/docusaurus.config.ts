@@ -56,11 +56,11 @@ const config: Config = {
                     items: [
                         {
                             label: 'sp1-cc-client-executor',
-                            href: 'api/sp1_cc_client_executor',
+                            href: 'https://succinctlabs.github.io/sp1-contract-call/api/sp1_cc_client_executor',
                         },
                         {
                             label: 'sp1-cc-host-executor',
-                            href: 'api/sp1_cc_host_executor',
+                            href: 'https://succinctlabs.github.io/sp1-contract-call/api/sp1_cc_host_executor',
                         },
                     ],
                 },
