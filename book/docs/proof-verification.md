@@ -12,15 +12,15 @@ The anchor consists of an identifier that identifies the block and a hash that e
 | Method                              | Anchor Identifier | Anchor Hash | On-chain validation | Validation window |
 |-------------------------------------|-------------------|-------------|---------------------|-------------------|
 | [Block hash](#using-block-hash)     | Block number      | Block hash  | ✅                  | 256 blocks        |
-| [Beacon block](#using-beacon-block) | Timestamp         | Beacon root | ✅                  | 8191 blocks       |
-| [Beacon block (chained)](#chaining) | Timestamp         | Beacon root | ✅                  | Up to Cancun      |
+| [Beacon root](#using-beacon-root)   | Timestamp         | Beacon root | ✅                  | 8191 blocks       |
+| [Beacon root (chained)](#chaining)  | Timestamp         | Beacon root | ✅                  | Up to Cancun      |
 | [Consensus](#using-consensus)       | Slot              | Beacon root | ❌                  | N/A               |
 
 ## Using block hash
 
 This method uses the `blockhash` opcode to commit to a block hash. This gives 256 blocks (approximately 50 minutes) to create the proof and confirm that the validating transaction is included in a block.
 
-## Using beacon block (EIP-4788)
+## Using beacon root
 
 This approach enables verification through the [EIP-4788](https://eips.ethereum.org/EIPS/eip-4788) beacon roots contract. By using this technique, the onchain proof validation window is extended to 8191 blocks (approximately 27 hours). The method requires a beacon API endpoint connection and can be activated by invoking `EvmSketchBuilder::cl_rpc_url()`:
 
