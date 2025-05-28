@@ -8,13 +8,13 @@ This page explains how the SP1 Contract call system captures Ethereum Virtual Ma
 The execution model follow the following steps:
 
 1. [Prefetch all the data needed for the contract calls execution](#prefetch)
-2. [Generate inputs object to be sent to the client](#input-generation)
+2. [Generate inputs object to be sent to the client](#inputs-generation)
 3. [Execute the client and optinally generate a proof](#client-execution-and-proof-generation)
 4. [Verify the proof on-chain](#on-chain-verification)
 
 ## Prefetch
 
-The EVM state capture system is built around the `EvmSketch` struct, which prefetches and organizes all data required to execute Ethereum smart contract calls and and retrieve events logs in the zkVM. The sketch acts as a bridge between the host environment (which has access to Ethereum RPC endpoints) and the client environment (which executes in the isolated zkVM).
+The EVM state capture system is built around the [`EvmSketch`](/api/sp1_cc_host_executor/struct.EvmSketch.html) struct, which prefetches and organizes all data required to execute Ethereum smart contract calls and and retrieve events logs in the zkVM. The sketch acts as a bridge between the host environment (which has access to Ethereum RPC endpoints) and the client environment (which executes in the isolated zkVM).
 
 :::tip
 
