@@ -22,7 +22,7 @@ This method uses the `blockhash` opcode to commit to a block hash. This gives 25
 
 ## Using beacon root
 
-This approach enables verification through the [EIP-4788](https://eips.ethereum.org/EIPS/eip-4788) beacon roots contract. By using this technique, the onchain proof validation window is extended to 8191 blocks (approximately 27 hours). The method requires a beacon API endpoint connection and can be activated by invoking `EvmSketchBuilder::cl_rpc_url()`:
+This approach enables verification through the [EIP-4788](https://eips.ethereum.org/EIPS/eip-4788) beacon roots contract. By using this technique, the onchain proof validation window is extended to 8191 blocks (approximately 27 hours). The method requires a beacon API endpoint connection and can be activated by invoking [`EvmSketchBuilder::cl_rpc_url()`]:
 
 ```rust
 let sketch = EvmSketch::builder()
@@ -41,7 +41,7 @@ These two blocks have an inherent relationship: the execution block must always 
 
 The validation process traces backward from the reference block to the execution block through sequential calls to the beacon roots contract. This verifies the integrity of view call data in the execution block by demonstrating that it's a canonical ancestor of the reference block. Once deployed onchain, successful anchor validation confirms the integrity of the reference block's block root.
 
-The reference block may be specified while building the sketck, using `EvmSketchBuilder::at_reference_block()`:
+The reference block may be specified while building the sketck, using [`EvmSketchBuilder::at_reference_block()`]:
 
 ```rust
 let sketch = EvmSketch::builder()
@@ -59,7 +59,7 @@ A consensus anchor stores the beacon block root using its slot number as the ind
 
 Slot-based indexing is especially advantageous for verification systems that can directly access beacon chain state, including those that employ beacon light clients. This enables the commitment to be validated directly against the consensus layer state.
 
-To enable consensus anchor, call `EvmSketchBuilder::consensus()` like in the example below:
+To enable consensus anchor, call [`EvmSketchBuilder::consensus()`] like in the example below:
 
 ```rust
 let sketch = EvmSketch::builder()
@@ -70,3 +70,7 @@ let sketch = EvmSketch::builder()
     .build()
     .await?;
 ```
+
+[`EvmSketchBuilder::cl_rpc_url()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.cl_rpc_url
+[`EvmSketchBuilder::at_reference_block()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.at_reference_block
+[`EvmSketchBuilder::consensus()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.consensus
