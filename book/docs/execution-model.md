@@ -18,19 +18,19 @@ The EVM state capture system is built around the [`EvmSketch`] struct, which pre
 
 :::tip
 
-The [`EvmSketch`] struct can be configured with [`EvmSketchBuilder`]. You can have a look at `EvmSketch::Builder()`.
+The [`EvmSketch`] struct can be configured with [`EvmSketchBuilder`]. You can have a look at [`EvmSketch::builder()`].
 
 :::
 
 Once an [`EvmSketch`] is instanciated, the following methods can be called:
 
-* The `call()` method executes smart contract functions and records all accessed accounts and storage slots.
-* The `create()` method handles contract deployment transactions, tracking the bytecode and initialization parameters required for deterministic contract creation in the zkVM.
-* The `get_logs()` method prefetches event logs matching specified filters.
+* The [`call()`] method executes smart contract functions and records all accessed accounts and storage slots.
+* The [`create()`] method handles contract deployment transactions, tracking the bytecode and initialization parameters required for deterministic contract creation in the zkVM.
+* The [`get_logs()`] method prefetches event logs matching specified filters.
 
 ## Inputs Generation
 
-The `EvmSketch::finalize()` method transforms the accumulated state access data into a `EvmSketchInput` suitable for zkVM execution. This structure is serialized and passed to the client executor for deterministic re-execution in the zkVM environment.
+The [`EvmSketch::finalize()`] method transforms the accumulated state access data into a [`EvmSketchInput`] suitable for zkVM execution. This structure is serialized and passed to the client executor for deterministic re-execution in the zkVM environment.
 
 ## Client Execution and Proof Generation
 
@@ -38,11 +38,11 @@ Client Execution is the process of executing smart contract calls inside the SP1
 
 Typically, the following steps are performed:
 
-1. The `EvmSketchInput` is deserialized.
-2. A `ClientExecutor` is created from the `EvmSketchInput`.
-3. The actual contract calls within the zkVM environment are performed using the `execute()` method. Event logs can be retrieved using the `get_logs()` method.
+1. The [`EvmSketchInput`] is deserialized.
+2. A [`ClientExecutor`] is created from the [`EvmSketchInput`].
+3. The actual contract calls within the zkVM environment are performed using the `execute()` method. Event logs can be retrieved using the [`get_logs()`] method.
 
-The `execute()` method returns a `ContractPublicValues` struct containing all information needed for on-chain verification.
+The [`execute()`] method returns a [`ContractPublicValues`] struct containing all information needed for on-chain verification.
 
 You can refer to the SP1 documentation for more details about [executing the program in the zkVM](https://docs.succinct.xyz/docs/sp1/generating-proofs/basics#executing-the-program) and [generating a proof](https://docs.succinct.xyz/docs/sp1/generating-proofs/basics#generating-the-proof).
 
@@ -53,4 +53,13 @@ SP1 provides all the tooling required to verify proofs on chain. You can find mo
 In addition, the public values associated with our proof are abi-encoded, which allows to use the output of the contract call on chain. We also added a [`ContractCall`](https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v4.0.0-rc.3/utils/ContractCall.sol) library in [`sp1-contract` project](https://github.com/succinctlabs/sp1-contracts/pulls) to easily verify the public values on-chain. Check out [`examples/uniswap/contracts`](https://github.com/succinctlabs/sp1-contract-call/tree/main/examples/uniswap/contracts) for more details.
 
 [`EvmSketch`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html
+[`EvmSketch::builder()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html#method.builder
+[`call()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html#method.call
+[`create()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html#method.create
+[`get_logs()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html#method.get_logs
+[`EvmSketch::finalize()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html#method.finalize
 [`EvmSketchBuilder`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html
+[`EvmSketchInput`]: pathname:///api/sp1_cc_client_executor/io/struct.EvmSketchInput.html
+[`ClientExecutor`]: pathname:///api/sp1_cc_client_executor/struct.ClientExecutor.html
+[`execute()`]: pathname:///api/sp1_cc_client_executor/struct.ClientExecutor.html#method.execute
+[`ContractPublicValues`]: pathname:///api/sp1_cc_client_executor/struct.ContractPublicValues.html
