@@ -5,7 +5,7 @@ sidebar_position: 5
 
 ## Overview
 
-SP1 Contract call retrieve the state for contract calls at a specific block (called the execution block). In order to guarantee that the proof accurately reflects the correct blockchain state at the specified execution block, data (called the `Anchor`) identifying this block are added to the inputs sent to the zkVM and included to the proof public inputs.
+SP1 Contract call retrieve the state for contract calls at a specific block (called the execution block). In order to guarantee that the proof accurately reflects the correct blockchain state at the specified execution block, data (called the [`Anchor`]) identifying this block are added to the inputs sent to the zkVM and included to the proof public inputs.
 
 The anchor consists of an identifier that identifies the block and a hash that enables its verification. The method used to generate the anchor have a direct impact of the window between the execution block and the block on which the verify transaction is contained, as you can see in the table below:
 
@@ -77,6 +77,7 @@ let sketch = EvmSketch::builder()
     .await?;
 ```
 
+[`Anchor`]: pathname:///api/sp1_cc_client_executor/enum.Anchor.html
 [`EvmSketchBuilder::cl_rpc_url()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.cl_rpc_url
 [`EvmSketchBuilder::at_reference_block()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.at_reference_block
 [`EvmSketchBuilder::consensus()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.consensus
