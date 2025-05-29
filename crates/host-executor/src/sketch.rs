@@ -19,7 +19,7 @@ use sp1_cc_client_executor::{
 
 use crate::{EvmSketchBuilder, HostError};
 
-/// ['EvmSketch'] is used to prefetch all the data required to execute a block and query logs in the
+/// [`EvmSketch`] is used to prefetch all the data required to execute a block and query logs in the
 /// zkVM.
 #[derive(Debug)]
 pub struct EvmSketch<P, PT> {
@@ -187,6 +187,7 @@ where
     }
 }
 
+/// Converts an [`AnyReceiptEnvelope`] to a [`ReceiptEnvelope`] by encoding and decoding.
 fn convert_receipt_envelope(
     any_receipt_envelope: AnyReceiptEnvelope<RpcLog>,
 ) -> Result<ReceiptEnvelope, Eip2718Error> {

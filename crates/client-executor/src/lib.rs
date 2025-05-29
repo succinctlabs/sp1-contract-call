@@ -1,3 +1,24 @@
+//! # RSP Client Executor Lib
+//!
+//! This library provides the core functionality for executing smart contract calls within a
+//! zero-knowledge virtual machine (zkVM) environment. It includes utilities for blockchain
+//! state validation, EVM execution, and proof generation.
+//!
+//! ## Main Components
+//!
+//! - [`ClientExecutor`]: The primary executor for smart contract calls in zkVM
+//! - [`ContractInput`]: Input specification for contract calls and creations
+//! - [`ContractPublicValues`]: Public outputs that can be verified on-chain
+//! - [`Anchor`]: Various blockchain anchoring mechanisms for state validation
+//!
+//! ## Features
+//!
+//! - Execute smart contracts with full EVM compatibility
+//! - Validate blockchain state against Merkle proofs
+//! - Support for multiple anchor types (block hash, EIP-4788, consensus)
+//! - Log filtering and event decoding
+//! - Zero-knowledge proof generation for contract execution
+
 pub mod io;
 use std::{
     hash::{DefaultHasher, Hash, Hasher},
