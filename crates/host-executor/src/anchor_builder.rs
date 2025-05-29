@@ -25,6 +25,7 @@ pub trait AnchorBuilder {
     async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError>;
 }
 
+/// Trait for different beacon anchor strategies.
 #[async_trait]
 pub trait BeaconAnchorKind: Sized {
     async fn build_beacon_anchor_from_header<P: Provider<AnyNetwork>>(
@@ -34,6 +35,7 @@ pub trait BeaconAnchorKind: Sized {
     ) -> Result<(B256, BeaconAnchor), HostError>;
 }
 
+/// Marker type for EIP-4788 beacon anchor strategy.
 #[derive(Debug)]
 pub struct Eip4788BeaconAnchor;
 
@@ -64,6 +66,7 @@ impl BeaconAnchorKind for Eip4788BeaconAnchor {
     }
 }
 
+/// Marker type for consensus beacon anchor strategy.
 #[derive(Debug)]
 pub struct ConsensusBeaconAnchor;
 
@@ -96,6 +99,8 @@ impl BeaconAnchorKind for ConsensusBeaconAnchor {
 }
 
 /// A builder for [`HeaderAnchor`].
+///
+/// [`HeaderAnchor`]: sp1_cc_client_executor::HeaderAnchor
 #[derive(Debug)]
 pub struct HeaderAnchorBuilder<P> {
     provider: P,
@@ -147,10 +152,12 @@ pub struct BeaconAnchorBuilder<P, K> {
 }
 
 impl<P> BeaconAnchorBuilder<P, Eip4788BeaconAnchor> {
+    /// Creates a new EIP-4788 beacon anchor builder.
     pub fn new(header_anchor_builder: HeaderAnchorBuilder<P>, cl_rpc_url: Url) -> Self {
         Self { header_anchor_builder, client: BeaconClient::new(cl_rpc_url), phantom: PhantomData }
     }
 
+    /// Converts this EIP-4788 beacon anchor builder to a consensus beacon anchor builder.
     pub fn into_consensus(self) -> BeaconAnchorBuilder<P, ConsensusBeaconAnchor> {
         BeaconAnchorBuilder {
             header_anchor_builder: self.header_anchor_builder,
@@ -161,6 +168,7 @@ impl<P> BeaconAnchorBuilder<P, Eip4788BeaconAnchor> {
 }
 
 impl<P: Provider<AnyNetwork>, K: BeaconAnchorKind> BeaconAnchorBuilder<P, K> {
+    /// Builds a beacon anchor with a header for the specified field.
     pub async fn build_beacon_anchor_with_header(
         &self,
         header: &Sealed<Header>,
@@ -178,6 +186,7 @@ impl<P: Provider<AnyNetwork>, K: BeaconAnchorKind> BeaconAnchorBuilder<P, K> {
         Ok(BeaconWithHeaderAnchor::new(header.clone_inner(), anchor))
     }
 
+    /// Builds a beacon anchor for the given beacon root and field.
     pub async fn build_beacon_anchor(
         &self,
         beacon_root: B256,
@@ -262,6 +271,7 @@ impl<P> ChainedBeaconAnchorBuilder<P> {
 }
 
 impl<P: Provider<AnyNetwork>> ChainedBeaconAnchorBuilder<P> {
+    /// Retrieves the timestamp stored in the EIP-4788 beacon roots contract for a given timestamp and block.
     async fn get_eip_4788_timestamp(
         &self,
         timestamp: U256,
@@ -279,6 +289,7 @@ impl<P: Provider<AnyNetwork>> ChainedBeaconAnchorBuilder<P> {
         Ok(result)
     }
 
+    /// Retrieves the EIP-4788 storage proof for the beacon root contract at the given timestamp and block.
     async fn retrieve_state(
         &self,
         timestamp: U256,
@@ -303,6 +314,7 @@ impl<P: Provider<AnyNetwork>> ChainedBeaconAnchorBuilder<P> {
 
 #[async_trait]
 impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
+    /// Builds a chained beacon anchor for the given block ID.
     async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError> {
         let execution_header =
             self.beacon_anchor_builder.header_anchor_builder.get_header(block_id).await?;
@@ -373,6 +385,7 @@ impl<P: Provider<AnyNetwork>> AnchorBuilder for ChainedBeaconAnchorBuilder<P> {
     }
 }
 
+/// Verifies a Merkle proof by rebuilding the root and comparing it to the expected beacon root.
 fn verify_merkle_root(
     block_hash: B256,
     proof: &[B256],
