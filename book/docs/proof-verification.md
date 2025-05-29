@@ -53,6 +53,12 @@ let sketch = EvmSketch::builder()
     .await?;
 ```
 
+:::tip
+
+Please have a look at the [Uniswap (on-chain verify) example](./examples.md#uniswap-on-chain-verify) for a E2E walk-through for proofs verification on-chain.
+
+:::
+
 ## Using consensus
 
 A consensus anchor stores the beacon block root using its slot number as the index. This differs from the standard approach, which uses timestamp-based lookups for verification through the EIP-4788 beacon root contract at the execution layer.
