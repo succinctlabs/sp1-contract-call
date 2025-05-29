@@ -45,9 +45,16 @@ sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
 
 Under the hood, the SP1 client program uses the executor from the `sp1-cc-client-executor` library, which requires storage slots and merkle proof information to correctly and verifiably run the smart contract execution.
 
-The "host" program is code that is run outside of the zkVM & is responsible for fetching all of the witness data that is needed for the client program. This witness data includes storage slots, account information & merkle proofs that the client program verifies.
+The "host" program is code that is run outside of the zkVM & is responsible for fetching all of the witness data that is needed for the client program. This witness data includes storage slots, account information & merkle proofs that the client program verifies. This data is stored in an [`EvmSketch`] struct; more details are available on the [Execution Model](execution-model.md#prefetch) page.
 
 You can see in the host example code below that we run the exact same contract call with the host executor (instead of the client executor), and the host executor will fetch all relevant information as its executing. When we call `finalize()` on the host executor, it prepares all of the data it has gathered during contract call execution and then prepares it for input into the client program.
+
+:::tip
+
+More info about the RPC requirement on the [RPC Configuration](./rpc-configuration.md) page.
+
+:::
+
 
 ```rust
 ...
@@ -63,7 +70,7 @@ let sketch = EvmSketch::builder()
     .await?;
 
 // Keep track of the block hash. We'll later validate the client's execution against this.
-let block_hash = sketch.anchor.resolve().hash;;
+let block_hash = sketch.anchor.resolve().hash;
 
 // Make the call to the slot0 function.
 let slot0_call = IUniswapV3PoolState::slot0Call {};
@@ -92,6 +99,8 @@ After running the client program in the host, we generate a proof that can easil
 /// @notice This contract implements a simple example of verifying the proof of call to a smart
 ///         contract.
 contract UniswapCall {
+    using ContractCall for ContractPublicValues;
+
     /// @notice The address of the SP1 verifier contract.
     /// @dev This can either be a specific SP1Verifier for a specific version, or the
     ///      SP1VerifierGateway which can be used to verify proofs for any version of SP1.
@@ -115,10 +124,17 @@ contract UniswapCall {
         view
         returns (uint160)
     {
+        // Verify the proof
         ISP1Verifier(verifier).verifyProof(uniswapCallProgramVKey, _publicValues, _proofBytes);
         ContractPublicValues memory publicValues = abi.decode(_publicValues, (ContractPublicValues));
+        
+        // Verify the public values, including the blockHash
+        publicValues.verify();
+
         uint160 sqrtPriceX96 = abi.decode(publicValues.contractOutput, (uint160));
         return sqrtPriceX96;
     }
 }
 ```
+
+[`EvmSketch`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketch.html
