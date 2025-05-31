@@ -43,9 +43,9 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "4.2.0"
-sp1-zkvm = "4.2.0"
-sp1-build = "4.2.0"
+sp1-sdk = "5.0.0"
+sp1-zkvm = "5.0.0"
+sp1-build = "5.0.0"
 
 # rsp
 rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "3703a82027157a653327c95cf2e507d05bde174f" }
@@ -135,7 +135,7 @@ sha2-v0-10-8 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", packa
 sha3-v0-10-8 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha3", tag = "patch-sha3-0.10.8-sp1-4.0.0" }
 crypto-bigint = { git = "https://github.com/sp1-patches/RustCrypto-bigint", tag = "patch-0.5.5-sp1-4.0.0" }
 tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", tag = "patch-2.0.2-sp1-4.0.0" }
-secp256k1  = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.30.0-sp1-4.1.0" }
+secp256k1  = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.30.0-sp1-5.0.0" }
 
 # TODO: Remove once https://github.com/ralexstokes/ethereum-consensus/pull/419 is merged.
 [patch."https://github.com/ralexstokes/ethereum-consensus"]
