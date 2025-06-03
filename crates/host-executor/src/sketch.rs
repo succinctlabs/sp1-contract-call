@@ -196,3 +196,19 @@ fn convert_receipt_envelope(
 
     ReceiptEnvelope::decode_2718(&mut buf.as_slice())
 }
+
+#[cfg(test)]
+mod tests {
+    use sp1_cc_client_executor::io::EvmSketchInput;
+
+    use crate::EvmSketch;
+
+    // Function that requires T to be `Sync`
+    fn assert_sync<T: Sync>() {}
+
+    #[test]
+    fn test_sync() {
+        assert_sync::<EvmSketch<()>>();
+        assert_sync::<EvmSketchInput>();
+    }
+}

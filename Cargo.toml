@@ -48,11 +48,11 @@ sp1-zkvm = "5.0.0"
 sp1-build = "5.0.0"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "24dee6c7bb4081f44e7d232fc924a9e419ee4c88" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "24dee6c7bb4081f44e7d232fc924a9e419ee4c88" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "24dee6c7bb4081f44e7d232fc924a9e419ee4c88" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "24dee6c7bb4081f44e7d232fc924a9e419ee4c88" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "24dee6c7bb4081f44e7d232fc924a9e419ee4c88" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
 
 # rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
 # rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
