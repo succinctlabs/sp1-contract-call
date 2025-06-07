@@ -1,3 +1,7 @@
+//! SP1 Contract Call Host Executor Library
+//!
+//! This library provides functionality for executing contract calls within the SP1 zkVM host environment.
+
 pub use rsp_primitives::genesis::Genesis;
 
 mod anchor_builder;
@@ -11,9 +15,6 @@ pub use beacon::BeaconClient;
 
 mod errors;
 pub use errors::{BeaconError, HostError};
-
-mod events;
-pub use events::LogsPrefetcher;
 
 mod sketch;
 pub use sketch::EvmSketch;
