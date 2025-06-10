@@ -35,7 +35,7 @@ let sketch = EvmSketch::builder()
 
 ### Chaining
 
-The EIP-4788 anchor mechanism can be used to query view call state from blocks beyond the 8191 block limit by separating the anchor into two components: an execution block and a reference block. While the reference block acts as the anchor and must remain within the ~27 hour onchain validation timeframe, the execution block can extend significantly further into the past—covering periods of days, weeks, or even months.
+The EIP-4788 anchor mechanism can be used to query view call state from blocks beyond the 8191 block limit by separating the anchor into two components: an execution block and a reference block. While the reference block acts as the anchor and must remain within the ~27 hour onchain validation timeframe, the execution block can extend significantly further into the past—up to the Cancun hardfork (March 13, 2024 on Mainnet).
 
 These two blocks have an inherent relationship: the execution block must always be an ancestor of the reference block. By validating a chain of beacon block roots between these two blocks, you can prove that the execution block exists within the committed chain.
 
