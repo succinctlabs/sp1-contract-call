@@ -220,7 +220,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
         let sealed_headers = state_sketch.sealed_headers().collect::<Vec<_>>();
 
         P::validate_header(&sealed_headers[0], chain_spec.clone())
-            .expect("the header in not valid");
+            .expect("the header is not valid");
 
         // Verify the state root
         assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
