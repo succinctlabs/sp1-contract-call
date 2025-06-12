@@ -195,7 +195,7 @@ impl<'a> ClientExecutor<'a> {
 
         validator
             .validate_header(&SealedHeader::new_unhashed(header.clone()))
-            .expect("the header in not valid");
+            .expect("the header is not valid");
 
         assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
 
