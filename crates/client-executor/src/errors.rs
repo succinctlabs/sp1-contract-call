@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+/// Error types for the client library.
 #[derive(Error, Debug)]
 pub enum ClientError {
     #[error("ABI error: {0}")]
