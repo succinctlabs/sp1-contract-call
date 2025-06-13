@@ -30,6 +30,8 @@ rsp-mpt.workspace = true
 
 # reth
 reth-chainspec.workspace = true
+reth-primitives.workspace = true
+reth-optimism-primitives = { workspace = true, optional = true, features = ["serde", "serde-bincode-compat"]}
 
 # revm
 revm.workspace = true
@@ -53,3 +55,8 @@ alloy-primitives.workspace = true
 dotenv.workspace = true
 tracing-subscriber = "0.3.18"
 bincode = "1.3.3"
+
+[features]
+optimism = [
+    "dep:reth-optimism-primitives",
+]

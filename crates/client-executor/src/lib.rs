@@ -2,22 +2,15 @@ pub mod io;
 use std::sync::Arc;
 
 use alloy_eips::Encodable2718;
-use alloy_evm::{Database, Evm, IntoTxEnv};
+use alloy_evm::IntoTxEnv;
 use alloy_primitives::Log;
 use alloy_rpc_types::{Filter, FilteredParams};
 use alloy_sol_types::{sol, SolCall, SolEvent};
 use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::OptionExt;
 use io::EvmSketchInput;
-use reth_chainspec::ChainSpec;
-use reth_consensus::HeaderValidator;
-use reth_ethereum_consensus::EthBeaconConsensus;
-use reth_evm::{ConfigureEvm, EvmEnv};
-use reth_evm_ethereum::{EthEvm, EthEvmConfig};
-use reth_primitives::{Header, SealedHeader};
-use revm::{
-    context::TxEnv, database::CacheDB, inspector::NoOpInspector, Context, MainBuilder, MainContext,
-};
+use reth_primitives::{EthPrimitives, SealedHeader};
+use revm::{context::TxEnv, database::CacheDB};
 use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
 
@@ -32,6 +25,8 @@ mod errors;
 pub use errors::ClientError;
 
 pub use rsp_primitives::genesis::Genesis;
+
+use crate::io::Primitives;
 
 /// Input to a contract call.
 ///
@@ -109,6 +104,17 @@ impl IntoTxEnv<TxEnv> for &ContractInput {
     }
 }
 
+#[cfg(feature = "optimism")]
+impl IntoTxEnv<op_revm::OpTransaction<TxEnv>> for &ContractInput {
+    fn into_tx_env(self) -> op_revm::OpTransaction<TxEnv> {
+        op_revm::OpTransaction {
+            base: self.into_tx_env(),
+            enveloped_tx: None,
+            deposit: Default::default(),
+        }
+    }
+}
+
 sol! {
     #[derive(Debug)]
     enum AnchorType { BlockHash, Eip4788, Consensus }
@@ -154,26 +160,40 @@ impl ContractPublicValues {
 
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
-pub struct ClientExecutor<'a> {
+pub struct ClientExecutor<'a, P: Primitives> {
     /// The block anchor.
     pub anchor: &'a Anchor,
-    /// The genesis block specification.
-    pub chain_spec: Arc<ChainSpec>,
+    /// The chain specification.
+    pub chain_spec: Arc<P::ChainSpec>,
     /// The database that the executor uses to access state.
     pub witness_db: TrieDB<'a>,
     /// All logs in the block.
     pub logs: Vec<Log>,
 }
 
-impl<'a> ClientExecutor<'a> {
+impl<'a> ClientExecutor<'a, EthPrimitives> {
     /// Instantiates a new [`ClientExecutor`]
-    pub fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
-        let chain_spec = Arc::new(ChainSpec::try_from(&state_sketch.genesis).unwrap());
-        let validator = EthBeaconConsensus::new(chain_spec.clone());
+    pub fn eth(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
+        Self::new(state_sketch)
+    }
+}
+
+#[cfg(feature = "optimism")]
+impl<'a> ClientExecutor<'a, reth_optimism_primitives::OpPrimitives> {
+    /// Instantiates a new [`ClientExecutor`]
+    pub fn optimism(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
+        Self::new(state_sketch)
+    }
+}
+
+impl<'a, P: Primitives> ClientExecutor<'a, P> {
+    /// Instantiates a new [`ClientExecutor`]
+    fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
+        let chain_spec = P::build_spec(&state_sketch.genesis)?;
+
         let header = state_sketch.anchor.header();
 
-        validator
-            .validate_header(&SealedHeader::new_unhashed(header.clone()))
+        P::validate_header(&SealedHeader::new_unhashed(header.clone()), chain_spec.clone())
             .expect("the header in not valid");
 
         assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
@@ -183,8 +203,7 @@ impl<'a> ClientExecutor<'a> {
         for ancestor in &state_sketch.ancestor_headers {
             let ancestor_hash = ancestor.hash_slow();
 
-            validator
-                .validate_header(&SealedHeader::new_unhashed(ancestor.clone()))
+            P::validate_header(&SealedHeader::new_unhashed(ancestor.clone()), chain_spec.clone())
                 .unwrap_or_else(|_| panic!("the ancestor {} header in not valid", ancestor.number));
             assert_eq!(
                 previous_header.parent_hash, ancestor_hash,
@@ -221,8 +240,9 @@ impl<'a> ClientExecutor<'a> {
     /// Storage accesses are already validated against the `witness_db`'s state root.
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
-        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, self.chain_spec.clone());
-        let tx_output = evm.transact(&call)?;
+        let tx_output =
+            P::transact(&call, cache_db, self.anchor.header(), U256::ZERO, self.chain_spec.clone())
+                .unwrap();
         let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
         let resolved = self.anchor.resolve();
 
@@ -250,32 +270,4 @@ impl<'a> ClientExecutor<'a> {
             .collect::<Result<_, _>>()
             .map_err(Into::into)
     }
-}
-
-/// Instantiates a new EVM, which is ready to run `call`.
-pub fn new_evm<DB>(
-    db: DB,
-    header: &Header,
-    difficulty: U256,
-    chain_spec: Arc<ChainSpec>,
-) -> EthEvm<DB, NoOpInspector>
-where
-    DB: Database,
-{
-    let EvmEnv { cfg_env, mut block_env, .. } = EthEvmConfig::new(chain_spec).evm_env(header);
-
-    // Set the base fee to 0 to enable 0 gas price transactions.
-    block_env.basefee = 0;
-    block_env.difficulty = difficulty;
-
-    let evm = Context::mainnet()
-        .with_db(db)
-        .with_cfg(cfg_env)
-        .with_block(block_env)
-        .modify_tx_chained(|tx_env| {
-            tx_env.gas_limit = header.gas_limit;
-        })
-        .build_mainnet_with_inspector(NoOpInspector {});
-
-    EthEvm::new(evm, false)
 }

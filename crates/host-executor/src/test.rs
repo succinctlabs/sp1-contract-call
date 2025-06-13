@@ -169,7 +169,7 @@ async fn test_e2e<C: SolCall + Clone>(
     // Now that we've executed all of the calls, get the `EVMStateSketch` from the host executor.
     let state_sketch = sketch.finalize().await?;
 
-    let client_executor = ClientExecutor::new(&state_sketch)?;
+    let client_executor = ClientExecutor::eth(&state_sketch)?;
     let contract_input = ContractInput::new_call(contract_address, caller_address, calldata);
 
     let public_values = client_executor.execute(contract_input)?;
