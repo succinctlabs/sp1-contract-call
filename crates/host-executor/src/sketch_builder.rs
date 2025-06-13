@@ -1,7 +1,11 @@
+use std::marker::PhantomData;
+
 use alloy_eips::BlockId;
 use alloy_provider::{network::AnyNetwork, Provider, RootProvider};
+use reth_primitives::EthPrimitives;
 use rsp_primitives::genesis::Genesis;
 use rsp_rpc_db::RpcDb;
+use sp1_cc_client_executor::io::Primitives;
 use url::Url;
 
 use crate::{
@@ -13,14 +17,15 @@ use crate::{
 
 /// A builder for [`EvmSketch`].
 #[derive(Debug)]
-pub struct EvmSketchBuilder<P, A> {
+pub struct EvmSketchBuilder<P, PT, A> {
     block: BlockId,
     genesis: Genesis,
     provider: P,
     anchor_builder: A,
+    phantom: PhantomData<PT>,
 }
 
-impl<P, A> EvmSketchBuilder<P, A> {
+impl<P, PT, A> EvmSketchBuilder<P, PT, A> {
     /// Sets the block on which the contract will be called.
     pub fn at_block<B: Into<BlockId>>(mut self, block: B) -> Self {
         self.block = block.into();
@@ -33,24 +38,46 @@ impl<P, A> EvmSketchBuilder<P, A> {
     }
 }
 
-impl EvmSketchBuilder<(), ()> {
+impl<PT> EvmSketchBuilder<(), PT, ()> {
     /// Sets the Ethereum HTTP RPC endpoint that will be used.
     pub fn el_rpc_url(
         self,
         rpc_url: Url,
-    ) -> EvmSketchBuilder<RootProvider<AnyNetwork>, HeaderAnchorBuilder<RootProvider<AnyNetwork>>>
-    {
+    ) -> EvmSketchBuilder<
+        RootProvider<AnyNetwork>,
+        EthPrimitives,
+        HeaderAnchorBuilder<RootProvider<AnyNetwork>>,
+    > {
         let provider = RootProvider::new_http(rpc_url);
         EvmSketchBuilder {
             block: self.block,
             genesis: self.genesis,
             provider: provider.clone(),
             anchor_builder: HeaderAnchorBuilder::new(provider),
+            phantom: PhantomData,
         }
     }
 }
 
-impl<P> EvmSketchBuilder<P, HeaderAnchorBuilder<P>>
+#[cfg(feature = "optimism")]
+impl<P, A> EvmSketchBuilder<P, EthPrimitives, A> {
+    /// Configures the [`EvmSketch`] for OP Stack.
+    ///
+    /// Note: On the client, the executor should be crearted with [`ClientExecutor::optimism()`]
+    ///
+    /// [`ClientExecutor::optimism()`]: sp1_cc_client_executor::ClientExecutor::optimism
+    pub fn optimism(self) -> EvmSketchBuilder<P, reth_optimism_primitives::OpPrimitives, A> {
+        EvmSketchBuilder {
+            block: self.block,
+            genesis: self.genesis,
+            provider: self.provider,
+            anchor_builder: self.anchor_builder,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<P, PT> EvmSketchBuilder<P, PT, HeaderAnchorBuilder<P>>
 where
     P: Provider<AnyNetwork>,
 {
@@ -58,17 +85,18 @@ where
     pub fn cl_rpc_url(
         self,
         rpc_url: Url,
-    ) -> EvmSketchBuilder<P, BeaconAnchorBuilder<P, Eip4788BeaconAnchor>> {
+    ) -> EvmSketchBuilder<P, PT, BeaconAnchorBuilder<P, Eip4788BeaconAnchor>> {
         EvmSketchBuilder {
             block: self.block,
             genesis: self.genesis,
             provider: self.provider,
             anchor_builder: BeaconAnchorBuilder::new(self.anchor_builder, rpc_url),
+            phantom: self.phantom,
         }
     }
 }
 
-impl<P> EvmSketchBuilder<P, BeaconAnchorBuilder<P, Eip4788BeaconAnchor>>
+impl<P, PT> EvmSketchBuilder<P, PT, BeaconAnchorBuilder<P, Eip4788BeaconAnchor>>
 where
     P: Provider<AnyNetwork>,
 {
@@ -76,12 +104,13 @@ where
     pub fn at_reference_block<B: Into<BlockId>>(
         self,
         block_id: B,
-    ) -> EvmSketchBuilder<P, ChainedBeaconAnchorBuilder<P>> {
+    ) -> EvmSketchBuilder<P, PT, ChainedBeaconAnchorBuilder<P>> {
         EvmSketchBuilder {
             block: self.block,
             genesis: self.genesis,
             provider: self.provider,
             anchor_builder: ChainedBeaconAnchorBuilder::new(self.anchor_builder, block_id.into()),
+            phantom: self.phantom,
         }
     }
 
@@ -92,23 +121,27 @@ where
     /// chain, such as systems using beacon light clients.
     ///
     /// [`Anchor`]: sp1_cc_client_executor::Anchor
-    pub fn consensus(self) -> EvmSketchBuilder<P, BeaconAnchorBuilder<P, ConsensusBeaconAnchor>> {
+    pub fn consensus(
+        self,
+    ) -> EvmSketchBuilder<P, PT, BeaconAnchorBuilder<P, ConsensusBeaconAnchor>> {
         EvmSketchBuilder {
             block: self.block,
             genesis: self.genesis,
             provider: self.provider,
             anchor_builder: self.anchor_builder.into_consensus(),
+            phantom: self.phantom,
         }
     }
 }
 
-impl<P, A> EvmSketchBuilder<P, A>
+impl<P, PT, A> EvmSketchBuilder<P, PT, A>
 where
     P: Provider<AnyNetwork> + Clone,
+    PT: Primitives,
     A: AnchorBuilder,
 {
     /// Builds an [`EvmSketch`].
-    pub async fn build(self) -> Result<EvmSketch<P>, HostError> {
+    pub async fn build(self) -> Result<EvmSketch<P, PT>, HostError> {
         let anchor = self.anchor_builder.build(self.block).await?;
         let block_number = anchor.header().number;
 
@@ -118,19 +151,21 @@ where
             rpc_db: RpcDb::new(self.provider.clone(), block_number),
             receipts: None,
             provider: self.provider,
+            phantom: PhantomData,
         };
 
         Ok(sketch)
     }
 }
 
-impl Default for EvmSketchBuilder<(), ()> {
+impl Default for EvmSketchBuilder<(), EthPrimitives, ()> {
     fn default() -> Self {
         Self {
             block: BlockId::default(),
             genesis: Genesis::Mainnet,
             provider: (),
             anchor_builder: (),
+            phantom: PhantomData,
         }
     }
 }

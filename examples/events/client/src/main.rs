@@ -11,7 +11,7 @@ pub fn main() {
 
     // Initialize the client executor with the state sketch.
     // This step also validates all of the storage against the provided state root.
-    let executor = ClientExecutor::new(&state_sketch).unwrap();
+    let executor = ClientExecutor::eth(&state_sketch).unwrap();
     let filter = Filter::new().address(WETH).event(IERC20::Transfer::SIGNATURE);
     let logs = executor.get_logs::<IERC20::Transfer>(filter).unwrap();
 
