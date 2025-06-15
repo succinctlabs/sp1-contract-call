@@ -1,26 +1,28 @@
-use std::{collections::BTreeSet, sync::Arc};
+use std::{collections::BTreeSet, marker::PhantomData};
 
 use alloy_consensus::ReceiptEnvelope;
 use alloy_eips::{eip2718::Eip2718Error, Decodable2718, Encodable2718};
-use alloy_evm::Evm;
 use alloy_primitives::{Address, Bytes, B256, U256};
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{AnyReceiptEnvelope, Filter, Log as RpcLog};
 use alloy_sol_types::SolCall;
 use eyre::eyre;
-use reth_chainspec::ChainSpec;
+use reth_primitives::EthPrimitives;
 use revm::{context::result::ExecutionResult, database::CacheDB};
 use rsp_mpt::EthereumState;
 use rsp_primitives::{account_proof::eip1186_proof_to_account_proof, genesis::Genesis};
 use rsp_rpc_db::RpcDb;
-use sp1_cc_client_executor::{io::EvmSketchInput, new_evm, Anchor, ContractInput};
+use sp1_cc_client_executor::{
+    io::{EvmSketchInput, Primitives},
+    Anchor, ContractInput,
+};
 
 use crate::{EvmSketchBuilder, HostError};
 
 /// ['EvmSketch'] is used to prefetch all the data required to execute a block and query logs in the
 /// zkVM.
 #[derive(Debug)]
-pub struct EvmSketch<P> {
+pub struct EvmSketch<P, PT> {
     /// The genesis block specification.
     pub genesis: Genesis,
     /// The anchor to execute our view functions on.
@@ -31,17 +33,20 @@ pub struct EvmSketch<P> {
     pub receipts: Option<Vec<ReceiptEnvelope>>,
     /// The provider used to fetch data.
     pub provider: P,
+
+    pub phantom: PhantomData<PT>,
 }
 
-impl EvmSketch<()> {
-    pub fn builder() -> EvmSketchBuilder<(), ()> {
+impl EvmSketch<(), EthPrimitives> {
+    pub fn builder() -> EvmSketchBuilder<(), EthPrimitives, ()> {
         EvmSketchBuilder::default()
     }
 }
 
-impl<P> EvmSketch<P>
+impl<P, PT> EvmSketch<P, PT>
 where
     P: Provider<AnyNetwork> + Clone,
+    PT: Primitives,
 {
     /// Executes a smart contract call.
     ///
@@ -54,10 +59,10 @@ where
         calldata: C,
     ) -> eyre::Result<C::Return> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let chain_spec = Arc::new(ChainSpec::try_from(&self.genesis)?);
-        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, chain_spec);
+        let chain_spec = PT::build_spec(&self.genesis)?;
         let input = ContractInput::new_call(contract_address, caller_address, calldata);
-        let output = evm.transact(&input)?;
+        let output = PT::transact(&input, cache_db, self.anchor.header(), U256::ZERO, chain_spec)
+            .map_err(|err| eyre!(err))?;
 
         let output_bytes = match output.result {
             ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
@@ -71,9 +76,9 @@ where
     /// Executes a smart contract call, using the provided [`ContractInput`].
     pub async fn call_raw(&self, input: &ContractInput) -> eyre::Result<Bytes> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let chain_spec = Arc::new(ChainSpec::try_from(&self.genesis)?);
-        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, chain_spec);
-        let output = evm.transact(input)?;
+        let chain_spec = PT::build_spec(&self.genesis)?;
+        let output = PT::transact(input, cache_db, self.anchor.header(), U256::ZERO, chain_spec)
+            .map_err(|err| eyre!(err))?;
 
         let output_bytes = match output.result {
             ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
@@ -87,10 +92,10 @@ where
     /// Executes a smart contract creation.
     pub async fn create(&self, caller_address: Address, calldata: Bytes) -> eyre::Result<Bytes> {
         let cache_db = CacheDB::new(&self.rpc_db);
-        let chain_spec = Arc::new(ChainSpec::try_from(&self.genesis)?);
-        let mut evm = new_evm(cache_db, self.anchor.header(), U256::ZERO, chain_spec);
+        let chain_spec = PT::build_spec(&self.genesis)?;
         let input = ContractInput::new_create(caller_address, calldata);
-        let output = evm.transact(&input)?;
+        let output = PT::transact(&input, cache_db, self.anchor.header(), U256::ZERO, chain_spec)
+            .map_err(|err| eyre!(err))?;
 
         let output_bytes = match output.result {
             ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
@@ -199,6 +204,7 @@ fn convert_receipt_envelope(
 
 #[cfg(test)]
 mod tests {
+    use reth_primitives::EthPrimitives;
     use sp1_cc_client_executor::io::EvmSketchInput;
 
     use crate::EvmSketch;
@@ -208,7 +214,7 @@ mod tests {
 
     #[test]
     fn test_sync() {
-        assert_sync::<EvmSketch<()>>();
+        assert_sync::<EvmSketch<(), EthPrimitives>>();
         assert_sync::<EvmSketchInput>();
     }
 }
