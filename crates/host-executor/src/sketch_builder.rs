@@ -63,7 +63,7 @@ impl<PT> EvmSketchBuilder<(), PT, ()> {
 impl<P, A> EvmSketchBuilder<P, EthPrimitives, A> {
     /// Configures the [`EvmSketch`] for OP Stack.
     ///
-    /// Note: On the client, the executor should be crearted with [`ClientExecutor::optimism()`]
+    /// Note: On the client, the executor should be created with [`ClientExecutor::optimism()`]
     ///
     /// [`ClientExecutor::optimism()`]: sp1_cc_client_executor::ClientExecutor::optimism
     pub fn optimism(self) -> EvmSketchBuilder<P, reth_optimism_primitives::OpPrimitives, A> {
