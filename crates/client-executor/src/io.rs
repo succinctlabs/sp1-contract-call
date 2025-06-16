@@ -78,7 +78,7 @@ impl WitnessInput for EvmSketchInput {
 }
 
 pub trait Primitives: NodePrimitives {
-    type ChainSpec;
+    type ChainSpec: Debug;
     type HaltReason: Debug;
 
     fn build_spec(genesis: &Genesis) -> Result<Arc<Self::ChainSpec>, ClientError>;
@@ -169,12 +169,13 @@ impl Primitives for reth_optimism_primitives::OpPrimitives {
     ) -> Result<ResultAndState<Self::HaltReason>, String> {
         use op_revm::{DefaultOp, OpBuilder};
 
-        let EvmEnv { cfg_env, mut block_env, .. } =
+        let EvmEnv { mut cfg_env, mut block_env, .. } =
             reth_optimism_evm::OpEvmConfig::optimism(chain_spec).evm_env(header);
 
         // Set the base fee to 0 to enable 0 gas price transactions.
         block_env.basefee = 0;
         block_env.difficulty = difficulty;
+        cfg_env.disable_nonce_check = true;
 
         let evm = op_revm::OpContext::op()
             .with_db(db)
