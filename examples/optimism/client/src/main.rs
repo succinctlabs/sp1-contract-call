@@ -3,11 +3,11 @@ use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use sp1_cc_client_executor::{io::EvmSketchInput, ClientExecutor, ContractInput};
 
-const CONTRACT: Address = address!("0x420000000000000000000000000000000000000F");
+const CONTRACT: Address = address!("0x4200000000000000000000000000000000000015");
 
 sol! {
-    interface IGasPriceOracle {
-        function gasPrice() external view returns (uint256);
+    interface IL1Block {
+        function basefee() external view returns (uint256);
     }
 }
 
@@ -22,7 +22,7 @@ pub fn main() {
     let executor = ClientExecutor::optimism(&state_sketch).unwrap();
 
     // Execute the gasPrice call using the client executor.
-    let call = ContractInput::new_call(CONTRACT, Address::default(), IGasPriceOracle::gasPriceCall);
+    let call = ContractInput::new_call(CONTRACT, Address::default(), IL1Block::basefeeCall);
     let public_vals = executor.execute(call).unwrap();
 
     // Commit the abi-encoded output.
