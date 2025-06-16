@@ -7,6 +7,8 @@ members = [
     "examples/multiplexer/client",
     "examples/events/host",
     "examples/events/client",
+    "examples/optimism/host",
+    "examples/optimism/client",
     "examples/verify-quorum/host",
     "examples/verify-quorum/client",
     "crates/client-executor",
@@ -48,11 +50,11 @@ sp1-zkvm = "5.0.0"
 sp1-build = "5.0.0"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
 
 # rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
 # rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
@@ -67,6 +69,10 @@ reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10"
 ] }
 reth-codecs = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false }
 reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false }
+reth-optimism-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false }
+reth-optimism-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false }
+reth-optimism-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false }
+reth-optimism-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false }
 reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false }
 reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.10", default-features = false, features = [
     "std",
@@ -93,6 +99,7 @@ revm = { version = "22.0.1", features = [
 revm-primitives = { version = "18.0.0", features = [
     "std",
 ], default-features = false }
+op-revm = { version = "3.0.2", default-features = false }
 
 # alloy
 alloy-primitives = "1.0"
@@ -117,6 +124,7 @@ alloy-sol-macro = { version = "1.0" }
 alloy = { version = "0.14.0" }
 
 alloy-evm = { version = "0.4.0", default-features = false }
+alloy-op-evm = { version = "0.4.0", default-features = false }
 
 sha2 = "0.10.8"
 beacon-api-client = { git = "https://github.com/ralexstokes/ethereum-consensus", rev = "ba43147eb71b07e21e156e2904549405f87bc9a6" }

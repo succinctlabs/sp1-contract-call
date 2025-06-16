@@ -30,6 +30,7 @@ jobs:
           - multiplexer
           - verify-quorum
           - example-deploy
+          - optimism
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
@@ -50,6 +51,7 @@ jobs:
           echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
           echo "BEACON_RPC_URL=${{secrets.BEACON_RPC_URL}}" >> $GITHUB_ENV
           echo "ETH_SEPOLIA_RPC_URL=${{secrets.ETH_SEPOLIA_RPC_URL}}" >> $GITHUB_ENV
+          echo "OPTIMISM_RPC_URL=${{secrets.OPTIMISM_RPC_URL}}" >> $GITHUB_ENV
 
       - name: Run ${{ matrix.example }}
         uses: actions-rs/cargo@v1   
