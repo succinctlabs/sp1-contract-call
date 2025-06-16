@@ -194,7 +194,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     /// Instantiates a new [`ClientExecutor`]
     fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
         let chain_spec = P::build_spec(&state_sketch.genesis)?;
-
+        let genesis_hash = hash_genesis(&state_sketch.genesis);
         let header = state_sketch.anchor.header();
 
         P::validate_header(&SealedHeader::new_unhashed(header.clone()), chain_spec.clone())
@@ -202,13 +202,6 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
 
         // Verify the state root
         assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
-
-        // Verify the genesis
-        assert_eq!(
-            hash_genesis(&state_sketch.genesis),
-            state_sketch.genesis_hash,
-            "Genesis hash mismatch"
-        );
 
         // Verify that ancestors form a valid chain
         let mut previous_header = header;
@@ -244,7 +237,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             chain_spec,
             witness_db: state_sketch.witness_db()?,
             logs,
-            genesis_hash: state_sketch.genesis_hash,
+            genesis_hash,
         })
     }
 

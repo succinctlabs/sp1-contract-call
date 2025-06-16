@@ -35,8 +35,6 @@ pub struct EvmSketchInput {
     pub anchor: Anchor,
     /// The genesis block specification.
     pub genesis: Genesis,
-    /// The hashed genesis block specification.
-    pub genesis_hash: B256,
     /// The previous block headers starting from the most recent. These are used for calls to the
     /// blockhash opcode.
     #[serde_as(as = "Vec<alloy_consensus::serde_bincode_compat::Header>")]
