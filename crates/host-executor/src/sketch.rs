@@ -13,6 +13,7 @@ use rsp_mpt::EthereumState;
 use rsp_primitives::{account_proof::eip1186_proof_to_account_proof, genesis::Genesis};
 use rsp_rpc_db::RpcDb;
 use sp1_cc_client_executor::{
+    hash_genesis,
     io::{EvmSketchInput, Primitives},
     Anchor, ContractInput,
 };
@@ -175,6 +176,8 @@ where
             );
         }
 
+        let genesis_hash = hash_genesis(&self.genesis);
+
         Ok(EvmSketchInput {
             anchor: self.anchor,
             genesis: self.genesis,
@@ -183,6 +186,7 @@ where
             state_requests,
             bytecodes: self.rpc_db.get_bytecodes(),
             receipts: self.receipts,
+            genesis_hash,
         })
     }
 }
