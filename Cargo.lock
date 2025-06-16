@@ -6102,7 +6102,7 @@ dependencies = [
 [[package]]
 name = "rsp-client-executor"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=47b4068cbe74d669d6dcdda2c7cbff213e803a15#47b4068cbe74d669d6dcdda2c7cbff213e803a15"
+source = "git+https://github.com/succinctlabs/rsp?rev=57fd82b40de3fe816db309f29bca8ecc0d8821f1#57fd82b40de3fe816db309f29bca8ecc0d8821f1"
 dependencies = [
  "alloy-consensus",
  "alloy-evm",
@@ -6133,7 +6133,7 @@ dependencies = [
 [[package]]
 name = "rsp-mpt"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=47b4068cbe74d669d6dcdda2c7cbff213e803a15#47b4068cbe74d669d6dcdda2c7cbff213e803a15"
+source = "git+https://github.com/succinctlabs/rsp?rev=57fd82b40de3fe816db309f29bca8ecc0d8821f1#57fd82b40de3fe816db309f29bca8ecc0d8821f1"
 dependencies = [
  "alloy-primitives 1.0.0",
  "alloy-rlp",
@@ -6147,7 +6147,7 @@ dependencies = [
 [[package]]
 name = "rsp-primitives"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=47b4068cbe74d669d6dcdda2c7cbff213e803a15#47b4068cbe74d669d6dcdda2c7cbff213e803a15"
+source = "git+https://github.com/succinctlabs/rsp?rev=57fd82b40de3fe816db309f29bca8ecc0d8821f1#57fd82b40de3fe816db309f29bca8ecc0d8821f1"
 dependencies = [
  "alloy-genesis",
  "alloy-rpc-types",
@@ -6164,7 +6164,7 @@ dependencies = [
 [[package]]
 name = "rsp-rpc-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=47b4068cbe74d669d6dcdda2c7cbff213e803a15#47b4068cbe74d669d6dcdda2c7cbff213e803a15"
+source = "git+https://github.com/succinctlabs/rsp?rev=57fd82b40de3fe816db309f29bca8ecc0d8821f1#57fd82b40de3fe816db309f29bca8ecc0d8821f1"
 dependencies = [
  "alloy-primitives 1.0.0",
  "alloy-provider",
@@ -6181,7 +6181,7 @@ dependencies = [
 [[package]]
 name = "rsp-witness-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=47b4068cbe74d669d6dcdda2c7cbff213e803a15#47b4068cbe74d669d6dcdda2c7cbff213e803a15"
+source = "git+https://github.com/succinctlabs/rsp?rev=57fd82b40de3fe816db309f29bca8ecc0d8821f1#57fd82b40de3fe816db309f29bca8ecc0d8821f1"
 dependencies = [
  "alloy-primitives 1.0.0",
  "reth-storage-errors",
