@@ -107,11 +107,7 @@ impl IntoTxEnv<TxEnv> for &ContractInput {
 #[cfg(feature = "optimism")]
 impl IntoTxEnv<op_revm::OpTransaction<TxEnv>> for &ContractInput {
     fn into_tx_env(self) -> op_revm::OpTransaction<TxEnv> {
-        op_revm::OpTransaction {
-            base: self.into_tx_env(),
-            enveloped_tx: None,
-            deposit: Default::default(),
-        }
+        op_revm::OpTransaction { base: self.into_tx_env(), ..Default::default() }
     }
 }
 

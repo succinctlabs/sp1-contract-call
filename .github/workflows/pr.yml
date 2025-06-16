@@ -30,6 +30,7 @@ jobs:
           - multiplexer
           - verify-quorum
           - example-deploy
+          - optimism
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:

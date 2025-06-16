@@ -43,11 +43,8 @@ impl<PT> EvmSketchBuilder<(), PT, ()> {
     pub fn el_rpc_url(
         self,
         rpc_url: Url,
-    ) -> EvmSketchBuilder<
-        RootProvider<AnyNetwork>,
-        EthPrimitives,
-        HeaderAnchorBuilder<RootProvider<AnyNetwork>>,
-    > {
+    ) -> EvmSketchBuilder<RootProvider<AnyNetwork>, PT, HeaderAnchorBuilder<RootProvider<AnyNetwork>>>
+    {
         let provider = RootProvider::new_http(rpc_url);
         EvmSketchBuilder {
             block: self.block,
@@ -63,13 +60,28 @@ impl<PT> EvmSketchBuilder<(), PT, ()> {
 impl<P, A> EvmSketchBuilder<P, EthPrimitives, A> {
     /// Configures the [`EvmSketch`] for OP Stack.
     ///
-    /// Note: On the client, the executor should be created with [`ClientExecutor::optimism()`]
+    /// Note: the sketch must be configured with a OP stack genesis with [`with_genesis()`]. On the
+    /// client, the executor must be created with [`ClientExecutor::optimism()`].
     ///
+    /// [`with_genesis()`]: EvmSketchBuilder::with_genesis
     /// [`ClientExecutor::optimism()`]: sp1_cc_client_executor::ClientExecutor::optimism
     pub fn optimism(self) -> EvmSketchBuilder<P, reth_optimism_primitives::OpPrimitives, A> {
         EvmSketchBuilder {
             block: self.block,
             genesis: self.genesis,
+            provider: self.provider,
+            anchor_builder: self.anchor_builder,
+            phantom: PhantomData,
+        }
+    }
+
+    /// Configures the [`EvmSketch`] for OP Mainnet..
+    pub fn optimism_mainnet(
+        self,
+    ) -> EvmSketchBuilder<P, reth_optimism_primitives::OpPrimitives, A> {
+        EvmSketchBuilder {
+            block: self.block,
+            genesis: Genesis::OpMainnet,
             provider: self.provider,
             anchor_builder: self.anchor_builder,
             phantom: PhantomData,

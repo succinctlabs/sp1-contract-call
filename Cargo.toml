@@ -7,6 +7,8 @@ members = [
     "examples/multiplexer/client",
     "examples/events/host",
     "examples/events/client",
+    "examples/optimism/host",
+    "examples/optimism/client",
     "examples/verify-quorum/host",
     "examples/verify-quorum/client",
     "crates/client-executor",
@@ -48,11 +50,11 @@ sp1-zkvm = "5.0.0"
 sp1-build = "5.0.0"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "34f9ee4898e6727ddc9ce09fea0674bac7aefe8c" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "8308457c8a4ebf384b6e428d904c68ba6d8ff731" }
 
 # rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
 # rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
