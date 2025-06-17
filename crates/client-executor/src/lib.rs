@@ -12,7 +12,7 @@ use alloy_sol_types::{sol, SolCall, SolEvent};
 use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::OptionExt;
 use io::EvmSketchInput;
-use reth_primitives::{EthPrimitives, SealedHeader};
+use reth_primitives::EthPrimitives;
 use revm::{context::TxEnv, database::CacheDB};
 use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
@@ -196,8 +196,9 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
         let chain_spec = P::build_spec(&state_sketch.genesis)?;
         let genesis_hash = hash_genesis(&state_sketch.genesis);
         let header = state_sketch.anchor.header();
+        let sealed_headers = state_sketch.sealed_headers().collect::<Vec<_>>();
 
-        P::validate_header(&SealedHeader::new_unhashed(header.clone()), chain_spec.clone())
+        P::validate_header(&sealed_headers[0], chain_spec.clone())
             .expect("the header in not valid");
 
         // Verify the state root
@@ -205,10 +206,10 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
 
         // Verify that ancestors form a valid chain
         let mut previous_header = header;
-        for ancestor in &state_sketch.ancestor_headers {
-            let ancestor_hash = ancestor.hash_slow();
+        for ancestor in sealed_headers.iter().skip(1) {
+            let ancestor_hash = ancestor.hash();
 
-            P::validate_header(&SealedHeader::new_unhashed(ancestor.clone()), chain_spec.clone())
+            P::validate_header(ancestor, chain_spec.clone())
                 .unwrap_or_else(|_| panic!("the ancestor {} header in not valid", ancestor.number));
             assert_eq!(
                 previous_header.parent_hash, ancestor_hash,
@@ -235,7 +236,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
         Ok(Self {
             anchor: &state_sketch.anchor,
             chain_spec,
-            witness_db: state_sketch.witness_db()?,
+            witness_db: state_sketch.witness_db(&sealed_headers)?,
             logs,
             genesis_hash,
         })

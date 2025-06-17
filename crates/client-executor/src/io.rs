@@ -72,8 +72,9 @@ impl WitnessInput for EvmSketchInput {
     }
 
     #[inline(always)]
-    fn headers(&self) -> impl Iterator<Item = &Header> {
-        once(self.anchor.header()).chain(self.ancestor_headers.iter())
+    fn sealed_headers(&self) -> impl Iterator<Item = SealedHeader> {
+        once(SealedHeader::seal_slow(self.anchor.header().clone()))
+            .chain(self.ancestor_headers.iter().map(|h| SealedHeader::seal_slow(h.clone())))
     }
 }
 
