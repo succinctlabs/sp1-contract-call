@@ -122,11 +122,13 @@ impl Primitives for EthPrimitives {
         difficulty: U256,
         chain_spec: Arc<Self::ChainSpec>,
     ) -> Result<ResultAndState<Self::HaltReason>, String> {
-        let EvmEnv { cfg_env, mut block_env, .. } = EthEvmConfig::new(chain_spec).evm_env(header);
+        let EvmEnv { mut cfg_env, mut block_env, .. } =
+            EthEvmConfig::new(chain_spec).evm_env(header);
 
         // Set the base fee to 0 to enable 0 gas price transactions.
         block_env.basefee = 0;
         block_env.difficulty = difficulty;
+        cfg_env.disable_nonce_check = true;
 
         let evm = Context::mainnet()
             .with_db(db)

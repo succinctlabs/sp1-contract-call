@@ -1,9 +1,12 @@
 pub mod io;
-use std::sync::Arc;
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    sync::Arc,
+};
 
 use alloy_eips::Encodable2718;
 use alloy_evm::IntoTxEnv;
-use alloy_primitives::Log;
+use alloy_primitives::{keccak256, Log};
 use alloy_rpc_types::{Filter, FilteredParams};
 use alloy_sol_types::{sol, SolCall, SolEvent};
 use alloy_trie::root::ordered_trie_root_with_encoder;
@@ -123,6 +126,7 @@ sol! {
         uint256 id;
         bytes32 anchorHash;
         AnchorType anchorType;
+        bytes32 genesisHash;
         address callerAddress;
         address contractAddress;
         bytes contractCalldata;
@@ -141,11 +145,13 @@ impl ContractPublicValues {
         id: U256,
         anchor: B256,
         anchor_type: AnchorType,
+        genesis_hash: B256,
     ) -> Self {
         Self {
             id,
             anchorHash: anchor,
             anchorType: anchor_type,
+            genesisHash: genesis_hash,
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
             contractCalldata: call.calldata.to_bytes(),
@@ -165,6 +171,8 @@ pub struct ClientExecutor<'a, P: Primitives> {
     pub witness_db: TrieDB<'a>,
     /// All logs in the block.
     pub logs: Vec<Log>,
+    /// The hashed genesis block specification.
+    pub genesis_hash: B256,
 }
 
 impl<'a> ClientExecutor<'a, EthPrimitives> {
@@ -186,15 +194,16 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     /// Instantiates a new [`ClientExecutor`]
     fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
         let chain_spec = P::build_spec(&state_sketch.genesis)?;
-
+        let genesis_hash = hash_genesis(&state_sketch.genesis);
         let header = state_sketch.anchor.header();
 
         P::validate_header(&SealedHeader::new_unhashed(header.clone()), chain_spec.clone())
             .expect("the header in not valid");
 
+        // Verify the state root
         assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
 
-        // verify that ancestors form a valid chain
+        // Verify that ancestors form a valid chain
         let mut previous_header = header;
         for ancestor in &state_sketch.ancestor_headers {
             let ancestor_hash = ancestor.hash_slow();
@@ -228,6 +237,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             chain_spec,
             witness_db: state_sketch.witness_db()?,
             logs,
+            genesis_hash,
         })
     }
 
@@ -248,6 +258,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             resolved.id,
             resolved.hash,
             self.anchor.ty(),
+            self.genesis_hash,
         );
 
         Ok(public_values)
@@ -266,4 +277,12 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             .collect::<Result<_, _>>()
             .map_err(Into::into)
     }
+}
+
+pub fn hash_genesis(genesis: &Genesis) -> B256 {
+    let mut s = DefaultHasher::new();
+    genesis.hash(&mut s);
+    let hash = s.finish();
+
+    keccak256(hash.to_be_bytes())
 }
