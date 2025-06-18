@@ -6102,7 +6102,7 @@ dependencies = [
 [[package]]
 name = "rsp-client-executor"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=0cd586a95d1462a6ff69772a9e4491620db10eb1#0cd586a95d1462a6ff69772a9e4491620db10eb1"
+source = "git+https://github.com/succinctlabs/rsp?rev=881ba190e758e01e72399df462ac99864930ddb0#881ba190e758e01e72399df462ac99864930ddb0"
 dependencies = [
  "alloy-consensus",
  "alloy-evm",
@@ -6134,7 +6134,7 @@ dependencies = [
 [[package]]
 name = "rsp-mpt"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=0cd586a95d1462a6ff69772a9e4491620db10eb1#0cd586a95d1462a6ff69772a9e4491620db10eb1"
+source = "git+https://github.com/succinctlabs/rsp?rev=881ba190e758e01e72399df462ac99864930ddb0#881ba190e758e01e72399df462ac99864930ddb0"
 dependencies = [
  "alloy-primitives 1.0.0",
  "alloy-rlp",
@@ -6148,10 +6148,13 @@ dependencies = [
 [[package]]
 name = "rsp-primitives"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=0cd586a95d1462a6ff69772a9e4491620db10eb1#0cd586a95d1462a6ff69772a9e4491620db10eb1"
+source = "git+https://github.com/succinctlabs/rsp?rev=881ba190e758e01e72399df462ac99864930ddb0#881ba190e758e01e72399df462ac99864930ddb0"
 dependencies = [
+ "alloy-eips",
  "alloy-genesis",
+ "alloy-primitives 1.0.0",
  "alloy-rpc-types",
+ "alloy-serde",
  "reth-chainspec",
  "reth-optimism-chainspec",
  "reth-optimism-forks",
@@ -6159,13 +6162,14 @@ dependencies = [
  "reth-trie",
  "serde",
  "serde_json",
+ "serde_with",
  "thiserror 1.0.69",
 ]
 
 [[package]]
 name = "rsp-rpc-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=0cd586a95d1462a6ff69772a9e4491620db10eb1#0cd586a95d1462a6ff69772a9e4491620db10eb1"
+source = "git+https://github.com/succinctlabs/rsp?rev=881ba190e758e01e72399df462ac99864930ddb0#881ba190e758e01e72399df462ac99864930ddb0"
 dependencies = [
  "alloy-primitives 1.0.0",
  "alloy-provider",
@@ -6182,7 +6186,7 @@ dependencies = [
 [[package]]
 name = "rsp-witness-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?rev=0cd586a95d1462a6ff69772a9e4491620db10eb1#0cd586a95d1462a6ff69772a9e4491620db10eb1"
+source = "git+https://github.com/succinctlabs/rsp?rev=881ba190e758e01e72399df462ac99864930ddb0#881ba190e758e01e72399df462ac99864930ddb0"
 dependencies = [
  "alloy-primitives 1.0.0",
  "reth-storage-errors",
