@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {ISP1Verifier} from "@sp1-contracts/ISP1Verifier.sol";
-import {ContractPublicValues, ContractCall} from "@sp1-contracts/v4.0.0-rc.3/utils/ContractCall.sol";
+import {ContractPublicValues, ContractCall} from "@sp1-contract-call/ContractCall.sol";
 
 /// @title SP1 UniswapCall.
 /// @notice This contract implements a simple example of verifying the proof of call to a smart

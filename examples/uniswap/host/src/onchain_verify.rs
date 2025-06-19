@@ -14,7 +14,7 @@ use url::Url;
 /// Address of a Uniswap V3 pool.
 const POOL_CONTRACT: Address = address!("3289680dD4d6C10bb19b899729cda5eEF58AEfF1");
 /// Address of the Uniswap verifier contract on Sepolia.
-const UNISWAP_CALL_CONTRACT: Address = address!("Bdff74efA64da02Ecb64d07EA5a2BD2A06993F2A");
+const UNISWAP_CALL_CONTRACT: Address = address!("2637E77e371e8b001ac0CB8A690B9991cf0601f0");
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_elf!("uniswap-client");
