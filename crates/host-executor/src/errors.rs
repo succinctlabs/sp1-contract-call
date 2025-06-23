@@ -3,6 +3,7 @@ use alloy_transport::TransportError;
 use rsp_mpt::FromProofError;
 use thiserror::Error;
 
+/// Error types for host operations.
 #[derive(Error, Debug)]
 pub enum HostError {
     #[error("Transport error: {0}")]
@@ -23,6 +24,7 @@ pub enum HostError {
     ParentBeaconBlockRootMissing,
 }
 
+/// Beacon-related error types.
 #[derive(Error, Debug)]
 pub enum BeaconError {
     #[error("Reqwest error: {0}")]

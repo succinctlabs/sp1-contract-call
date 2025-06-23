@@ -1,3 +1,13 @@
+//! EVM sketch input structures and implementations.
+//!
+//! This module provides the [`EvmSketchInput`] struct, which contains all the necessary
+//! information for executing Ethereum Virtual Machine (EVM) contracts in SP1. Instead of
+//! passing the entire blockchain state, it includes only the required state roots, merkle
+//! proofs, and specific storage slots that were accessed or modified during execution.
+//!
+//! The main purpose is to optimize contract execution by providing a minimal witness
+//! that contains just the data needed to prove correct execution.
+
 use std::{fmt::Debug, iter::once, sync::Arc};
 
 use alloy_consensus::ReceiptEnvelope;

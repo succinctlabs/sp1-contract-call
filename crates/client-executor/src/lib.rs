@@ -1,3 +1,24 @@
+//! # RSP Client Executor Lib
+//!
+//! This library provides the core functionality for executing smart contract calls within a
+//! zero-knowledge virtual machine (zkVM) environment. It includes utilities for blockchain
+//! state validation, EVM execution, and proof generation.
+//!
+//! ## Main Components
+//!
+//! - [`ClientExecutor`]: The primary executor for smart contract calls in zkVM
+//! - [`ContractInput`]: Input specification for contract calls and creations
+//! - [`ContractPublicValues`]: Public outputs that can be verified on-chain
+//! - [`Anchor`]: Various blockchain anchoring mechanisms for state validation
+//!
+//! ## Features
+//!
+//! - Execute smart contracts with full EVM compatibility
+//! - Validate blockchain state against Merkle proofs
+//! - Support for multiple anchor types (block hash, EIP-4788, consensus)
+//! - Log filtering and event decoding
+//! - Zero-knowledge proof generation for contract execution
+
 pub mod io;
 use std::{
     hash::{DefaultHasher, Hash, Hasher},
@@ -199,7 +220,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
         let sealed_headers = state_sketch.sealed_headers().collect::<Vec<_>>();
 
         P::validate_header(&sealed_headers[0], chain_spec.clone())
-            .expect("the header in not valid");
+            .expect("the header is not valid");
 
         // Verify the state root
         assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
@@ -267,7 +288,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
 
     /// Returns the decoded logs matching the provided `filter`.
     ///
-    /// To be avaliable in the client, the logs need to be prefetched in the host first.
+    /// To be available in the client, the logs need to be prefetched in the host first.
     pub fn get_logs<E: SolEvent>(&self, filter: Filter) -> Result<Vec<Log<E>>, ClientError> {
         let params = FilteredParams::new(Some(filter));
 
