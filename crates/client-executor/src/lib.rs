@@ -55,6 +55,7 @@ use crate::io::Primitives;
 /// Input to a contract call.
 ///
 /// Can be used to call an existing contract or create a new one. If used to create a new one,
+/// the contract_address will be set to the zero address.
 #[derive(Debug, Clone)]
 pub struct ContractInput {
     /// The address of the contract to call.
