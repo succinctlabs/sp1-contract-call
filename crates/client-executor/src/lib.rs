@@ -31,10 +31,13 @@ use alloy_primitives::{keccak256, Log};
 use alloy_rpc_types::{Filter, FilteredParams};
 use alloy_sol_types::{sol, SolCall, SolEvent};
 use alloy_trie::root::ordered_trie_root_with_encoder;
-use eyre::OptionExt;
+use eyre::bail;
 use io::EvmSketchInput;
 use reth_primitives::EthPrimitives;
-use revm::{context::TxEnv, database::CacheDB};
+use revm::{
+    context::{result::ExecutionResult, TxEnv},
+    database::CacheDB,
+};
 use revm_primitives::{Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
 
@@ -268,12 +271,18 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
         let tx_output =
             P::transact(&call, cache_db, self.anchor.header(), U256::ZERO, self.chain_spec.clone())
                 .unwrap();
-        let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
+
+        let tx_output_bytes = match tx_output.result {
+            ExecutionResult::Success { output, .. } => output.data().clone(),
+            ExecutionResult::Revert { output, .. } => bail!("Execution reverted: {output}"),
+            ExecutionResult::Halt { reason, .. } => bail!("Execution halted : {reason:?}"),
+        };
+
         let resolved = self.anchor.resolve();
 
         let public_values = ContractPublicValues::new(
             call,
-            tx_output_bytes.clone(),
+            tx_output_bytes,
             resolved.id,
             resolved.hash,
             self.anchor.ty(),
