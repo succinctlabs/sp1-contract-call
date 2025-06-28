@@ -180,7 +180,6 @@ where
             genesis: self.genesis,
             ancestor_headers,
             state,
-            state_requests,
             bytecodes: self.rpc_db.get_bytecodes(),
             receipts: self.receipts,
         })

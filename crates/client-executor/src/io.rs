@@ -24,7 +24,7 @@ use revm::{
     state::Bytecode,
     Context, MainBuilder, MainContext,
 };
-use revm_primitives::{Address, HashMap, B256, U256};
+use revm_primitives::{Address, B256, U256};
 use rsp_client_executor::{error::ClientError, io::WitnessInput};
 use rsp_mpt::EthereumState;
 use rsp_primitives::genesis::Genesis;
@@ -51,8 +51,6 @@ pub struct EvmSketchInput {
     pub ancestor_headers: Vec<Header>,
     /// Current block's Ethereum state.
     pub state: EthereumState,
-    /// Requests to account state and storage slots.
-    pub state_requests: HashMap<Address, Vec<U256>>,
     /// Account bytecodes.
     pub bytecodes: Vec<Bytecode>,
     /// Receipts.
@@ -73,7 +71,12 @@ impl WitnessInput for EvmSketchInput {
 
     #[inline(always)]
     fn state_requests(&self) -> impl Iterator<Item = (&Address, &Vec<U256>)> {
-        self.state_requests.iter()
+        // Workaround for https://github.com/rust-lang/rust/issues/36375
+        if true {
+            unimplemented!()
+        } else {
+            std::iter::empty()
+        }
     }
 
     #[inline(always)]
