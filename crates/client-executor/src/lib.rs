@@ -191,7 +191,7 @@ pub struct ClientExecutor<'a, P: Primitives> {
     /// The database that the executor uses to access state.
     pub witness_db: TrieDB<'a>,
     /// All logs in the block.
-    pub logs: Vec<Log>,
+    pub logs: Option<Vec<Log>>,
     /// The hashed genesis block specification.
     pub genesis_hash: B256,
 }
@@ -249,10 +249,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
         let logs = state_sketch
             .receipts
             .as_ref()
-            .unwrap_or(&vec![])
-            .iter()
-            .flat_map(|r| r.logs().to_vec())
-            .collect();
+            .map(|receipts| receipts.iter().flat_map(|r| r.logs().to_vec()).collect());
 
         Ok(Self {
             anchor: &state_sketch.anchor,
@@ -290,14 +287,19 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     ///
     /// To be available in the client, the logs need to be prefetched in the host first.
     pub fn get_logs<E: SolEvent>(&self, filter: Filter) -> Result<Vec<Log<E>>, ClientError> {
-        let params = FilteredParams::new(Some(filter));
+        if let Some(logs) = &self.logs {
+            let params = FilteredParams::new(Some(filter));
 
-        self.logs
-            .iter()
-            .filter(|log| params.filter_address(&log.address) && params.filter_topics(log.topics()))
-            .map(|log| E::decode_log(log))
-            .collect::<Result<_, _>>()
-            .map_err(Into::into)
+            logs.iter()
+                .filter(|log| {
+                    params.filter_address(&log.address) && params.filter_topics(log.topics())
+                })
+                .map(|log| E::decode_log(log))
+                .collect::<Result<_, _>>()
+                .map_err(Into::into)
+        } else {
+            Err(ClientError::LogsNotPrefetched)
+        }
     }
 }
 
