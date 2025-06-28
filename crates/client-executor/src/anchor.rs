@@ -214,7 +214,8 @@ impl BeaconAnchor {
     }
 }
 
-/// Identifier for a beacon chain anchor, specifying how to locate the anchor in beacon chain history.
+/// Identifier for a beacon chain anchor, specifying how to locate the anchor in beacon chain
+/// history.
 ///
 /// The beacon chain stores historical roots that can be accessed either by timestamp
 /// (for EIP-4788 verification) or by slot number (for direct beacon chain verification).
@@ -222,10 +223,10 @@ impl BeaconAnchor {
 ///
 /// # Variants
 ///
-/// - **Timestamp**: References a beacon root by its timestamp, used with EIP-4788
-///   where beacon roots are stored in the execution layer indexed by timestamp
-/// - **Slot**: References a beacon root by its slot number, used for direct beacon
-///   chain verification where data is indexed by consensus slots
+/// - **Timestamp**: References a beacon root by its timestamp, used with EIP-4788 where beacon
+///   roots are stored in the execution layer indexed by timestamp
+/// - **Slot**: References a beacon root by its slot number, used for direct beacon chain
+///   verification where data is indexed by consensus slots
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum BeaconAnchorId {
     Timestamp(u64),
@@ -277,13 +278,15 @@ pub struct ChainedBeaconAnchor {
 }
 
 impl ChainedBeaconAnchor {
-    /// Creates a new chained beacon anchor linking an execution block through multiple state transitions.
+    /// Creates a new chained beacon anchor linking an execution block through multiple state
+    /// transitions.
     pub fn new(inner: BeaconWithHeaderAnchor, state_anchors: Vec<BeaconStateAnchor>) -> Self {
         Self { inner, state_anchors }
     }
 }
 
-/// An anchor that combines beacon chain state with cryptographic proof for state transition verification.
+/// An anchor that combines beacon chain state with cryptographic proof for state transition
+/// verification.
 ///
 /// This structure represents a single link in a chained verification process, containing
 /// both a beacon chain state and the cryptographic proof needed to verify that state's
@@ -368,6 +371,8 @@ pub fn rebuild_merkle_root(leaf: B256, generalized_index: usize, branch: &[B256]
     let depth = generalized_index.ilog2();
     let mut index = generalized_index - (1 << depth);
     let mut hasher = Sha256::new();
+
+    assert_eq!(branch.len() as u32, depth);
 
     for sibling in branch {
         // Determine if the current node is a left or right child
