@@ -375,9 +375,12 @@ pub fn rebuild_merkle_root(leaf: B256, generalized_index: usize, branch: &[B256]
 ///
 /// The beacon root hash stored at the given timestamp
 pub fn get_beacon_root_from_state(state: &EthereumState, timestamp: U256) -> B256 {
+    assert!(!timestamp.is_zero());
     let db = TrieDB::new(state, HashMap::default(), HashMap::default());
     let timestamp_idx = timestamp % HISTORY_BUFFER_LENGTH;
     let root_idx = timestamp_idx + HISTORY_BUFFER_LENGTH;
+    let timestamp_in_storage = db.storage_ref(BEACON_ROOTS_ADDRESS, timestamp_idx).unwrap();
+    assert_eq!(timestamp, timestamp_in_storage);
 
     let root = db.storage_ref(BEACON_ROOTS_ADDRESS, root_idx).unwrap();
 
