@@ -1,4 +1,7 @@
-use std::{fmt::Debug, marker::PhantomData};
+use std::{
+    fmt::{Debug, Display},
+    marker::PhantomData,
+};
 
 use alloy_consensus::{Header, Sealed};
 use alloy_eips::{eip4788::BEACON_ROOTS_ADDRESS, BlockId};
@@ -9,8 +12,8 @@ use ethereum_consensus::ssz::prelude::Prove;
 use rsp_mpt::EthereumState;
 use sp1_cc_client_executor::{
     get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconAnchorId,
-    BeaconBlockField, BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor,
-    HISTORY_BUFFER_LENGTH,
+    BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, BLOCK_HASH_LEAF_INDEX,
+    HISTORY_BUFFER_LENGTH, STATE_ROOT_LEAF_INDEX,
 };
 use url::Url;
 
@@ -23,6 +26,43 @@ use crate::{
 #[async_trait]
 pub trait AnchorBuilder {
     async fn build<B: Into<BlockId> + Send>(&self, block_id: B) -> Result<Anchor, HostError>;
+}
+
+/// A field identifier for beacon block components that can be verified via Merkle proofs.
+///
+/// This enum specifies which field of a beacon block should be used as the leaf value
+/// in Merkle proof verification. Different anchor types require verification of different
+/// beacon block fields to establish the cryptographic link between execution and consensus layers.
+#[derive(Debug, Clone, Copy)]
+pub enum BeaconBlockField {
+    BlockHash,
+    StateRoot,
+}
+
+impl Display for BeaconBlockField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BeaconBlockField::BlockHash => write!(f, "block_hash"),
+            BeaconBlockField::StateRoot => write!(f, "state_root"),
+        }
+    }
+}
+
+impl PartialEq<BeaconBlockField> for usize {
+    fn eq(&self, other: &BeaconBlockField) -> bool {
+        let other = usize::from(other);
+
+        *self == other
+    }
+}
+
+impl From<&BeaconBlockField> for usize {
+    fn from(value: &BeaconBlockField) -> Self {
+        match value {
+            BeaconBlockField::BlockHash => BLOCK_HASH_LEAF_INDEX,
+            BeaconBlockField::StateRoot => STATE_ROOT_LEAF_INDEX,
+        }
+    }
 }
 
 /// Trait for different beacon anchor strategies.
@@ -271,7 +311,8 @@ impl<P> ChainedBeaconAnchorBuilder<P> {
 }
 
 impl<P: Provider<AnyNetwork>> ChainedBeaconAnchorBuilder<P> {
-    /// Retrieves the timestamp stored in the EIP-4788 beacon roots contract for a given timestamp and block.
+    /// Retrieves the timestamp stored in the EIP-4788 beacon roots contract for a given timestamp
+    /// and block.
     async fn get_eip_4788_timestamp(
         &self,
         timestamp: U256,
@@ -289,7 +330,8 @@ impl<P: Provider<AnyNetwork>> ChainedBeaconAnchorBuilder<P> {
         Ok(result)
     }
 
-    /// Retrieves the EIP-4788 storage proof for the beacon root contract at the given timestamp and block.
+    /// Retrieves the EIP-4788 storage proof for the beacon root contract at the given timestamp and
+    /// block.
     async fn retrieve_state(
         &self,
         timestamp: U256,

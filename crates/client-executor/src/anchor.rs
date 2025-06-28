@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display};
+use std::collections::HashMap;
 
 use alloy_consensus::Header;
 use alloy_eips::eip4788::BEACON_ROOTS_ADDRESS;
@@ -15,9 +15,9 @@ use crate::AnchorType;
 // https://eips.ethereum.org/EIPS/eip-4788
 pub const HISTORY_BUFFER_LENGTH: U256 = uint!(8191_U256);
 /// The generalized Merkle tree index of the `block_hash` field in the `BeaconBlock`.
-const BLOCK_HASH_LEAF_INDEX: usize = 6444;
+pub const BLOCK_HASH_LEAF_INDEX: usize = 6444;
 /// The generalized Merkle tree index of the `state_root` field in the `BeaconBlock`.
-const STATE_ROOT_LEAF_INDEX: usize = 6434;
+pub const STATE_ROOT_LEAF_INDEX: usize = 6434;
 
 /// Ethereum anchoring system for verifying block execution against beacon chain roots.
 ///
@@ -311,43 +311,6 @@ pub struct BeaconStateAnchor {
 impl BeaconStateAnchor {
     pub fn new(state: EthereumState, anchor: BeaconAnchor) -> Self {
         Self { state, anchor }
-    }
-}
-
-/// A field identifier for beacon block components that can be verified via Merkle proofs.
-///
-/// This enum specifies which field of a beacon block should be used as the leaf value
-/// in Merkle proof verification. Different anchor types require verification of different
-/// beacon block fields to establish the cryptographic link between execution and consensus layers.
-#[derive(Debug, Clone, Copy)]
-pub enum BeaconBlockField {
-    BlockHash,
-    StateRoot,
-}
-
-impl Display for BeaconBlockField {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BeaconBlockField::BlockHash => write!(f, "block_hash"),
-            BeaconBlockField::StateRoot => write!(f, "state_root"),
-        }
-    }
-}
-
-impl PartialEq<BeaconBlockField> for usize {
-    fn eq(&self, other: &BeaconBlockField) -> bool {
-        let other = usize::from(other);
-
-        *self == other
-    }
-}
-
-impl From<&BeaconBlockField> for usize {
-    fn from(value: &BeaconBlockField) -> Self {
-        match value {
-            BeaconBlockField::BlockHash => BLOCK_HASH_LEAF_INDEX,
-            BeaconBlockField::StateRoot => STATE_ROOT_LEAF_INDEX,
-        }
     }
 }
 

@@ -41,8 +41,8 @@ use rsp_client_executor::io::{TrieDB, WitnessInput};
 mod anchor;
 pub use anchor::{
     get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconAnchorId,
-    BeaconBlockField, BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
-    HISTORY_BUFFER_LENGTH,
+    BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
+    BLOCK_HASH_LEAF_INDEX, HISTORY_BUFFER_LENGTH, STATE_ROOT_LEAF_INDEX,
 };
 
 mod errors;
