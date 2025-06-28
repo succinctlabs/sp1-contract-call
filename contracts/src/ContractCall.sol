@@ -48,7 +48,7 @@ library ContractCall {
 
     /// @notice Verify if the provided block hash matches the one of the given block number.
     function verifyBlockAnchor(uint256 blockNumber, bytes32 blockHash) internal view {
-        if (block.number - blockNumber > 256) {
+        if (blockNumber >= block.number || block.number - blockNumber > 256) {
             revert ExpiredAnchor();
         }
 
