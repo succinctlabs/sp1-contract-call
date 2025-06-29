@@ -58,12 +58,13 @@ impl Anchor {
             Anchor::Header(header_anchor) => ResolvedAnchor {
                 id: U256::from(header_anchor.header.number),
                 hash: header_anchor.header.hash_slow(),
+                ty: AnchorType::BlockHash,
             },
             Anchor::Eip4788(beacon_anchor) | Anchor::Consensus(beacon_anchor) => {
                 let block_hash = beacon_anchor.inner.header.hash_slow();
                 let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
 
-                ResolvedAnchor { id: beacon_anchor.id().into(), hash }
+                ResolvedAnchor { id: beacon_anchor.id().into(), hash, ty: AnchorType::Eip4788 }
             }
             Anchor::ChainedEip4788(chained_anchor) => {
                 // Retrieve the execution block beacon root and timestamp
@@ -88,7 +89,7 @@ impl Anchor {
 
                 // If the full chain is valid, return the resolved anchor containing
                 // the reference block beacon root and timestamp
-                ResolvedAnchor { id: timestamp, hash: beacon_root }
+                ResolvedAnchor { id: timestamp, hash: beacon_root, ty: AnchorType::Eip4788 }
             }
         }
     }
@@ -114,10 +115,11 @@ impl From<Header> for Anchor {
 /// This structure represents the result of processing an anchor through its
 /// verification chain, yielding a canonical identifier and cryptographic hash
 /// that can be used for block validation.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ResolvedAnchor {
     pub id: U256,
     pub hash: B256,
+    pub ty: AnchorType,
 }
 
 /// A simple anchor that directly references an Ethereum execution block header.

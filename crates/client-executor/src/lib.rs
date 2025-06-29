@@ -25,6 +25,7 @@ use std::{
     sync::Arc,
 };
 
+use alloy_consensus::Header;
 use alloy_eips::Encodable2718;
 use alloy_evm::IntoTxEnv;
 use alloy_primitives::{keccak256, Log};
@@ -53,7 +54,7 @@ pub use errors::ClientError;
 
 pub use rsp_primitives::genesis::Genesis;
 
-use crate::io::Primitives;
+use crate::{anchor::ResolvedAnchor, io::Primitives};
 
 /// Input to a contract call.
 ///
@@ -187,8 +188,10 @@ impl ContractPublicValues {
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
 pub struct ClientExecutor<'a, P: Primitives> {
+    // The execution block header
+    pub header: &'a Header,
     /// The block anchor.
-    pub anchor: &'a Anchor,
+    pub anchor: ResolvedAnchor,
     /// The chain specification.
     pub chain_spec: Arc<P::ChainSpec>,
     /// The database that the executor uses to access state.
@@ -216,17 +219,17 @@ impl<'a> ClientExecutor<'a, reth_optimism_primitives::OpPrimitives> {
 
 impl<'a, P: Primitives> ClientExecutor<'a, P> {
     /// Instantiates a new [`ClientExecutor`]
-    fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
-        let chain_spec = P::build_spec(&state_sketch.genesis)?;
-        let genesis_hash = hash_genesis(&state_sketch.genesis);
-        let header = state_sketch.anchor.header();
-        let sealed_headers = state_sketch.sealed_headers().collect::<Vec<_>>();
+    fn new(sketch_input: &'a EvmSketchInput) -> Result<Self, ClientError> {
+        let chain_spec = P::build_spec(&sketch_input.genesis)?;
+        let genesis_hash = hash_genesis(&sketch_input.genesis);
+        let header = sketch_input.anchor.header();
+        let sealed_headers = sketch_input.sealed_headers().collect::<Vec<_>>();
 
         P::validate_header(&sealed_headers[0], chain_spec.clone())
             .expect("the header is not valid");
 
         // Verify the state root
-        assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
+        assert_eq!(header.state_root, sketch_input.state.state_root(), "State root mismatch");
 
         // Verify that ancestors form a valid chain
         let mut previous_header = header;
@@ -243,21 +246,25 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             previous_header = ancestor;
         }
 
-        if let Some(receipts) = &state_sketch.receipts {
+        let header = sketch_input.anchor.header();
+        let anchor = sketch_input.anchor.resolve();
+
+        if let Some(receipts) = &sketch_input.receipts {
             // verify the receipts root hash
             let root = ordered_trie_root_with_encoder(receipts, |r, out| r.encode_2718(out));
-            assert_eq!(state_sketch.anchor.header().receipts_root, root, "Receipts root mismatch");
+            assert_eq!(sketch_input.anchor.header().receipts_root, root, "Receipts root mismatch");
         }
 
-        let logs = state_sketch
+        let logs = sketch_input
             .receipts
             .as_ref()
             .map(|receipts| receipts.iter().flat_map(|r| r.logs().to_vec()).collect());
 
         Ok(Self {
-            anchor: &state_sketch.anchor,
+            header,
+            anchor,
             chain_spec,
-            witness_db: state_sketch.witness_db(&sealed_headers)?,
+            witness_db: sketch_input.witness_db(&sealed_headers)?,
             logs,
             genesis_hash,
         })
@@ -269,8 +276,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
         let tx_output =
-            P::transact(&call, cache_db, self.anchor.header(), U256::ZERO, self.chain_spec.clone())
-                .unwrap();
+            P::transact(&call, cache_db, self.header, U256::ZERO, self.chain_spec.clone()).unwrap();
 
         let tx_output_bytes = match tx_output.result {
             ExecutionResult::Success { output, .. } => output.data().clone(),
@@ -278,14 +284,12 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             ExecutionResult::Halt { reason, .. } => bail!("Execution halted : {reason:?}"),
         };
 
-        let resolved = self.anchor.resolve();
-
         let public_values = ContractPublicValues::new(
             call,
             tx_output_bytes,
-            resolved.id,
-            resolved.hash,
-            self.anchor.ty(),
+            self.anchor.id,
+            self.anchor.hash,
+            self.anchor.ty,
             self.genesis_hash,
         );
 
