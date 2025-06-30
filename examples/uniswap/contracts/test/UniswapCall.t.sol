@@ -40,7 +40,7 @@ contract UniswapCallTest is Test {
 
         vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
 
-        uint160 rate = uniswapCall.verifyUniswapCallProof(fixture.publicValues, fixture.proof);
+        uint160 rate = uniswapCall.verifyUniswapCallProof(fixture.publicValues, fixture.proof, "Prague");
 
         console.log(rate);
     }
@@ -53,6 +53,6 @@ contract UniswapCallTest is Test {
         // Create a fake proof.
         bytes memory fakeProof = new bytes(fixture.proof.length);
 
-        uniswapCall.verifyUniswapCallProof(fixture.publicValues, fakeProof);
+        uniswapCall.verifyUniswapCallProof(fixture.publicValues, fakeProof, "Prague");
     }
 }
