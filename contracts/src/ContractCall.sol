@@ -16,7 +16,8 @@ struct ContractPublicValues {
 /// @notice The type of the anchor.
 enum AnchorType {
     BlockHash,
-    BeaconRoot
+    Timestamp,
+    Slot
 }
 
 /// @notice The anchor is too old and can no longer be validated.
@@ -39,7 +40,7 @@ library ContractCall {
         if (publicValues.anchorType == AnchorType.BlockHash) {
             return verifyBlockAnchor(publicValues.id, publicValues.anchorHash);
         }
-        if (publicValues.anchorType == AnchorType.BeaconRoot) {
+        if (publicValues.anchorType == AnchorType.Timestamp) {
             return verifyBeaconAnchor(publicValues.id, publicValues.anchorHash);
         }
 

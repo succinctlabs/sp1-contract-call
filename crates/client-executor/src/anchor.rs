@@ -64,7 +64,7 @@ impl Anchor {
                 let block_hash = beacon_anchor.inner.header.hash_slow();
                 let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
 
-                ResolvedAnchor { id: beacon_anchor.id().into(), hash, ty: AnchorType::Eip4788 }
+                ResolvedAnchor { id: beacon_anchor.id().into(), hash, ty: AnchorType::Timestamp }
             }
             Anchor::ChainedEip4788(chained_anchor) => {
                 // Retrieve the execution block beacon root and timestamp
@@ -89,7 +89,7 @@ impl Anchor {
 
                 // If the full chain is valid, return the resolved anchor containing
                 // the reference block beacon root and timestamp
-                ResolvedAnchor { id: timestamp, hash: beacon_root, ty: AnchorType::Eip4788 }
+                ResolvedAnchor { id: timestamp, hash: beacon_root, ty: AnchorType::Timestamp }
             }
         }
     }
@@ -98,8 +98,8 @@ impl Anchor {
     pub fn ty(&self) -> AnchorType {
         match self {
             Anchor::Header(_) => AnchorType::BlockHash,
-            Anchor::Eip4788(_) | Anchor::ChainedEip4788(_) => AnchorType::Eip4788,
-            Anchor::Consensus(_) => AnchorType::Consensus,
+            Anchor::Eip4788(_) | Anchor::ChainedEip4788(_) => AnchorType::Timestamp,
+            Anchor::Consensus(_) => AnchorType::Slot,
         }
     }
 }

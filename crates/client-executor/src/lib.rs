@@ -141,7 +141,7 @@ impl IntoTxEnv<op_revm::OpTransaction<TxEnv>> for &ContractInput {
 
 sol! {
     #[derive(Debug)]
-    enum AnchorType { BlockHash, Eip4788, Consensus }
+    enum AnchorType { BlockHash, Timestamp, Slot }
 
     /// Public values of a contract call.
     ///
