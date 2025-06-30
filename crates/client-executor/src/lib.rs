@@ -19,11 +19,7 @@
 //! - Log filtering and event decoding
 //! - Zero-knowledge proof generation for contract execution
 
-pub mod io;
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    sync::Arc,
-};
+use std::sync::Arc;
 
 use alloy_consensus::Header;
 use alloy_eips::Encodable2718;
@@ -34,12 +30,13 @@ use alloy_sol_types::{sol, SolCall, SolEvent, SolValue};
 use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::bail;
 use io::EvmSketchInput;
+use reth_chainspec::EthChainSpec;
 use reth_primitives::EthPrimitives;
 use revm::{
     context::{result::ExecutionResult, TxEnv},
     database::CacheDB,
 };
-use revm_primitives::{Address, Bytes, TxKind, B256, U256};
+use revm_primitives::{hardfork::SpecId, Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
 
 mod anchor;
@@ -48,6 +45,8 @@ pub use anchor::{
     BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
     BLOCK_HASH_LEAF_INDEX, HISTORY_BUFFER_LENGTH, STATE_ROOT_LEAF_INDEX,
 };
+
+pub mod io;
 
 mod errors;
 pub use errors::ClientError;
@@ -151,11 +150,17 @@ sol! {
         uint256 id;
         bytes32 anchorHash;
         AnchorType anchorType;
-        bytes32 genesisHash;
+        bytes32 chainConfigHash;
         address callerAddress;
         address contractAddress;
         bytes contractCalldata;
         bytes contractOutput;
+    }
+
+    #[derive(Debug)]
+    struct ChainConfig {
+        uint chainId;
+        string activeForkName;
     }
 }
 
@@ -170,13 +175,13 @@ impl ContractPublicValues {
         id: U256,
         anchor: B256,
         anchor_type: AnchorType,
-        genesis_hash: B256,
+        chain_config_hash: B256,
     ) -> Self {
         Self {
             id,
             anchorHash: anchor,
             anchorType: anchor_type,
-            genesisHash: genesis_hash,
+            chainConfigHash: chain_config_hash,
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
             contractCalldata: call.calldata.to_bytes(),
@@ -198,8 +203,9 @@ pub struct ClientExecutor<'a, P: Primitives> {
     pub witness_db: TrieDB<'a>,
     /// All logs in the block.
     pub logs: Option<Vec<Log>>,
-    /// The hashed genesis block specification.
-    pub genesis_hash: B256,
+    /// The hashed chain config, computed from the chain id and active hardfork hash (following
+    /// EIP-2124).
+    pub chain_config_hash: B256,
 }
 
 impl<'a> ClientExecutor<'a, EthPrimitives> {
@@ -221,8 +227,9 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     /// Instantiates a new [`ClientExecutor`]
     fn new(sketch_input: &'a EvmSketchInput) -> Result<Self, ClientError> {
         let chain_spec = P::build_spec(&sketch_input.genesis)?;
-        let genesis_hash = hash_genesis(&sketch_input.genesis);
         let header = sketch_input.anchor.header();
+        let chain_config_hash = Self::hash_chain_config(chain_spec.as_ref(), header);
+
         let sealed_headers = sketch_input.sealed_headers().collect::<Vec<_>>();
 
         P::validate_header(&sealed_headers[0], chain_spec.clone())
@@ -266,7 +273,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             chain_spec,
             witness_db: sketch_input.witness_db(&sealed_headers)?,
             logs,
-            genesis_hash,
+            chain_config_hash,
         })
     }
 
@@ -296,7 +303,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             self.anchor.id,
             self.anchor.hash,
             self.anchor.ty,
-            self.genesis_hash,
+            self.chain_config_hash,
         );
 
         Ok(public_values)
@@ -331,12 +338,53 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             Err(ClientError::LogsNotPrefetched)
         }
     }
+
+    fn hash_chain_config(chain_spec: &P::ChainSpec, execution_header: &Header) -> B256 {
+        let chain_config = ChainConfig {
+            chainId: U256::from(chain_spec.chain_id()),
+            activeForkName: P::active_fork_name(chain_spec, execution_header),
+        };
+
+        keccak256(chain_config.abi_encode_packed())
+    }
 }
 
-pub fn hash_genesis(genesis: &Genesis) -> B256 {
-    let mut s = DefaultHasher::new();
-    genesis.hash(&mut s);
-    let hash = s.finish();
+/// Verifies a chain config hash.
+///
+/// Note: For OP stack chains, use [`verifiy_chain_config_optimism`].
+pub fn verifiy_chain_config_eth(
+    chain_config_hash: B256,
+    chain_id: u64,
+    active_fork: SpecId,
+) -> Result<(), ClientError> {
+    let chain_config =
+        ChainConfig { chainId: U256::from(chain_id), activeForkName: active_fork.to_string() };
 
-    keccak256(hash.to_be_bytes())
+    let hash = keccak256(chain_config.abi_encode_packed());
+
+    if chain_config_hash == hash {
+        Ok(())
+    } else {
+        Err(ClientError::InvalidChainConfig)
+    }
+}
+
+#[cfg(feature = "optimism")]
+/// Verifies a chain config hash on a OP stack chain.
+pub fn verifiy_chain_config_optimism(
+    chain_config_hash: B256,
+    chain_id: u64,
+    active_fork: op_revm::OpSpecId,
+) -> Result<(), ClientError> {
+    let active_fork: &'static str = active_fork.into();
+    let chain_config =
+        ChainConfig { chainId: U256::from(chain_id), activeForkName: active_fork.to_string() };
+
+    let hash = keccak256(chain_config.abi_encode_packed());
+
+    if chain_config_hash == hash {
+        Ok(())
+    } else {
+        Err(ClientError::InvalidChainConfig)
+    }
 }

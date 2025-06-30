@@ -11,4 +11,7 @@ pub enum ClientError {
 
     #[error("The logs weren't prefetched")]
     LogsNotPrefetched,
+
+    #[error("The provided chain config is invalid")]
+    InvalidChainConfig,
 }
