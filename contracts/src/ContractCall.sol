@@ -73,4 +73,9 @@ library ContractCall {
             revert AnchorMismatch();
         }
     }
+
+    /// @notice Verify if the provided block root matches the one of the given timestamp.
+    function verifiyChainConfig(ContractPublicValues memory publicValues, string memory activeForkName) internal view {
+        assert(publicValues.chainConfigHash == keccak256(abi.encodePacked(block.chainid, activeForkName)));
+    }
 }
