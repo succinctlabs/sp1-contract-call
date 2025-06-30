@@ -30,7 +30,7 @@ use alloy_eips::Encodable2718;
 use alloy_evm::IntoTxEnv;
 use alloy_primitives::{keccak256, Log};
 use alloy_rpc_types::{Filter, FilteredParams};
-use alloy_sol_types::{sol, SolCall, SolEvent};
+use alloy_sol_types::{sol, SolCall, SolEvent, SolValue};
 use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::bail;
 use io::EvmSketchInput;
@@ -273,6 +273,12 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
+    ///
+    /// Note: It's the caller's responsability to commit the pubic values returned by
+    /// this function. [`execute_and_commit`] can be used instead of this function
+    /// to automatically commit if the execution is successful.
+    ///
+    /// [`execute_and_commit`]: ClientExecutor::execute_and_commit
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
         let tx_output =
@@ -294,6 +300,17 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
         );
 
         Ok(public_values)
+    }
+
+    /// Executes the smart contract call with the given [`ContractInput`] in SP1
+    /// and commit the result to the public values stream.
+    ///
+    /// Storage accesses are already validated against the `witness_db`'s state root.
+    pub fn execute_and_commit(&self, call: ContractInput) -> eyre::Result<()> {
+        let public_values = self.execute(call)?;
+        sp1_zkvm::io::commit_slice(&public_values.abi_encode());
+
+        Ok(())
     }
 
     /// Returns the decoded logs matching the provided `filter`.
