@@ -24,7 +24,7 @@ contract UniswapCall {
     /// @notice The entrypoint for verifying the proof of a uniswapCall number.
     /// @param _proofBytes The encoded proof.
     /// @param _publicValues The encoded public values.
-    function verifyUniswapCallProof(bytes calldata _publicValues, bytes calldata _proofBytes)
+    function verifyUniswapCallProof(bytes calldata _publicValues, bytes calldata _proofBytes, string memory _activeForkName)
         public
         view
         returns (uint160)
@@ -32,6 +32,7 @@ contract UniswapCall {
         ISP1Verifier(verifier).verifyProof(uniswapCallProgramVKey, _publicValues, _proofBytes);
         ContractPublicValues memory publicValues = abi.decode(_publicValues, (ContractPublicValues));
         publicValues.verify();
+        publicValues.verifiyChainConfig(_activeForkName);
 
         uint160 sqrtPriceX96 = abi.decode(publicValues.contractOutput, (uint160));
         return sqrtPriceX96;
