@@ -35,5 +35,5 @@ pub fn main() {
     let slot0_call = IUniswapV3PoolState::slot0Call {};
     let call = ContractInput::new_call(pool_contract, Address::default(), slot0_call);
     // Execute the slot0 call using the client executor and commit the abi-encoded output.
-    executor.execute_and_commit(call).unwrap();
+    executor.execute_and_commit(call);
 }

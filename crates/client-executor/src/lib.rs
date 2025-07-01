@@ -313,11 +313,9 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     /// and commit the result to the public values stream.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
-    pub fn execute_and_commit(&self, call: ContractInput) -> eyre::Result<()> {
-        let public_values = self.execute(call)?;
+    pub fn execute_and_commit(&self, call: ContractInput) {
+        let public_values = self.execute(call).unwrap();
         sp1_zkvm::io::commit_slice(&public_values.abi_encode());
-
-        Ok(())
     }
 
     /// Returns the decoded logs matching the provided `filter`.
