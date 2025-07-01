@@ -60,11 +60,15 @@ impl Anchor {
                 hash: header_anchor.header.hash_slow(),
                 ty: AnchorType::BlockHash,
             },
-            Anchor::Eip4788(beacon_anchor) | Anchor::Consensus(beacon_anchor) => {
+            Anchor::Eip4788(beacon_anchor) => {
                 let block_hash = beacon_anchor.inner.header.hash_slow();
                 let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
 
-                ResolvedAnchor { id: beacon_anchor.id().into(), hash, ty: AnchorType::Timestamp }
+                ResolvedAnchor {
+                    id: U256::from(beacon_anchor.id().as_timestamp().unwrap()),
+                    hash,
+                    ty: AnchorType::Timestamp,
+                }
             }
             Anchor::ChainedEip4788(chained_anchor) => {
                 // Retrieve the execution block beacon root and timestamp
@@ -90,6 +94,16 @@ impl Anchor {
                 // If the full chain is valid, return the resolved anchor containing
                 // the reference block beacon root and timestamp
                 ResolvedAnchor { id: timestamp, hash: beacon_root, ty: AnchorType::Timestamp }
+            }
+            Anchor::Consensus(beacon_anchor) => {
+                let block_hash = beacon_anchor.inner.header.hash_slow();
+                let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
+
+                ResolvedAnchor {
+                    id: U256::from(beacon_anchor.id().as_slot().unwrap()),
+                    hash,
+                    ty: AnchorType::Slot,
+                }
             }
         }
     }
@@ -243,13 +257,12 @@ impl BeaconAnchorId {
             BeaconAnchorId::Slot(_) => None,
         }
     }
-}
 
-impl From<&BeaconAnchorId> for U256 {
-    fn from(value: &BeaconAnchorId) -> Self {
-        match value {
-            BeaconAnchorId::Timestamp(t) => U256::from(*t),
-            BeaconAnchorId::Slot(s) => U256::from(*s),
+    /// Returns timestamp if this is a Timestamp variant, None otherwise.
+    pub fn as_slot(&self) -> Option<u64> {
+        match self {
+            BeaconAnchorId::Timestamp(_) => None,
+            BeaconAnchorId::Slot(s) => Some(*s),
         }
     }
 }
