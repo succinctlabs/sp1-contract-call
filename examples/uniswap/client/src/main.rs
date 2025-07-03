@@ -3,7 +3,6 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::{address, Address};
 use alloy_sol_macro::sol;
-use alloy_sol_types::SolValue;
 use sp1_cc_client_executor::{io::EvmSketchInput, ClientExecutor, ContractInput, Genesis};
 sol! {
     /// Simplified interface of the IUniswapV3PoolState interface.
@@ -33,11 +32,8 @@ pub fn main() {
     // This step also validates all of the storage against the provided state root.
     let executor = ClientExecutor::eth(&state_sketch).unwrap();
 
-    // Execute the slot0 call using the client executor.
     let slot0_call = IUniswapV3PoolState::slot0Call {};
     let call = ContractInput::new_call(pool_contract, Address::default(), slot0_call);
-    let public_vals = executor.execute(call).unwrap();
-
-    // Commit the abi-encoded output.
-    sp1_zkvm::io::commit_slice(&public_vals.abi_encode());
+    // Execute the slot0 call using the client executor and commit the abi-encoded output.
+    executor.execute_and_commit(call);
 }

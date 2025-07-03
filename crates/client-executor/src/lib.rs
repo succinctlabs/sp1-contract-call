@@ -19,38 +19,41 @@
 //! - Log filtering and event decoding
 //! - Zero-knowledge proof generation for contract execution
 
-pub mod io;
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    sync::Arc,
-};
+use std::sync::Arc;
 
+use alloy_consensus::Header;
 use alloy_eips::Encodable2718;
 use alloy_evm::IntoTxEnv;
 use alloy_primitives::{keccak256, Log};
 use alloy_rpc_types::{Filter, FilteredParams};
-use alloy_sol_types::{sol, SolCall, SolEvent};
+use alloy_sol_types::{sol, SolCall, SolEvent, SolValue};
 use alloy_trie::root::ordered_trie_root_with_encoder;
-use eyre::OptionExt;
+use eyre::bail;
 use io::EvmSketchInput;
+use reth_chainspec::EthChainSpec;
 use reth_primitives::EthPrimitives;
-use revm::{context::TxEnv, database::CacheDB};
-use revm_primitives::{Address, Bytes, TxKind, B256, U256};
+use revm::{
+    context::{result::ExecutionResult, TxEnv},
+    database::CacheDB,
+};
+use revm_primitives::{hardfork::SpecId, Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
 
 mod anchor;
 pub use anchor::{
     get_beacon_root_from_state, rebuild_merkle_root, Anchor, BeaconAnchor, BeaconAnchorId,
-    BeaconBlockField, BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
-    HISTORY_BUFFER_LENGTH,
+    BeaconStateAnchor, BeaconWithHeaderAnchor, ChainedBeaconAnchor, HeaderAnchor,
+    BLOCK_HASH_LEAF_INDEX, HISTORY_BUFFER_LENGTH, STATE_ROOT_LEAF_INDEX,
 };
+
+pub mod io;
 
 mod errors;
 pub use errors::ClientError;
 
 pub use rsp_primitives::genesis::Genesis;
 
-use crate::io::Primitives;
+use crate::{anchor::ResolvedAnchor, io::Primitives};
 
 /// Input to a contract call.
 ///
@@ -137,7 +140,7 @@ impl IntoTxEnv<op_revm::OpTransaction<TxEnv>> for &ContractInput {
 
 sol! {
     #[derive(Debug)]
-    enum AnchorType { BlockHash, Eip4788, Consensus }
+    enum AnchorType { BlockHash, Timestamp, Slot }
 
     /// Public values of a contract call.
     ///
@@ -147,11 +150,17 @@ sol! {
         uint256 id;
         bytes32 anchorHash;
         AnchorType anchorType;
-        bytes32 genesisHash;
+        bytes32 chainConfigHash;
         address callerAddress;
         address contractAddress;
         bytes contractCalldata;
         bytes contractOutput;
+    }
+
+    #[derive(Debug)]
+    struct ChainConfig {
+        uint chainId;
+        string activeForkName;
     }
 }
 
@@ -166,13 +175,13 @@ impl ContractPublicValues {
         id: U256,
         anchor: B256,
         anchor_type: AnchorType,
-        genesis_hash: B256,
+        chain_config_hash: B256,
     ) -> Self {
         Self {
             id,
             anchorHash: anchor,
             anchorType: anchor_type,
-            genesisHash: genesis_hash,
+            chainConfigHash: chain_config_hash,
             contractAddress: call.contract_address,
             callerAddress: call.caller_address,
             contractCalldata: call.calldata.to_bytes(),
@@ -184,16 +193,19 @@ impl ContractPublicValues {
 /// An executor that executes smart contract calls inside a zkVM.
 #[derive(Debug)]
 pub struct ClientExecutor<'a, P: Primitives> {
+    // The execution block header
+    pub header: &'a Header,
     /// The block anchor.
-    pub anchor: &'a Anchor,
+    pub anchor: ResolvedAnchor,
     /// The chain specification.
     pub chain_spec: Arc<P::ChainSpec>,
     /// The database that the executor uses to access state.
     pub witness_db: TrieDB<'a>,
     /// All logs in the block.
-    pub logs: Vec<Log>,
-    /// The hashed genesis block specification.
-    pub genesis_hash: B256,
+    pub logs: Option<Vec<Log>>,
+    /// The hashed chain config, computed from the chain id and active hardfork hash (following
+    /// EIP-2124).
+    pub chain_config_hash: B256,
 }
 
 impl<'a> ClientExecutor<'a, EthPrimitives> {
@@ -213,17 +225,18 @@ impl<'a> ClientExecutor<'a, reth_optimism_primitives::OpPrimitives> {
 
 impl<'a, P: Primitives> ClientExecutor<'a, P> {
     /// Instantiates a new [`ClientExecutor`]
-    fn new(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
-        let chain_spec = P::build_spec(&state_sketch.genesis)?;
-        let genesis_hash = hash_genesis(&state_sketch.genesis);
-        let header = state_sketch.anchor.header();
-        let sealed_headers = state_sketch.sealed_headers().collect::<Vec<_>>();
+    fn new(sketch_input: &'a EvmSketchInput) -> Result<Self, ClientError> {
+        let chain_spec = P::build_spec(&sketch_input.genesis)?;
+        let header = sketch_input.anchor.header();
+        let chain_config_hash = Self::hash_chain_config(chain_spec.as_ref(), header);
+
+        let sealed_headers = sketch_input.sealed_headers().collect::<Vec<_>>();
 
         P::validate_header(&sealed_headers[0], chain_spec.clone())
             .expect("the header is not valid");
 
         // Verify the state root
-        assert_eq!(header.state_root, state_sketch.state.state_root(), "State root mismatch");
+        assert_eq!(header.state_root, sketch_input.state.state_root(), "State root mismatch");
 
         // Verify that ancestors form a valid chain
         let mut previous_header = header;
@@ -240,71 +253,136 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
             previous_header = ancestor;
         }
 
-        if let Some(receipts) = &state_sketch.receipts {
+        let header = sketch_input.anchor.header();
+        let anchor = sketch_input.anchor.resolve();
+
+        if let Some(receipts) = &sketch_input.receipts {
             // verify the receipts root hash
             let root = ordered_trie_root_with_encoder(receipts, |r, out| r.encode_2718(out));
-            assert_eq!(state_sketch.anchor.header().receipts_root, root, "Receipts root mismatch");
+            assert_eq!(sketch_input.anchor.header().receipts_root, root, "Receipts root mismatch");
         }
 
-        let logs = state_sketch
+        let logs = sketch_input
             .receipts
             .as_ref()
-            .unwrap_or(&vec![])
-            .iter()
-            .flat_map(|r| r.logs().to_vec())
-            .collect();
+            .map(|receipts| receipts.iter().flat_map(|r| r.logs().to_vec()).collect());
 
         Ok(Self {
-            anchor: &state_sketch.anchor,
+            header,
+            anchor,
             chain_spec,
-            witness_db: state_sketch.witness_db(&sealed_headers)?,
+            witness_db: sketch_input.witness_db(&sealed_headers)?,
             logs,
-            genesis_hash,
+            chain_config_hash,
         })
     }
 
     /// Executes the smart contract call with the given [`ContractInput`] in SP1.
     ///
     /// Storage accesses are already validated against the `witness_db`'s state root.
+    ///
+    /// Note: It's the caller's responsability to commit the pubic values returned by
+    /// this function. [`execute_and_commit`] can be used instead of this function
+    /// to automatically commit if the execution is successful.
+    ///
+    /// [`execute_and_commit`]: ClientExecutor::execute_and_commit
     pub fn execute(&self, call: ContractInput) -> eyre::Result<ContractPublicValues> {
         let cache_db = CacheDB::new(&self.witness_db);
         let tx_output =
-            P::transact(&call, cache_db, self.anchor.header(), U256::ZERO, self.chain_spec.clone())
-                .unwrap();
-        let tx_output_bytes = tx_output.result.output().ok_or_eyre("Error decoding result")?;
-        let resolved = self.anchor.resolve();
+            P::transact(&call, cache_db, self.header, U256::ZERO, self.chain_spec.clone()).unwrap();
+
+        let tx_output_bytes = match tx_output.result {
+            ExecutionResult::Success { output, .. } => output.data().clone(),
+            ExecutionResult::Revert { output, .. } => bail!("Execution reverted: {output}"),
+            ExecutionResult::Halt { reason, .. } => bail!("Execution halted : {reason:?}"),
+        };
 
         let public_values = ContractPublicValues::new(
             call,
-            tx_output_bytes.clone(),
-            resolved.id,
-            resolved.hash,
-            self.anchor.ty(),
-            self.genesis_hash,
+            tx_output_bytes,
+            self.anchor.id,
+            self.anchor.hash,
+            self.anchor.ty,
+            self.chain_config_hash,
         );
 
         Ok(public_values)
+    }
+
+    /// Executes the smart contract call with the given [`ContractInput`] in SP1
+    /// and commit the result to the public values stream.
+    ///
+    /// Storage accesses are already validated against the `witness_db`'s state root.
+    pub fn execute_and_commit(&self, call: ContractInput) {
+        let public_values = self.execute(call).unwrap();
+        sp1_zkvm::io::commit_slice(&public_values.abi_encode());
     }
 
     /// Returns the decoded logs matching the provided `filter`.
     ///
     /// To be available in the client, the logs need to be prefetched in the host first.
     pub fn get_logs<E: SolEvent>(&self, filter: Filter) -> Result<Vec<Log<E>>, ClientError> {
-        let params = FilteredParams::new(Some(filter));
+        if let Some(logs) = &self.logs {
+            let params = FilteredParams::new(Some(filter));
 
-        self.logs
-            .iter()
-            .filter(|log| params.filter_address(&log.address) && params.filter_topics(log.topics()))
-            .map(|log| E::decode_log(log))
-            .collect::<Result<_, _>>()
-            .map_err(Into::into)
+            logs.iter()
+                .filter(|log| {
+                    params.filter_address(&log.address) && params.filter_topics(log.topics())
+                })
+                .map(|log| E::decode_log(log))
+                .collect::<Result<_, _>>()
+                .map_err(Into::into)
+        } else {
+            Err(ClientError::LogsNotPrefetched)
+        }
+    }
+
+    fn hash_chain_config(chain_spec: &P::ChainSpec, execution_header: &Header) -> B256 {
+        let chain_config = ChainConfig {
+            chainId: U256::from(chain_spec.chain_id()),
+            activeForkName: P::active_fork_name(chain_spec, execution_header),
+        };
+
+        keccak256(chain_config.abi_encode_packed())
     }
 }
 
-pub fn hash_genesis(genesis: &Genesis) -> B256 {
-    let mut s = DefaultHasher::new();
-    genesis.hash(&mut s);
-    let hash = s.finish();
+/// Verifies a chain config hash.
+///
+/// Note: For OP stack chains, use [`verifiy_chain_config_optimism`].
+pub fn verifiy_chain_config_eth(
+    chain_config_hash: B256,
+    chain_id: u64,
+    active_fork: SpecId,
+) -> Result<(), ClientError> {
+    let chain_config =
+        ChainConfig { chainId: U256::from(chain_id), activeForkName: active_fork.to_string() };
 
-    keccak256(hash.to_be_bytes())
+    let hash = keccak256(chain_config.abi_encode_packed());
+
+    if chain_config_hash == hash {
+        Ok(())
+    } else {
+        Err(ClientError::InvalidChainConfig)
+    }
+}
+
+#[cfg(feature = "optimism")]
+/// Verifies a chain config hash on a OP stack chain.
+pub fn verifiy_chain_config_optimism(
+    chain_config_hash: B256,
+    chain_id: u64,
+    active_fork: op_revm::OpSpecId,
+) -> Result<(), ClientError> {
+    let active_fork: &'static str = active_fork.into();
+    let chain_config =
+        ChainConfig { chainId: U256::from(chain_id), activeForkName: active_fork.to_string() };
+
+    let hash = keccak256(chain_config.abi_encode_packed());
+
+    if chain_config_hash == hash {
+        Ok(())
+    } else {
+        Err(ClientError::InvalidChainConfig)
+    }
 }

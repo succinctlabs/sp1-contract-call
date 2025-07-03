@@ -5421,7 +5421,7 @@ dependencies = [
  "reth-primitives-traits",
  "reth-zstd-compressors",
  "revm-context",
- "secp256k1 0.30.0",
+ "secp256k1",
  "serde",
  "serde_with",
 ]
@@ -5524,7 +5524,7 @@ source = "git+https://github.com/paradigmxyz/reth?tag=v1.3.10#b36fc954d26258ac72
 dependencies = [
  "alloy-primitives 1.0.0",
  "alloy-rlp",
- "secp256k1 0.30.0",
+ "secp256k1",
  "serde_with",
  "thiserror 2.0.12",
  "url",
@@ -5632,7 +5632,7 @@ dependencies = [
  "reth-codecs",
  "reth-primitives-traits",
  "revm-context",
- "secp256k1 0.30.0",
+ "secp256k1",
  "serde",
  "serde_with",
 ]
@@ -5671,7 +5671,7 @@ dependencies = [
  "revm-bytecode",
  "revm-primitives",
  "revm-state",
- "secp256k1 0.30.0",
+ "secp256k1",
  "serde",
  "serde_with",
  "thiserror 2.0.12",
@@ -5988,7 +5988,7 @@ dependencies = [
  "p256",
  "revm-primitives",
  "ripemd",
- "secp256k1 0.30.0",
+ "secp256k1",
  "sha2 0.10.8",
  "substrate-bn",
 ]
@@ -6452,16 +6452,6 @@ dependencies = [
 
 [[package]]
 name = "secp256k1"
-version = "0.29.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9465315bc9d4566e1724f0fffcbcc446268cb522e60f9a27bcded6b19c108113"
-dependencies = [
- "rand 0.8.5",
- "secp256k1-sys 0.10.1",
-]
-
-[[package]]
-name = "secp256k1"
 version = "0.30.0"
 source = "git+https://github.com/sp1-patches/rust-secp256k1?tag=patch-0.30.0-sp1-5.0.0#e590fdc9331bbbfa8d97b6476d00b005b9216c7d"
 dependencies = [
@@ -6469,17 +6459,8 @@ dependencies = [
  "cfg-if",
  "k256 0.13.4 (git+https://github.com/sp1-patches/elliptic-curves?tag=patch-k256-13.4-sp1-5.0.0)",
  "rand 0.8.5",
- "secp256k1-sys 0.11.0",
+ "secp256k1-sys",
  "serde",
-]
-
-[[package]]
-name = "secp256k1-sys"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4387882333d3aa8cb20530a17c69a3752e97837832f34f6dccc760e715001d9"
-dependencies = [
- "cc",
 ]
 
 [[package]]
@@ -6887,6 +6868,7 @@ dependencies = [
  "serde",
  "serde_with",
  "sha2 0.10.8",
+ "sp1-zkvm",
  "thiserror 2.0.12",
 ]
 
@@ -8323,7 +8305,7 @@ dependencies = [
  "rand_chacha 0.3.1",
  "rand_core 0.6.4",
  "reth-primitives",
- "secp256k1 0.29.1",
+ "secp256k1",
  "sp1-build",
  "sp1-cc-client-executor",
  "sp1-cc-host-executor",

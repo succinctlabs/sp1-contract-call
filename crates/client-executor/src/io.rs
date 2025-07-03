@@ -12,7 +12,7 @@ use std::{fmt::Debug, iter::once, sync::Arc};
 
 use alloy_consensus::ReceiptEnvelope;
 use alloy_evm::{Database, Evm};
-use reth_chainspec::ChainSpec;
+use reth_chainspec::{ChainSpec, EthChainSpec};
 use reth_consensus::{ConsensusError, HeaderValidator};
 use reth_ethereum_consensus::EthBeaconConsensus;
 use reth_evm::{ConfigureEvm, EthEvm, EvmEnv};
@@ -24,7 +24,7 @@ use revm::{
     state::Bytecode,
     Context, MainBuilder, MainContext,
 };
-use revm_primitives::{Address, HashMap, B256, U256};
+use revm_primitives::{Address, B256, U256};
 use rsp_client_executor::{error::ClientError, io::WitnessInput};
 use rsp_mpt::EthereumState;
 use rsp_primitives::genesis::Genesis;
@@ -51,8 +51,6 @@ pub struct EvmSketchInput {
     pub ancestor_headers: Vec<Header>,
     /// Current block's Ethereum state.
     pub state: EthereumState,
-    /// Requests to account state and storage slots.
-    pub state_requests: HashMap<Address, Vec<U256>>,
     /// Account bytecodes.
     pub bytecodes: Vec<Bytecode>,
     /// Receipts.
@@ -73,7 +71,12 @@ impl WitnessInput for EvmSketchInput {
 
     #[inline(always)]
     fn state_requests(&self) -> impl Iterator<Item = (&Address, &Vec<U256>)> {
-        self.state_requests.iter()
+        // Workaround for https://github.com/rust-lang/rust/issues/36375
+        if true {
+            unimplemented!()
+        } else {
+            std::iter::empty()
+        }
     }
 
     #[inline(always)]
@@ -89,7 +92,7 @@ impl WitnessInput for EvmSketchInput {
 }
 
 pub trait Primitives: NodePrimitives {
-    type ChainSpec: Debug;
+    type ChainSpec: EthChainSpec + Debug;
     type HaltReason: Debug;
 
     fn build_spec(genesis: &Genesis) -> Result<Arc<Self::ChainSpec>, ClientError>;
@@ -108,6 +111,8 @@ pub trait Primitives: NodePrimitives {
     ) -> Result<ResultAndState<Self::HaltReason>, String>
     where
         DB: Database;
+
+    fn active_fork_name(chain_spec: &Self::ChainSpec, header: &Header) -> String;
 }
 
 impl Primitives for EthPrimitives {
@@ -154,6 +159,12 @@ impl Primitives for EthPrimitives {
         let mut evm = EthEvm::new(evm, false);
 
         evm.transact(input).map_err(|err| err.to_string())
+    }
+
+    fn active_fork_name(chain_spec: &Self::ChainSpec, header: &Header) -> String {
+        let spec = reth_evm_ethereum::revm_spec(chain_spec, header);
+
+        spec.to_string()
     }
 }
 
@@ -204,5 +215,12 @@ impl Primitives for reth_optimism_primitives::OpPrimitives {
         let mut evm = alloy_op_evm::OpEvm::new(evm, false);
 
         evm.transact(input).map_err(|err| err.to_string())
+    }
+
+    fn active_fork_name(chain_spec: &Self::ChainSpec, header: &Header) -> String {
+        let spec = reth_optimism_evm::revm_spec(chain_spec, header);
+        let spec: &'static str = spec.into();
+
+        spec.to_string()
     }
 }

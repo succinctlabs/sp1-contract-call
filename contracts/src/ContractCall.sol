@@ -6,7 +6,7 @@ struct ContractPublicValues {
     uint256 id;
     bytes32 anchorHash;
     AnchorType anchorType;
-    bytes32 genesisHash;
+    bytes32 chainConfigHash;
     address callerAddress;
     address contractAddress;
     bytes contractCalldata;
@@ -16,7 +16,8 @@ struct ContractPublicValues {
 /// @notice The type of the anchor.
 enum AnchorType {
     BlockHash,
-    BeaconRoot
+    Timestamp,
+    Slot
 }
 
 /// @notice The anchor is too old and can no longer be validated.
@@ -39,7 +40,7 @@ library ContractCall {
         if (publicValues.anchorType == AnchorType.BlockHash) {
             return verifyBlockAnchor(publicValues.id, publicValues.anchorHash);
         }
-        if (publicValues.anchorType == AnchorType.BeaconRoot) {
+        if (publicValues.anchorType == AnchorType.Timestamp) {
             return verifyBeaconAnchor(publicValues.id, publicValues.anchorHash);
         }
 
@@ -48,7 +49,7 @@ library ContractCall {
 
     /// @notice Verify if the provided block hash matches the one of the given block number.
     function verifyBlockAnchor(uint256 blockNumber, bytes32 blockHash) internal view {
-        if (block.number - blockNumber > 256) {
+        if (blockNumber >= block.number || block.number - blockNumber > 256) {
             revert ExpiredAnchor();
         }
 
@@ -71,5 +72,10 @@ library ContractCall {
         } else {
             revert AnchorMismatch();
         }
+    }
+
+    /// @notice Verify if the provided block root matches the one of the given timestamp.
+    function verifiyChainConfig(ContractPublicValues memory publicValues, string memory activeForkName) internal view {
+        assert(publicValues.chainConfigHash == keccak256(abi.encodePacked(block.chainid, activeForkName)));
     }
 }

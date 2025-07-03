@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display};
+use std::collections::HashMap;
 
 use alloy_consensus::Header;
 use alloy_eips::eip4788::BEACON_ROOTS_ADDRESS;
@@ -15,9 +15,9 @@ use crate::AnchorType;
 // https://eips.ethereum.org/EIPS/eip-4788
 pub const HISTORY_BUFFER_LENGTH: U256 = uint!(8191_U256);
 /// The generalized Merkle tree index of the `block_hash` field in the `BeaconBlock`.
-const BLOCK_HASH_LEAF_INDEX: usize = 6444;
+pub const BLOCK_HASH_LEAF_INDEX: usize = 6444;
 /// The generalized Merkle tree index of the `state_root` field in the `BeaconBlock`.
-const STATE_ROOT_LEAF_INDEX: usize = 6434;
+pub const STATE_ROOT_LEAF_INDEX: usize = 6434;
 
 /// Ethereum anchoring system for verifying block execution against beacon chain roots.
 ///
@@ -58,12 +58,17 @@ impl Anchor {
             Anchor::Header(header_anchor) => ResolvedAnchor {
                 id: U256::from(header_anchor.header.number),
                 hash: header_anchor.header.hash_slow(),
+                ty: AnchorType::BlockHash,
             },
-            Anchor::Eip4788(beacon_anchor) | Anchor::Consensus(beacon_anchor) => {
+            Anchor::Eip4788(beacon_anchor) => {
                 let block_hash = beacon_anchor.inner.header.hash_slow();
                 let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
 
-                ResolvedAnchor { id: beacon_anchor.id().into(), hash }
+                ResolvedAnchor {
+                    id: U256::from(beacon_anchor.id().as_timestamp().unwrap()),
+                    hash,
+                    ty: AnchorType::Timestamp,
+                }
             }
             Anchor::ChainedEip4788(chained_anchor) => {
                 // Retrieve the execution block beacon root and timestamp
@@ -88,7 +93,17 @@ impl Anchor {
 
                 // If the full chain is valid, return the resolved anchor containing
                 // the reference block beacon root and timestamp
-                ResolvedAnchor { id: timestamp, hash: beacon_root }
+                ResolvedAnchor { id: timestamp, hash: beacon_root, ty: AnchorType::Timestamp }
+            }
+            Anchor::Consensus(beacon_anchor) => {
+                let block_hash = beacon_anchor.inner.header.hash_slow();
+                let hash = beacon_anchor.anchor.beacon_root(block_hash, BLOCK_HASH_LEAF_INDEX);
+
+                ResolvedAnchor {
+                    id: U256::from(beacon_anchor.id().as_slot().unwrap()),
+                    hash,
+                    ty: AnchorType::Slot,
+                }
             }
         }
     }
@@ -97,8 +112,8 @@ impl Anchor {
     pub fn ty(&self) -> AnchorType {
         match self {
             Anchor::Header(_) => AnchorType::BlockHash,
-            Anchor::Eip4788(_) | Anchor::ChainedEip4788(_) => AnchorType::Eip4788,
-            Anchor::Consensus(_) => AnchorType::Consensus,
+            Anchor::Eip4788(_) | Anchor::ChainedEip4788(_) => AnchorType::Timestamp,
+            Anchor::Consensus(_) => AnchorType::Slot,
         }
     }
 }
@@ -114,10 +129,11 @@ impl From<Header> for Anchor {
 /// This structure represents the result of processing an anchor through its
 /// verification chain, yielding a canonical identifier and cryptographic hash
 /// that can be used for block validation.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ResolvedAnchor {
     pub id: U256,
     pub hash: B256,
+    pub ty: AnchorType,
 }
 
 /// A simple anchor that directly references an Ethereum execution block header.
@@ -214,7 +230,8 @@ impl BeaconAnchor {
     }
 }
 
-/// Identifier for a beacon chain anchor, specifying how to locate the anchor in beacon chain history.
+/// Identifier for a beacon chain anchor, specifying how to locate the anchor in beacon chain
+/// history.
 ///
 /// The beacon chain stores historical roots that can be accessed either by timestamp
 /// (for EIP-4788 verification) or by slot number (for direct beacon chain verification).
@@ -222,10 +239,10 @@ impl BeaconAnchor {
 ///
 /// # Variants
 ///
-/// - **Timestamp**: References a beacon root by its timestamp, used with EIP-4788
-///   where beacon roots are stored in the execution layer indexed by timestamp
-/// - **Slot**: References a beacon root by its slot number, used for direct beacon
-///   chain verification where data is indexed by consensus slots
+/// - **Timestamp**: References a beacon root by its timestamp, used with EIP-4788 where beacon
+///   roots are stored in the execution layer indexed by timestamp
+/// - **Slot**: References a beacon root by its slot number, used for direct beacon chain
+///   verification where data is indexed by consensus slots
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum BeaconAnchorId {
     Timestamp(u64),
@@ -240,13 +257,12 @@ impl BeaconAnchorId {
             BeaconAnchorId::Slot(_) => None,
         }
     }
-}
 
-impl From<&BeaconAnchorId> for U256 {
-    fn from(value: &BeaconAnchorId) -> Self {
-        match value {
-            BeaconAnchorId::Timestamp(t) => U256::from(*t),
-            BeaconAnchorId::Slot(s) => U256::from(*s),
+    /// Returns timestamp if this is a Timestamp variant, None otherwise.
+    pub fn as_slot(&self) -> Option<u64> {
+        match self {
+            BeaconAnchorId::Timestamp(_) => None,
+            BeaconAnchorId::Slot(s) => Some(*s),
         }
     }
 }
@@ -277,13 +293,15 @@ pub struct ChainedBeaconAnchor {
 }
 
 impl ChainedBeaconAnchor {
-    /// Creates a new chained beacon anchor linking an execution block through multiple state transitions.
+    /// Creates a new chained beacon anchor linking an execution block through multiple state
+    /// transitions.
     pub fn new(inner: BeaconWithHeaderAnchor, state_anchors: Vec<BeaconStateAnchor>) -> Self {
         Self { inner, state_anchors }
     }
 }
 
-/// An anchor that combines beacon chain state with cryptographic proof for state transition verification.
+/// An anchor that combines beacon chain state with cryptographic proof for state transition
+/// verification.
 ///
 /// This structure represents a single link in a chained verification process, containing
 /// both a beacon chain state and the cryptographic proof needed to verify that state's
@@ -311,43 +329,6 @@ impl BeaconStateAnchor {
     }
 }
 
-/// A field identifier for beacon block components that can be verified via Merkle proofs.
-///
-/// This enum specifies which field of a beacon block should be used as the leaf value
-/// in Merkle proof verification. Different anchor types require verification of different
-/// beacon block fields to establish the cryptographic link between execution and consensus layers.
-#[derive(Debug, Clone, Copy)]
-pub enum BeaconBlockField {
-    BlockHash,
-    StateRoot,
-}
-
-impl Display for BeaconBlockField {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BeaconBlockField::BlockHash => write!(f, "block_hash"),
-            BeaconBlockField::StateRoot => write!(f, "state_root"),
-        }
-    }
-}
-
-impl PartialEq<BeaconBlockField> for usize {
-    fn eq(&self, other: &BeaconBlockField) -> bool {
-        let other = usize::from(other);
-
-        *self == other
-    }
-}
-
-impl From<&BeaconBlockField> for usize {
-    fn from(value: &BeaconBlockField) -> Self {
-        match value {
-            BeaconBlockField::BlockHash => BLOCK_HASH_LEAF_INDEX,
-            BeaconBlockField::StateRoot => STATE_ROOT_LEAF_INDEX,
-        }
-    }
-}
-
 /// Rebuilds a Merkle tree root from a leaf value and its branch proof.
 ///
 /// Given a leaf value, its generalized index in the tree, and the sibling hashes
@@ -368,6 +349,8 @@ pub fn rebuild_merkle_root(leaf: B256, generalized_index: usize, branch: &[B256]
     let depth = generalized_index.ilog2();
     let mut index = generalized_index - (1 << depth);
     let mut hasher = Sha256::new();
+
+    assert_eq!(branch.len() as u32, depth);
 
     for sibling in branch {
         // Determine if the current node is a left or right child
@@ -407,9 +390,12 @@ pub fn rebuild_merkle_root(leaf: B256, generalized_index: usize, branch: &[B256]
 ///
 /// The beacon root hash stored at the given timestamp
 pub fn get_beacon_root_from_state(state: &EthereumState, timestamp: U256) -> B256 {
+    assert!(!timestamp.is_zero());
     let db = TrieDB::new(state, HashMap::default(), HashMap::default());
     let timestamp_idx = timestamp % HISTORY_BUFFER_LENGTH;
     let root_idx = timestamp_idx + HISTORY_BUFFER_LENGTH;
+    let timestamp_in_storage = db.storage_ref(BEACON_ROOTS_ADDRESS, timestamp_idx).unwrap();
+    assert_eq!(timestamp, timestamp_in_storage);
 
     let root = db.storage_ref(BEACON_ROOTS_ADDRESS, root_idx).unwrap();
 

@@ -6,7 +6,7 @@ use alloy_primitives::{Address, Bytes, B256, U256};
 use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{AnyReceiptEnvelope, Filter, Log as RpcLog};
 use alloy_sol_types::SolCall;
-use eyre::eyre;
+use eyre::{bail, eyre};
 use reth_primitives::EthPrimitives;
 use revm::{context::result::ExecutionResult, database::CacheDB};
 use rsp_mpt::EthereumState;
@@ -65,10 +65,10 @@ where
             .map_err(|err| eyre!(err))?;
 
         let output_bytes = match output.result {
-            ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
-            ExecutionResult::Revert { output, .. } => Ok(output),
-            ExecutionResult::Halt { reason, .. } => Err(eyre!("Execution halted: {reason:?}")),
-        }?;
+            ExecutionResult::Success { output, .. } => output.data().clone(),
+            ExecutionResult::Revert { output, .. } => bail!("Execution reverted: {output}"),
+            ExecutionResult::Halt { reason, .. } => bail!("Execution halted: {reason:?}"),
+        };
 
         Ok(C::abi_decode_returns(&output_bytes)?)
     }
@@ -81,10 +81,10 @@ where
             .map_err(|err| eyre!(err))?;
 
         let output_bytes = match output.result {
-            ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
-            ExecutionResult::Revert { output, .. } => Ok(output),
-            ExecutionResult::Halt { reason, .. } => Err(eyre!("Execution halted: {reason:?}")),
-        }?;
+            ExecutionResult::Success { output, .. } => output.data().clone(),
+            ExecutionResult::Revert { output, .. } => bail!("Execution reverted: {output}"),
+            ExecutionResult::Halt { reason, .. } => bail!("Execution halted: {reason:?}"),
+        };
 
         Ok(output_bytes)
     }
@@ -98,12 +98,12 @@ where
             .map_err(|err| eyre!(err))?;
 
         let output_bytes = match output.result {
-            ExecutionResult::Success { output, .. } => Ok(output.data().clone()),
-            ExecutionResult::Revert { output, .. } => Ok(output),
-            ExecutionResult::Halt { reason, .. } => Err(eyre!("Execution halted: {reason:?}")),
-        }?;
+            ExecutionResult::Success { output, .. } => output.data().clone(),
+            ExecutionResult::Revert { output, .. } => bail!("Execution reverted: {output}"),
+            ExecutionResult::Halt { reason, .. } => bail!("Execution halted: {reason:?}"),
+        };
 
-        Ok(output_bytes.clone())
+        Ok(output_bytes)
     }
 
     /// Prefetch the logs matching the provided `filter`, allowing them to be retrieved in the
@@ -180,7 +180,6 @@ where
             genesis: self.genesis,
             ancestor_headers,
             state,
-            state_requests,
             bytecodes: self.rpc_db.get_bytecodes(),
             receipts: self.receipts,
         })

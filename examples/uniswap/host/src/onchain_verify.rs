@@ -55,6 +55,9 @@ struct Args {
 
     #[clap(long, env)]
     beacon_sepolia_rpc_url: Option<Url>,
+
+    #[clap(long)]
+    active_fork_name: String,
 }
 
 #[tokio::main]
@@ -131,7 +134,11 @@ async fn main() -> eyre::Result<()> {
 
     // Verify onchain.
     let sqrt_price_x96 = contract
-        .verifyUniswapCallProof(proof.public_values.to_vec().into(), proof.bytes().into())
+        .verifyUniswapCallProof(
+            proof.public_values.to_vec().into(),
+            proof.bytes().into(),
+            args.active_fork_name,
+        )
         .call()
         .await
         .unwrap();

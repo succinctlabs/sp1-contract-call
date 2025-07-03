@@ -73,12 +73,12 @@ async fn main() -> eyre::Result<()> {
         let mut message = B256::ZERO;
         test_rng.fill_bytes(&mut message.0);
         let message_hash = alloy_primitives::keccak256(message);
-        let signature = SECP256K1.sign_ecdsa_recoverable(&Message::from_digest(*message_hash), &sk);
+        let signature = SECP256K1.sign_ecdsa_recoverable(Message::from_digest(*message_hash), &sk);
 
         // Manually serialize the signature to match the EVM-compatible format
         let (id, r_and_s) = signature.serialize_compact();
         let mut signature_bytes = r_and_s.to_vec();
-        signature_bytes.push((id.to_i32() as u8) + 27);
+        signature_bytes.push((i32::from(id) as u8) + 27);
         let signature_bytes = Bytes::from(signature_bytes);
 
         // For transparency, print out the address corresponding to the public key of the signing
