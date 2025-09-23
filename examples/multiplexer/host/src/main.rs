@@ -93,7 +93,8 @@ async fn main() -> eyre::Result<()> {
 
     // Print the fetched rates.
     let rates = getRatesCall::abi_decode_returns(&public_vals.contractOutput)?;
-    println!("Got these rates: \n{:?}", rates);
+    println!("Got these rates:");
+    println!("{rates:?}");
 
     // Verify proof and public values.
     client.verify(&proof, &vk).expect("verification failed");

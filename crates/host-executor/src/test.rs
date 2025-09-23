@@ -72,7 +72,7 @@ async fn test_multiplexer() -> eyre::Result<()> {
 
     let rates = getRatesCall::abi_decode_returns(&public_values.contractOutput)?;
 
-    println!("rates: {:?}", rates);
+    println!("rates: {rates:?}");
 
     Ok(())
 }

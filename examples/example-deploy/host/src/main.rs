@@ -50,6 +50,6 @@ async fn main() -> eyre::Result<()> {
 
     let decoded_address: Address = Address::abi_decode(&check_coinbase)?;
 
-    println!("Coinbase address: {:?}", decoded_address);
+    println!("Coinbase address: {decoded_address:?}");
     Ok(())
 }

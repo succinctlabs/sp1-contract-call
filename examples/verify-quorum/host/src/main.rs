@@ -73,7 +73,7 @@ async fn main() -> eyre::Result<()> {
         let mut message = B256::ZERO;
         test_rng.fill_bytes(&mut message.0);
         let message_hash = alloy_primitives::keccak256(message);
-        let signature = SECP256K1.sign_ecdsa_recoverable(Message::from_digest(*message_hash), &sk);
+        let signature = SECP256K1.sign_ecdsa_recoverable(&Message::from_digest(*message_hash), &sk);
 
         // Manually serialize the signature to match the EVM-compatible format
         let (id, r_and_s) = signature.serialize_compact();
@@ -84,10 +84,9 @@ async fn main() -> eyre::Result<()> {
         // For transparency, print out the address corresponding to the public key of the signing
         // key.
         let address = public_key_to_address(pk);
-        println!(
-            "address: {}\nsignature: {}\nmessage: {}\n",
-            address, signature_bytes, message_hash
-        );
+        println!("address: {address}");
+        println!("signature: {signature_bytes}");
+        println!("message: {message_hash}");
 
         messages.push(message_hash);
         signatures.push(signature_bytes);
@@ -102,7 +101,7 @@ async fn main() -> eyre::Result<()> {
 
     // The host executes the call to `verifySigned`.
     let total_stake = sketch.call(CONTRACT, Address::default(), verify_signed_call).await?;
-    println!("total_stake: {}", total_stake);
+    println!("total_stake: {total_stake}");
 
     // Now that we've executed the call, get the `EVMStateSketch` from the host executor.
     let input = sketch.finalize().await?;

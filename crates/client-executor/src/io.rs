@@ -24,7 +24,7 @@ use revm::{
     state::Bytecode,
     Context, MainBuilder, MainContext,
 };
-use revm_primitives::{Address, B256, U256};
+use revm_primitives::{B256, U256};
 use rsp_client_executor::{error::ClientError, io::WitnessInput};
 use rsp_mpt::EthereumState;
 use rsp_primitives::genesis::Genesis;
@@ -67,16 +67,6 @@ impl WitnessInput for EvmSketchInput {
     #[inline(always)]
     fn state_anchor(&self) -> B256 {
         self.anchor.header().state_root
-    }
-
-    #[inline(always)]
-    fn state_requests(&self) -> impl Iterator<Item = (&Address, &Vec<U256>)> {
-        // Workaround for https://github.com/rust-lang/rust/issues/36375
-        if true {
-            unimplemented!()
-        } else {
-            std::iter::empty()
-        }
     }
 
     #[inline(always)]

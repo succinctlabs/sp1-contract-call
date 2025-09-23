@@ -4,7 +4,7 @@ use alloy_eips::BlockId;
 use alloy_provider::{network::AnyNetwork, Provider, RootProvider};
 use reth_primitives::EthPrimitives;
 use rsp_primitives::genesis::Genesis;
-use rsp_rpc_db::RpcDb;
+use rsp_rpc_db::BasicRpcDb;
 use sp1_cc_client_executor::io::Primitives;
 use url::Url;
 
@@ -156,11 +156,21 @@ where
     pub async fn build(self) -> Result<EvmSketch<P, PT>, HostError> {
         let anchor = self.anchor_builder.build(self.block).await?;
         let block_number = anchor.header().number;
+        let previous_block_id = BlockId::number(block_number - 1);
+        let previous_block = self
+            .provider
+            .get_block(previous_block_id)
+            .await?
+            .ok_or_else(|| HostError::BlockNotFoundError(previous_block_id))?;
 
         let sketch = EvmSketch {
             genesis: self.genesis,
             anchor,
-            rpc_db: RpcDb::new(self.provider.clone(), block_number),
+            rpc_db: BasicRpcDb::new(
+                self.provider.clone(),
+                block_number,
+                previous_block.header.state_root,
+            ),
             receipts: None,
             provider: self.provider,
             phantom: PhantomData,
