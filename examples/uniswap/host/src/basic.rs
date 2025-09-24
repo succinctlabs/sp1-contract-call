@@ -128,7 +128,7 @@ async fn main() -> eyre::Result<()> {
     let sqrt_price_x96 = slot0Call::abi_decode_returns(&public_vals.contractOutput)?.sqrtPriceX96;
     let sqrt_price = f64::from(sqrt_price_x96) / 2f64.powi(96);
     let price = sqrt_price * sqrt_price;
-    println!("Proven exchange rate is: {}%", price);
+    println!("Proven exchange rate is: {price}%");
 
     // Save the proof, public values, and vkey to a json file.
     save_fixture(vk.bytes32(), &proof);

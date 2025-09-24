@@ -1,4 +1,4 @@
-use std::{collections::BTreeSet, marker::PhantomData};
+use std::{collections::BTreeSet, fmt, marker::PhantomData};
 
 use alloy_consensus::ReceiptEnvelope;
 use alloy_eips::{eip2718::Eip2718Error, Decodable2718, Encodable2718};
@@ -11,7 +11,7 @@ use reth_primitives::EthPrimitives;
 use revm::{context::result::ExecutionResult, database::CacheDB};
 use rsp_mpt::EthereumState;
 use rsp_primitives::{account_proof::eip1186_proof_to_account_proof, genesis::Genesis};
-use rsp_rpc_db::RpcDb;
+use rsp_rpc_db::{BasicRpcDb, RpcDb};
 use sp1_cc_client_executor::{
     io::{EvmSketchInput, Primitives},
     Anchor, ContractInput,
@@ -28,7 +28,7 @@ pub struct EvmSketch<P, PT> {
     /// The anchor to execute our view functions on.
     pub anchor: Anchor,
     /// The [`RpcDb`] used to back the EVM.
-    pub rpc_db: RpcDb<P, AnyNetwork>,
+    pub rpc_db: BasicRpcDb<P, AnyNetwork>,
     /// The receipts used to retrieve event logs.
     pub receipts: Option<Vec<ReceiptEnvelope>>,
     /// The provider used to fetch data.
@@ -45,7 +45,7 @@ impl EvmSketch<(), EthPrimitives> {
 
 impl<P, PT> EvmSketch<P, PT>
 where
-    P: Provider<AnyNetwork> + Clone,
+    P: Provider<AnyNetwork> + fmt::Debug + Clone,
     PT: Primitives,
 {
     /// Executes a smart contract call.
@@ -171,7 +171,7 @@ where
                     .inner
                     .clone()
                     .try_into_header()
-                    .map_err(|h| HostError::HeaderConversionError(h.number))?,
+                    .map_err(|_| HostError::HeaderConversionError(height))?,
             );
         }
 
@@ -180,7 +180,7 @@ where
             genesis: self.genesis,
             ancestor_headers,
             state,
-            bytecodes: self.rpc_db.get_bytecodes(),
+            bytecodes: self.rpc_db.bytecodes(),
             receipts: self.receipts,
         })
     }

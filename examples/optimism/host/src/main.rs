@@ -58,7 +58,8 @@ async fn main() -> eyre::Result<()> {
 
     // Print the fetched rates.
     let base_fee = IL1Block::basefeeCall::abi_decode_returns(&public_vals.contractOutput)?;
-    println!("Base fee: \n{:?}", base_fee);
+    println!("Base fee:");
+    println!("{base_fee:?}");
 
     Ok(())
 }
