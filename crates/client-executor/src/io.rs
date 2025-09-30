@@ -129,7 +129,7 @@ impl Primitives for EthPrimitives {
         chain_spec: Arc<Self::ChainSpec>,
     ) -> Result<ResultAndState<Self::HaltReason>, String> {
         let EvmEnv { mut cfg_env, mut block_env, .. } =
-            EthEvmConfig::new(chain_spec).evm_env(header);
+            EthEvmConfig::new(chain_spec).evm_env(header).unwrap();
 
         // Set the base fee to 0 to enable 0 gas price transactions.
         block_env.basefee = 0;
@@ -185,7 +185,7 @@ impl Primitives for reth_optimism_primitives::OpPrimitives {
         use op_revm::{DefaultOp, OpBuilder};
 
         let EvmEnv { mut cfg_env, mut block_env, .. } =
-            reth_optimism_evm::OpEvmConfig::optimism(chain_spec).evm_env(header);
+            reth_optimism_evm::OpEvmConfig::optimism(chain_spec).evm_env(header).unwrap();
 
         // Set the base fee to 0 to enable 0 gas price transactions.
         block_env.basefee = 0;
