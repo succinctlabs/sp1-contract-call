@@ -128,8 +128,9 @@ alloy-evm = { version = "0.21.1", default-features = false }
 alloy-op-evm = { version = "0.21.1", default-features = false }
 
 sha2 = "0.10.9"
-beacon-api-client = { git = "https://github.com/ralexstokes/ethereum-consensus", rev = "ba43147eb71b07e21e156e2904549405f87bc9a6" }
-ethereum-consensus = { git = "https://github.com/ralexstokes/ethereum-consensus", rev = "ba43147eb71b07e21e156e2904549405f87bc9a6" }
+# We've forked ethereum-consensus because upstream has incomplete Electra support and outdated Alloy version
+beacon-api-client = { git = "https://github.com/succinctlabs/ethereum-consensus", branch = "dev" }
+ethereum-consensus = { git = "https://github.com/succinctlabs/ethereum-consensus", branch = "dev" }
 async-trait = "0.1.88"
 
 [workspace.lints]
@@ -145,7 +146,3 @@ sha3-v0-10-8 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", packa
 crypto-bigint = { git = "https://github.com/sp1-patches/RustCrypto-bigint", tag = "patch-0.5.5-sp1-4.0.0" }
 tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", tag = "patch-2.0.2-sp1-4.0.0" }
 secp256k1  = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.30.0-sp1-5.0.0" }
-
-# TODO: Remove once https://github.com/ralexstokes/ethereum-consensus/pull/419 is merged.
-[patch."https://github.com/ralexstokes/ethereum-consensus"]
-ethereum-consensus = { git = "https://github.com/leruaa/ethereum-consensus", branch = "electra-fixes" }
