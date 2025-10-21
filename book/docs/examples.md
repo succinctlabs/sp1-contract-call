@@ -21,7 +21,7 @@ You can add the `--prove` argument to generate a proof.
 
 :::warning
 
-Running with `--prove` will generate a plonk proof. This requires significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/network/developers/intro).
+Running with `--prove` will generate a plonk proof. This requires significant computational resources, so we recommend using the [SP1 Prover network].
 
 :::
 
@@ -40,20 +40,20 @@ RUST_LOG=info cargo run --bin uniswap-onchain-verify --release
 By default, the `blockhash()` opcode is used, allowing to verify up to 256 blocks old, but the following arguments can be added to demonstrate the various features abaliable:
 
 * If you provides a Beacon RPC endpoint with the `--beacon-sepolia-rpc-url` argument, the proof will be verified on chain with the beacon root using [EIP-4788](https://eips.ethereum.org/EIPS/eip-4788), up to 8191 blocks old (~27h).
-* The window can even be extended up to the Cancun hardfork by chaining beacon roots using the `--reference-block` argument. 
+* The window can even be extended up to the Cancun hardfork by chaining beacon roots using the `--reference-block` argument.
 
 :::
 
 :::warning
 
-This example will generate a plonk proof. This requires significant computational resources, so we recommend using the [SP1 Prover network](https://docs.succinct.xyz/docs/network/developers/intro).
+This example will generate a plonk proof. This requires significant computational resources, so we recommend using the [SP1 Prover network].
 
 :::
 
 
 ## Multiplexer
 
-The Multiplexer Oracle example demonstrates fetching exchange rates for multiple collateral tokens from an on-chain oracle contract and generating zero-knowledge proofs of the retrieved data. 
+The Multiplexer Oracle example demonstrates fetching exchange rates for multiple collateral tokens from an on-chain oracle contract and generating zero-knowledge proofs of the retrieved data.
 
 :::tip
 
@@ -106,3 +106,5 @@ RUST_LOG=info cargo run --bin events --release
 ```
 
 :::
+
+[SP1 Prover network]: https://docs.succinct.xyz/docs/protocol/spn/architecture
