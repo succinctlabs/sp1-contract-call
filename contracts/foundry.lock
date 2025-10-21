@@ -1,0 +1,14 @@
+{
+  "../examples/uniswap/contracts/lib/forge-std": {
+    "rev": "b8f065fda83b8cd94a6b2fec8fcd911dc3b444fd"
+  },
+  "../examples/uniswap/contracts/lib/sp1-contracts": {
+    "rev": "a6ca9452af7d6175adcef28b634fcae8662ded03"
+  },
+  "lib/forge-std": {
+    "rev": "b8f065fda83b8cd94a6b2fec8fcd911dc3b444fd"
+  },
+  "lib/sp1-helios": {
+    "rev": "33d243728fe9ec4850e7b4fa1c2e373b7c8a61c6"
+  }
+}

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {SP1Helios} from "@sp1-helios/SP1Helios.sol";
+
 /// @notice The inputs used to verify a contract call.
 struct ContractPublicValues {
     uint256 id;
@@ -45,6 +47,18 @@ library ContractCall {
         }
 
         revert AnchorTypeNotSupported(publicValues.anchorType);
+    }
+
+    /// @notice Verify contract call public values, using a [`SP1Helios`] contract.
+    /// @dev Panics if the [`AnchorType`] is not `Slot`.
+    function verifyWithSp1Helios(ContractPublicValues memory publicValues, address sp1Helios) internal view {
+        if (publicValues.anchorType != AnchorType.Slot) {
+            revert AnchorTypeNotSupported(publicValues.anchorType);
+        }
+
+        if (publicValues.anchorHash != SP1Helios(sp1Helios).headers(publicValues.id)) {
+            revert AnchorMismatch();
+        }
     }
 
     /// @notice Verify if the provided block hash matches the one of the given block number.
