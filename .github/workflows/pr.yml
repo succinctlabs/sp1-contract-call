@@ -22,7 +22,7 @@ jobs:
         image=ubuntu22-full-x64,
         spot=false,
         "run-id=${{ github.run_id }}",
-      ] 
+      ]
     strategy:
       matrix:
         example:
@@ -39,12 +39,12 @@ jobs:
 
       - name: "Install sp1up"
         run: |
-            curl -L https://sp1.succinct.xyz | bash
-            echo "$HOME/.sp1/bin" >> $GITHUB_PATH
+          curl -L https://sp1.succinct.xyz | bash
+          echo "$HOME/.sp1/bin" >> $GITHUB_PATH
 
       - name: "Install SP1 toolchain"
         run: |
-            sp1up
+          sp1up
 
       - name: "Set up RPC env"
         run: |
@@ -54,11 +54,10 @@ jobs:
           echo "OPTIMISM_RPC_URL=${{secrets.OPTIMISM_RPC_URL}}" >> $GITHUB_ENV
 
       - name: Run ${{ matrix.example }}
-        uses: actions-rs/cargo@v1   
+        uses: actions-rs/cargo@v1
         with:
           command: run
-          args:
-            --release --bin ${{ matrix.example }} --ignore-rust-version
+          args: --release --bin ${{ matrix.example }} --ignore-rust-version
         env:
           RUSTFLAGS: -Copt-level=3 -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
           RUST_BACKTRACE: full
@@ -66,7 +65,8 @@ jobs:
 
   test-e2e:
     name: E2E tests
-    runs-on: ["runs-on", "runner=32cpu-linux-x64", "run-id=${{ github.run_id }}"]
+    runs-on:
+      ["runs-on", "runner=32cpu-linux-x64", "run-id=${{ github.run_id }}"]
     env:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
@@ -93,8 +93,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Run Forge build
         run: |
