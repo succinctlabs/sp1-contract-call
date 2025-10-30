@@ -9,16 +9,24 @@ SP1 Contract call retrieve the state for contract calls at a specific block (cal
 
 The anchor consists of an identifier that identifies the block and a hash that enables its verification. The method used to generate the anchor have a direct impact of the window between the execution block and the block on which the verify transaction is contained, as you can see in the table below:
 
-| Method                              | Anchor Identifier | Anchor Hash | On-chain validation | Validation window |
-|-------------------------------------|-------------------|-------------|---------------------|-------------------|
-| [Block hash](#using-block-hash)     | Block number      | Block hash  | ✅                  | 256 blocks        |
-| [Beacon root](#using-beacon-root)   | Timestamp         | Beacon root | ✅                  | 8191 blocks       |
-| [Beacon root (chained)](#chaining)  | Timestamp         | Beacon root | ✅                  | Up to Cancun      |
-| [Consensus](#using-consensus)       | Slot              | Beacon root | ❌                  | N/A               |
+| Method                  | Anchor Identifier | Anchor Hash | On-chain validation   | Validation window |
+|-------------------------|-------------------|-------------|-----------------------|-------------------|
+| [Block hash]            | Block number      | Block hash  | ✅                    | 256 blocks        |
+| [Beacon root]           | Timestamp         | Beacon root | ✅                    | 8191 blocks       |
+| [Beacon root (chained)] | Timestamp         | Beacon root | ✅                    | Up to Cancun      |
+| [Consensus]             | Slot              | Beacon root | ✅ (using SP1 Helios) | Up to Atlair      |
+
+[Beacon root]: #using-beacon-root
+[Block hash]: #using-block-hash
+[Beacon root (chained)]: #chaining
+[Consensus]: #using-consensus
+[with SP1 Helios]: #on-chain-validation-using-sp1-helios
 
 ## Using block hash
 
 This method uses the `blockhash` opcode to commit to a block hash. This gives 256 blocks (approximately 50 minutes) to create the proof and confirm that the validating transaction is included in a block.
+
+The [ContractCall] library `verify()` function can by used to validate the contract call proof public values on-chain.
 
 ## Using beacon root
 
@@ -32,6 +40,8 @@ let sketch = EvmSketch::builder()
     .build()
     .await?;
 ```
+
+In the same way as with the block hash method, the [ContractCall] library `verify()` function can by used to validate the contract call proof public values on-chain.
 
 ### Chaining
 
@@ -77,7 +87,25 @@ let sketch = EvmSketch::builder()
     .await?;
 ```
 
+More specifically, it is possible to leverage [SP1 Helios], which consists of the following components:
+
+* The SP1 Helios program. An SP1 program that verifies the consensus of a source chain in the execution environment of a destination chain using the [helios] library.
+* An `SP1Helios` contract. Contains the logic for verifying SP1 Helios proofs, storing the latest data from the Ethereum beacon chain, including the headers, execution state roots and sync committees.
+* The operator. A Rust script that fetches the latest data from a deployed SP1Helios contract and an Ethereum beacon chain, determines the block to request, requests for/generates a proof, and relays the proof to the SP1Helios contract.
+
+You can have a look at the [SP1 Helios book] to learn how to deploy it. Then, you can use the [ContractCall] library `verifyWithSp1Helios()` function to validate the contract call proof public values. It will uses the `SP1Helios` contract to verify the anchor is valid.
+
+:::tip
+
+As hinted above, the consensus method can be used to validate the public values of proofs generated on another chain. You just need to deploy the `SP1Helios` contract on the destination chain, and configure the operator to fetch the data from the chain where the contract executions occured.
+
+:::
+
 [`Anchor`]: pathname:///api/sp1_cc_client_executor/enum.Anchor.html
 [`EvmSketchBuilder::cl_rpc_url()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.cl_rpc_url
 [`EvmSketchBuilder::at_reference_block()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.at_reference_block
 [`EvmSketchBuilder::consensus()`]: pathname:///api/sp1_cc_host_executor/struct.EvmSketchBuilder.html#method.consensus
+[SP1 Helios]: https://github.com/succinctlabs/sp1-helios
+[SP1 Helios book]: https://succinctlabs.github.io/sp1-helios/deployment.html
+[helios]: https://github.com/a16z/helios
+[ContractCall]: https://github.com/succinctlabs/sp1-contract-call/tree/main/contracts/src/ContractCall.sol

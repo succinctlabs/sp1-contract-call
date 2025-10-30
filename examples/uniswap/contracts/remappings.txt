@@ -1,2 +1,3 @@
-@sp1-contracts/=./lib/sp1-contracts/contracts/src/
+@sp1-contracts/=lib/sp1-contracts/contracts/src/
 @sp1-contract-call/=../../../contracts/src/
+@sp1-helios/=../../../contracts/lib/sp1-helios/contracts/src/

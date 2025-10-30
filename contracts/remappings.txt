@@ -1,0 +1,2 @@
+@sp1-helios/=lib/sp1-helios/contracts/src/
+@sp1-contracts/=lib/sp1-helios/contracts/lib/sp1-contracts/contracts/src/
