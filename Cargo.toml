@@ -50,11 +50,11 @@ sp1-zkvm = "5.2.1"
 sp1-build = "5.2.1"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0-rc.1" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0-rc.1" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0-rc.1" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0-rc.1" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0-rc.1" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.0" }
 
 # rsp-rpc-db = { path = "../rsp/crates/storage/rpc-db" }
 # rsp-witness-db = { path = "../rsp/crates/storage/witness-db" }
