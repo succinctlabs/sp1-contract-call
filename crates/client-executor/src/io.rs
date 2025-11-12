@@ -136,6 +136,7 @@ impl Primitives for EthPrimitives {
         block_env.difficulty = difficulty;
         cfg_env.disable_nonce_check = true;
         cfg_env.disable_balance_check = true;
+        cfg_env.disable_fee_charge = true;
 
         let evm = Context::mainnet()
             .with_db(db)
@@ -192,6 +193,7 @@ impl Primitives for reth_optimism_primitives::OpPrimitives {
         block_env.difficulty = difficulty;
         cfg_env.disable_nonce_check = true;
         cfg_env.disable_balance_check = true;
+        cfg_env.disable_fee_charge = true;
 
         let evm = op_revm::OpContext::op()
             .with_db(db)

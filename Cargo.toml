@@ -95,7 +95,8 @@ reth-ethereum-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "
 # revm
 revm = { version = "31.0.1", features = [
     "std",
-    "optional_balance_check"
+    "optional_balance_check",
+    "optional_fee_charge"
 ], default-features = false }
 revm-primitives = { version = "21.0.2", features = [
     "std",
