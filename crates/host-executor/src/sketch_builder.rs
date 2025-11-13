@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use alloy_eips::BlockId;
 use alloy_provider::{network::AnyNetwork, Provider, RootProvider};
+use alloy_rpc_client::RpcClient;
 use reth_primitives::EthPrimitives;
 use rsp_primitives::genesis::Genesis;
 use rsp_rpc_db::BasicRpcDb;
@@ -46,6 +47,21 @@ impl<PT> EvmSketchBuilder<(), PT, ()> {
     ) -> EvmSketchBuilder<RootProvider<AnyNetwork>, PT, HeaderAnchorBuilder<RootProvider<AnyNetwork>>>
     {
         let provider = RootProvider::new_http(rpc_url);
+        EvmSketchBuilder {
+            block: self.block,
+            genesis: self.genesis,
+            provider: provider.clone(),
+            anchor_builder: HeaderAnchorBuilder::new(provider),
+            phantom: PhantomData,
+        }
+    }
+
+    pub fn el_rpc_client(
+        self,
+        rpc_client: RpcClient,
+    ) -> EvmSketchBuilder<RootProvider<AnyNetwork>, PT, HeaderAnchorBuilder<RootProvider<AnyNetwork>>>
+    {
+        let provider = RootProvider::new(rpc_client);
         EvmSketchBuilder {
             block: self.block,
             genesis: self.genesis,
