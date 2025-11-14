@@ -7639,6 +7639,7 @@ dependencies = [
  "alloy-evm",
  "alloy-primitives",
  "alloy-provider",
+ "alloy-rpc-client",
  "alloy-rpc-types",
  "alloy-sol-macro",
  "alloy-sol-types",
