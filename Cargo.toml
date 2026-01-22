@@ -49,12 +49,12 @@ sp1-sdk = "5.2.1"
 sp1-zkvm = "5.2.1"
 sp1-build = "5.2.1"
 
-# rsp - update to tag once RSP reth-1.9.3 is released
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "40bc9c934703af96a99888c78af401c485b233ad" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "40bc9c934703af96a99888c78af401c485b233ad" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "40bc9c934703af96a99888c78af401c485b233ad" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "40bc9c934703af96a99888c78af401c485b233ad" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "40bc9c934703af96a99888c78af401c485b233ad" }
+# rsp
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
 
 # reth
 reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
