@@ -45,16 +45,16 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "5.2.1"
-sp1-zkvm = "5.2.1"
-sp1-build = "5.2.1"
+sp1-sdk = { version = "6.0.0-beta.1", features = ["blocking"] }
+sp1-zkvm = "6.0.0-beta.1"
+sp1-build = "6.0.0-beta.1"
 
-# rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3" }
+# rsp - git reference for SP1 v6 migration
+rsp-rpc-db = { git = "https://github.com/fakedev9999/rsp", branch = "fakedev9999/sofia-v2" }
+rsp-witness-db = { git = "https://github.com/fakedev9999/rsp", branch = "fakedev9999/sofia-v2" }
+rsp-primitives = { git = "https://github.com/fakedev9999/rsp", branch = "fakedev9999/sofia-v2" }
+rsp-client-executor = { git = "https://github.com/fakedev9999/rsp", branch = "fakedev9999/sofia-v2" }
+rsp-mpt = { git = "https://github.com/fakedev9999/rsp", branch = "fakedev9999/sofia-v2" }
 
 # reth
 reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
@@ -137,8 +137,13 @@ rust.rust_2018_idioms = { level = "deny", priority = -1 }
 rustdoc.all = "warn"
 
 [patch.crates-io]
-sha2-v0-10-9 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha2", tag = "patch-sha2-0.10.9-sp1-4.0.0" }
-sha3-v0-10-8 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha3", tag = "patch-sha3-0.10.8-sp1-4.0.0" }
-crypto-bigint = { git = "https://github.com/sp1-patches/RustCrypto-bigint", tag = "patch-0.5.5-sp1-4.0.0" }
-tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", tag = "patch-2.0.2-sp1-4.0.0" }
-secp256k1  = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.30.0-sp1-5.0.0" }
+# Precompile patches for SP1 v6.0.0-beta.1
+sha2 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha2", tag = "patch-sha2-0.10.9-sp1-6.0.0-beta.1" }
+substrate-bn = { git = "https://github.com/sp1-patches/bn", tag = "patch-0.6.0-sp1-6.0.0-beta.1" }
+sha3 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha3", tag = "patch-sha3-0.10.8-sp1-6.0.0-beta.1" }
+k256 = { git = "https://github.com/sp1-patches/elliptic-curves", tag = "patch-k256-13.4-sp1-6.0.0-beta.1" }
+p256 = { git = "https://github.com/sp1-patches/elliptic-curves", tag = "patch-p256-13.2-sp1-6.0.0-beta.1" }
+tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", tag = "patch-2.0.2-sp1-6.0.0-beta.1" }
+kzg-rs = { git = "https://github.com/succinctlabs/kzg-rs", branch = "fakedev9999/patch-6.0.0-beta.1" }
+sp1-lib = { git = "https://github.com/succinctlabs/sp1-wip.git", branch = "multilinear_v6" }
+sp1-zkvm = { git = "https://github.com/succinctlabs/sp1-wip.git", branch = "multilinear_v6" }
