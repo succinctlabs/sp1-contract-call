@@ -46,6 +46,11 @@ jobs:
         run: |
           sp1up
 
+      - name: "Install protoc"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
       - name: "Set up RPC env"
         run: |
           echo "ETH_RPC_URL=${{secrets.ETH_RPC_URL}}" >> $GITHUB_ENV
@@ -72,6 +77,11 @@ jobs:
     steps:
       - name: "Checkout sources"
         uses: actions/checkout@v4
+
+      - name: "Install protoc"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
 
       - name: "Set up RPC env"
         run: |
