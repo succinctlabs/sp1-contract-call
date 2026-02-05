@@ -4,7 +4,7 @@ use alloy_sol_macro::sol;
 use alloy_sol_types::{SolCall, SolValue};
 use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::EvmSketch;
-use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, utils, Elf, Prover, ProverClient, ProvingKey, SP1Stdin};
 use url::Url;
 use IOracleHelper::getRatesCall;
 
@@ -36,7 +36,7 @@ const COLLATERALS: [Address; 12] = [
 ];
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_elf!("multiplexer-client");
+const ELF: Elf = include_elf!("multiplexer-client");
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
@@ -74,15 +74,16 @@ async fn main() -> eyre::Result<()> {
     stdin.write(&input_bytes);
 
     // Create a `ProverClient`.
-    let client = ProverClient::from_env();
+    let client = ProverClient::from_env().await;
 
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
-    let (_, report) = client.execute(ELF, &stdin).run().unwrap();
+    let (_, report) = client.execute(ELF, stdin.clone()).await.unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
 
     // Generate the proof for the given program and input.
-    let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, &stdin).run().unwrap();
+    let pk = client.setup(ELF).await.unwrap();
+    let vk = pk.verifying_key().clone();
+    let proof = client.prove(&pk, stdin).await.unwrap();
     println!("generated proof");
 
     // Read the public values, and deserialize them.
@@ -97,7 +98,7 @@ async fn main() -> eyre::Result<()> {
     println!("{rates:?}");
 
     // Verify proof and public values.
-    client.verify(&proof, &vk).expect("verification failed");
+    client.verify(&proof, &vk, None).expect("verification failed");
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }

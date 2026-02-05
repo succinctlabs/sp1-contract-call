@@ -3,11 +3,11 @@ use alloy_sol_types::SolEvent;
 use clap::Parser;
 use events_client::{IERC20, WETH};
 use sp1_cc_host_executor::EvmSketch;
-use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, utils, Elf, ProveRequest, Prover, ProverClient, ProvingKey, SP1Stdin};
 use url::Url;
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_elf!("events-client");
+const ELF: Elf = include_elf!("events-client");
 
 /// The arguments for the command.
 #[derive(Parser, Debug)]
@@ -38,7 +38,7 @@ async fn main() -> eyre::Result<()> {
         .await?;
 
     // Create a `ProverClient`.
-    let client = ProverClient::from_env();
+    let client = ProverClient::from_env().await;
     let mut stdin = SP1Stdin::new();
 
     let filter = Filter::new()
@@ -53,7 +53,7 @@ async fn main() -> eyre::Result<()> {
     stdin.write(&input);
 
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
-    let (_, report) = client.execute(ELF, &stdin).run().unwrap();
+    let (_, report) = client.execute(ELF, stdin.clone()).await.unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
 
     // If the prove flag is not set, we return here.
@@ -62,12 +62,13 @@ async fn main() -> eyre::Result<()> {
     }
 
     // Generate the proof for the given program and input.
-    let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, &stdin).plonk().run().unwrap();
+    let pk = client.setup(ELF).await.unwrap();
+    let vk = pk.verifying_key().clone();
+    let proof = client.prove(&pk, stdin).plonk().await.unwrap();
     println!("generated proof");
 
     // Verify proof and public values.
-    client.verify(&proof, &vk).expect("verification failed");
+    client.verify(&proof, &vk, None).expect("verification failed");
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }
