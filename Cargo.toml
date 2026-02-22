@@ -45,9 +45,9 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "6.0.0"
-sp1-zkvm = "6.0.0"
-sp1-build = "6.0.0"
+sp1-sdk = "6.0.1"
+sp1-zkvm = "6.0.1"
+sp1-build = "6.0.1"
 
 # rsp
 rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", branch = "fakedev9999/bump-sp1-v6-rc1" }
