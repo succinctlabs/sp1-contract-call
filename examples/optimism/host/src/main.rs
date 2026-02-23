@@ -3,7 +3,7 @@ use alloy_primitives::{address, Address};
 use alloy_sol_types::{SolCall, SolType};
 use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::EvmSketch;
-use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, utils, Elf, Prover, ProverClient, SP1Stdin};
 use url::Url;
 
 const CONTRACT: Address = address!("0x4200000000000000000000000000000000000015");
@@ -15,7 +15,7 @@ sol! {
 }
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_elf!("optimism-client");
+const ELF: Elf = include_elf!("optimism-client");
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
@@ -42,15 +42,15 @@ async fn main() -> eyre::Result<()> {
     let mut stdin = SP1Stdin::new();
     stdin.write(&input_bytes);
 
-    let client = ProverClient::from_env();
+    let client = ProverClient::from_env().await;
 
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
-    let (_, report) = client.execute(ELF, &stdin).run().unwrap();
+    let (_, report) = client.execute(ELF, stdin.clone()).await.unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
 
     // Generate the proof for the given program and input.
-    let (pk, _) = client.setup(ELF);
-    let proof = client.prove(&pk, &stdin).run().unwrap();
+    let pk = client.setup(ELF).await.unwrap();
+    let proof = client.prove(&pk, stdin).await.unwrap();
     println!("generated proof");
 
     // Read the public values, and deserialize them.

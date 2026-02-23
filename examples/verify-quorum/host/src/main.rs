@@ -7,7 +7,7 @@ use rand_core::{RngCore, SeedableRng};
 use secp256k1::{generate_keypair, Message, PublicKey, SECP256K1};
 use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::{EvmSketch, Genesis};
-use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, utils, Elf, Prover, ProverClient, ProvingKey, SP1Stdin};
 use url::Url;
 use SimpleStaking::verifySignedCall;
 
@@ -24,7 +24,7 @@ sol! {
 const CONTRACT: Address = address!("C82bbB1719271318282fe332795935f39B89b5cf");
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_elf!("verify-quorum-client");
+const ELF: Elf = include_elf!("verify-quorum-client");
 
 /// The number of stakers.
 const NUM_STAKERS: usize = 3;
@@ -116,15 +116,16 @@ async fn main() -> eyre::Result<()> {
     stdin.write(&signatures);
 
     // Create a `ProverClient`.
-    let client = ProverClient::from_env();
+    let client = ProverClient::from_env().await;
 
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
-    let (_, report) = client.execute(ELF, &stdin).run().unwrap();
+    let (_, report) = client.execute(ELF, stdin.clone()).await.unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
 
     // Generate the proof for the given program and input.
-    let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, &stdin).run().unwrap();
+    let pk = client.setup(ELF).await.unwrap();
+    let vk = pk.verifying_key().clone();
+    let proof = client.prove(&pk, stdin).await.unwrap();
     println!("generated proof");
 
     // Read the public values, and deserialize them.
@@ -143,7 +144,7 @@ async fn main() -> eyre::Result<()> {
     println!("verified total stake calculation");
 
     // Verify proof and public values.
-    client.verify(&proof, &vk).expect("verification failed");
+    client.verify(&proof, &vk, None).expect("verification failed");
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }

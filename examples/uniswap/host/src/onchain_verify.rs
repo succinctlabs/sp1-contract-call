@@ -8,7 +8,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::{EvmSketch, Genesis};
-use sp1_sdk::{include_elf, utils, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, utils, Elf, ProveRequest, Prover, ProverClient, SP1Stdin};
 use url::Url;
 
 /// Address of a Uniswap V3 pool.
@@ -17,7 +17,7 @@ const POOL_CONTRACT: Address = address!("3289680dD4d6C10bb19b899729cda5eEF58AEfF
 const UNISWAP_CALL_CONTRACT: Address = address!("2637E77e371e8b001ac0CB8A690B9991cf0601f0");
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_elf!("uniswap-client");
+const ELF: Elf = include_elf!("uniswap-client");
 
 sol!(
     #[sol(rpc)]
@@ -76,9 +76,9 @@ async fn main() -> eyre::Result<()> {
     let provider = RootProvider::<AnyNetwork>::new_http(args.eth_sepolia_rpc_url.clone());
 
     // Create a `ProverClient`.
-    let client = ProverClient::from_env();
+    let client = ProverClient::from_env().await;
 
-    let (pk, _) = client.setup(ELF);
+    let pk = client.setup(ELF).await.unwrap();
 
     let contract = UniswapCall::new(UNISWAP_CALL_CONTRACT, provider.clone());
 
@@ -118,11 +118,11 @@ async fn main() -> eyre::Result<()> {
     stdin.write(&input_bytes);
 
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
-    let (_, report) = client.execute(ELF, &stdin).run().unwrap();
+    let (_, report) = client.execute(ELF, stdin.clone()).await.unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
 
     // Generate the proof for the given program and input.
-    let proof = client.prove(&pk, &stdin).groth16().run().unwrap();
+    let proof = client.prove(&pk, stdin).groth16().await.unwrap();
     println!("generated proof");
 
     // Read the public values, and deserialize them.

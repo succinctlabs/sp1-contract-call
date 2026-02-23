@@ -44,7 +44,12 @@ jobs:
 
       - name: "Install SP1 toolchain"
         run: |
-          sp1up
+          sp1up -v v6.0.0
+
+      - name: "Install protoc"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
 
       - name: "Set up RPC env"
         run: |
@@ -72,6 +77,11 @@ jobs:
     steps:
       - name: "Checkout sources"
         uses: actions/checkout@v4
+
+      - name: "Install protoc"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
 
       - name: "Set up RPC env"
         run: |

@@ -9,7 +9,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::EvmSketch;
-use sp1_sdk::{include_elf, utils, HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::{include_elf, utils, Elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey, SP1ProofWithPublicValues, SP1Stdin};
 use url::Url;
 use IUniswapV3PoolState::slot0Call;
 
@@ -24,7 +24,7 @@ sol! {
 const CONTRACT: Address = address!("1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801");
 
 /// The ELF we want to execute inside the zkVM.
-const ELF: &[u8] = include_elf!("uniswap-client");
+const ELF: Elf = include_elf!("uniswap-client");
 
 /// A fixture that can be used to test the verification of SP1 zkVM proofs inside Solidity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -98,10 +98,10 @@ async fn main() -> eyre::Result<()> {
     stdin.write(&input_bytes);
 
     // Create a `ProverClient`.
-    let client = ProverClient::from_env();
+    let client = ProverClient::from_env().await;
 
     // Execute the program using the `ProverClient.execute` method, without generating a proof.
-    let (_, report) = client.execute(ELF, &stdin).run().unwrap();
+    let (_, report) = client.execute(ELF, stdin.clone()).await.unwrap();
     println!("executed program with {} cycles", report.total_instruction_count());
 
     // If the prove flag is not set, we return here.
@@ -110,8 +110,9 @@ async fn main() -> eyre::Result<()> {
     }
 
     // Generate the proof for the given program and input.
-    let (pk, vk) = client.setup(ELF);
-    let proof = client.prove(&pk, &stdin).plonk().run().unwrap();
+    let pk = client.setup(ELF).await.unwrap();
+    let vk = pk.verifying_key().clone();
+    let proof = client.prove(&pk, stdin).plonk().await.unwrap();
     println!("generated proof");
 
     // Read the public values, and deserialize them.
@@ -135,7 +136,7 @@ async fn main() -> eyre::Result<()> {
     println!("saved proof to plonk-fixture.json");
 
     // Verify proof and public values.
-    client.verify(&proof, &vk).expect("verification failed");
+    client.verify(&proof, &vk, None).expect("verification failed");
     println!("successfully generated and verified proof for the program!");
     Ok(())
 }
