@@ -354,7 +354,7 @@ pub fn rebuild_merkle_root(leaf: B256, generalized_index: usize, branch: &[B256]
 
     for sibling in branch {
         // Determine if the current node is a left or right child
-        let is_left = index % 2 == 0;
+        let is_left = index.is_multiple_of(2);
 
         // Combine the current hash with the sibling hash
         if is_left {
