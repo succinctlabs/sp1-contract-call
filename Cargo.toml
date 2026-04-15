@@ -45,16 +45,16 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "6.0.1"
-sp1-zkvm = "6.0.1"
-sp1-build = "6.0.1"
+sp1-sdk = "=6.1.0"
+sp1-zkvm = "=6.1.0"
+sp1-build = "=6.1.0"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.0.1" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.0.1" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.0.1" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.0.1" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.0.1" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.1.0" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.1.0" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.1.0" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.1.0" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.1.0" }
 
 # reth
 reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
