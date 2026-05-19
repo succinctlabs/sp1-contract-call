@@ -5,7 +5,6 @@ use alloy_rpc_types::BlockNumberOrTag;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use clap::Parser;
-use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::{EvmSketch, Genesis};
 use sp1_sdk::{include_elf, utils, Elf, ProveRequest, Prover, ProverClient, SP1Stdin};
@@ -29,15 +28,6 @@ sol! {
     interface IUniswapV3PoolState {
         function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked);
     }
-}
-
-/// A fixture that can be used to test the verification of SP1 zkVM proofs inside Solidity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct SP1CCProofFixture {
-    vkey: String,
-    public_values: String,
-    proof: String,
 }
 
 /// The arguments for the command.
