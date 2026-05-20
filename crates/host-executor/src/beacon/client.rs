@@ -61,7 +61,13 @@ impl<'de> serde::Deserialize<'de> for SignedBeaconBlock {
 }
 
 impl BeaconClient {
-    pub fn new(rpc_url: Url) -> Self {
+    pub fn new(mut rpc_url: Url) -> Self {
+        // Endpoints are built by concatenation (`{rpc_url}eth/v2/...`), so the base must end
+        // with a slash; normalize so a configured URL works with or without one.
+        if !rpc_url.path().ends_with('/') {
+            let path = format!("{}/", rpc_url.path());
+            rpc_url.set_path(&path);
+        }
         Self { rpc_url, client: ReqwestClient::new() }
     }
 
@@ -106,5 +112,23 @@ impl BeaconClient {
         };
 
         block_hash.ok_or_else(|| BeaconError::ExecutionPayloadMissing).map(|h| B256::from_slice(&h))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_normalizes_base_url_trailing_slash() {
+        // Without normalization a path-bearing URL concatenates to `.../keyeth/v2/...` and 404s.
+        let client = BeaconClient::new(Url::parse("https://beacon.example/key").unwrap());
+        assert_eq!(client.rpc_url.as_str(), "https://beacon.example/key/");
+
+        let client = BeaconClient::new(Url::parse("https://beacon.example/key/").unwrap());
+        assert_eq!(client.rpc_url.as_str(), "https://beacon.example/key/");
+
+        let client = BeaconClient::new(Url::parse("https://beacon.example").unwrap());
+        assert_eq!(client.rpc_url.as_str(), "https://beacon.example/");
     }
 }
