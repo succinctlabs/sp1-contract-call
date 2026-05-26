@@ -45,9 +45,9 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "=6.2.1"
-sp1-zkvm = "=6.2.1"
-sp1-build = "=6.2.1"
+sp1-sdk = "=6.2.2"
+sp1-zkvm = "=6.2.2"
+sp1-build = "=6.2.2"
 
 # rsp
 rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.1" }

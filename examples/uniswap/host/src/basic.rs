@@ -9,7 +9,10 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use sp1_cc_client_executor::ContractPublicValues;
 use sp1_cc_host_executor::EvmSketch;
-use sp1_sdk::{include_elf, utils, Elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::{
+    include_elf, utils, Elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey,
+    SP1ProofWithPublicValues, SP1Stdin,
+};
 use url::Url;
 use IUniswapV3PoolState::slot0Call;
 
