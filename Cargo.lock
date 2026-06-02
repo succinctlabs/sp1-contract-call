@@ -2567,7 +2567,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3299,7 +3299,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2 0.6.2",
  "system-configuration",
  "tokio",
  "tower-service",
@@ -4033,7 +4033,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4189,7 +4189,7 @@ version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
 dependencies = [
- "proc-macro-crate 1.1.3",
+ "proc-macro-crate 3.4.0",
  "proc-macro2",
  "quote",
  "syn 2.0.115",
@@ -5120,7 +5120,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.5.10",
+ "socket2 0.6.2",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -5157,9 +5157,9 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -6214,7 +6214,7 @@ dependencies = [
 [[package]]
 name = "rsp-client-executor"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?branch=fakedev9999%2Fbump-sp1-6.2.3#4b43158e0de109dd0cf3b4a5560324537c2fbd3c"
+source = "git+https://github.com/succinctlabs/rsp?tag=reth-1.9.3-sp1-6.2.3#03d1a9a6a3fd7e7f0e4e6385e3edae0afb2cdbe6"
 dependencies = [
  "alloy-consensus",
  "alloy-evm",
@@ -6247,7 +6247,7 @@ dependencies = [
 [[package]]
 name = "rsp-mpt"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?branch=fakedev9999%2Fbump-sp1-6.2.3#4b43158e0de109dd0cf3b4a5560324537c2fbd3c"
+source = "git+https://github.com/succinctlabs/rsp?tag=reth-1.9.3-sp1-6.2.3#03d1a9a6a3fd7e7f0e4e6385e3edae0afb2cdbe6"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -6262,7 +6262,7 @@ dependencies = [
 [[package]]
 name = "rsp-primitives"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?branch=fakedev9999%2Fbump-sp1-6.2.3#4b43158e0de109dd0cf3b4a5560324537c2fbd3c"
+source = "git+https://github.com/succinctlabs/rsp?tag=reth-1.9.3-sp1-6.2.3#03d1a9a6a3fd7e7f0e4e6385e3edae0afb2cdbe6"
 dependencies = [
  "alloy-eips",
  "alloy-genesis",
@@ -6281,7 +6281,7 @@ dependencies = [
 [[package]]
 name = "rsp-rpc-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?branch=fakedev9999%2Fbump-sp1-6.2.3#4b43158e0de109dd0cf3b4a5560324537c2fbd3c"
+source = "git+https://github.com/succinctlabs/rsp?tag=reth-1.9.3-sp1-6.2.3#03d1a9a6a3fd7e7f0e4e6385e3edae0afb2cdbe6"
 dependencies = [
  "alloy-consensus",
  "alloy-primitives",
@@ -6305,7 +6305,7 @@ dependencies = [
 [[package]]
 name = "rsp-witness-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?branch=fakedev9999%2Fbump-sp1-6.2.3#4b43158e0de109dd0cf3b4a5560324537c2fbd3c"
+source = "git+https://github.com/succinctlabs/rsp?tag=reth-1.9.3-sp1-6.2.3#03d1a9a6a3fd7e7f0e4e6385e3edae0afb2cdbe6"
 dependencies = [
  "alloy-primitives",
  "reth-storage-errors",
@@ -6410,7 +6410,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -8408,7 +8408,7 @@ dependencies = [
  "getrandom 0.4.1",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

@@ -50,11 +50,11 @@ sp1-zkvm = "=6.2.3"
 sp1-build = "=6.2.3"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", branch = "fakedev9999/bump-sp1-6.2.3" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", branch = "fakedev9999/bump-sp1-6.2.3" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", branch = "fakedev9999/bump-sp1-6.2.3" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", branch = "fakedev9999/bump-sp1-6.2.3" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", branch = "fakedev9999/bump-sp1-6.2.3" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
 
 # reth
 reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
