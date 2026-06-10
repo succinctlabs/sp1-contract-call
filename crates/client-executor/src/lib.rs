@@ -332,9 +332,7 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     }
 }
 
-/// Verifies a chain config hash.
-///
-/// Note: For OP stack chains, use [`verifiy_chain_config_optimism`].
+/// Verifies an Ethereum chain config hash.
 pub fn verifiy_chain_config_eth(
     chain_config_hash: B256,
     chain_id: u64,
