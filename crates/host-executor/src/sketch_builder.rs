@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use alloy_eips::BlockId;
 use alloy_provider::{network::AnyNetwork, Provider, RootProvider};
 use alloy_rpc_client::RpcClient;
-use reth_primitives::EthPrimitives;
+use reth_ethereum_primitives::EthPrimitives;
 use rsp_primitives::genesis::Genesis;
 use rsp_rpc_db::BasicRpcDb;
 use sp1_cc_client_executor::io::Primitives;
@@ -67,39 +67,6 @@ impl<PT> EvmSketchBuilder<(), PT, ()> {
             genesis: self.genesis,
             provider: provider.clone(),
             anchor_builder: HeaderAnchorBuilder::new(provider),
-            phantom: PhantomData,
-        }
-    }
-}
-
-#[cfg(feature = "optimism")]
-impl<P, A> EvmSketchBuilder<P, EthPrimitives, A> {
-    /// Configures the [`EvmSketch`] for OP Stack.
-    ///
-    /// Note: the sketch must be configured with a OP stack genesis with [`with_genesis()`]. On the
-    /// client, the executor must be created with [`ClientExecutor::optimism()`].
-    ///
-    /// [`with_genesis()`]: EvmSketchBuilder::with_genesis
-    /// [`ClientExecutor::optimism()`]: sp1_cc_client_executor::ClientExecutor::optimism
-    pub fn optimism(self) -> EvmSketchBuilder<P, reth_optimism_primitives::OpPrimitives, A> {
-        EvmSketchBuilder {
-            block: self.block,
-            genesis: self.genesis,
-            provider: self.provider,
-            anchor_builder: self.anchor_builder,
-            phantom: PhantomData,
-        }
-    }
-
-    /// Configures the [`EvmSketch`] for OP Mainnet..
-    pub fn optimism_mainnet(
-        self,
-    ) -> EvmSketchBuilder<P, reth_optimism_primitives::OpPrimitives, A> {
-        EvmSketchBuilder {
-            block: self.block,
-            genesis: Genesis::OpMainnet,
-            provider: self.provider,
-            anchor_builder: self.anchor_builder,
             phantom: PhantomData,
         }
     }
