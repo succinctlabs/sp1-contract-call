@@ -7,8 +7,6 @@ members = [
     "examples/multiplexer/client",
     "examples/events/host",
     "examples/events/client",
-    "examples/optimism/host",
-    "examples/optimism/client",
     "examples/verify-quorum/host",
     "examples/verify-quorum/client",
     "crates/client-executor",
@@ -45,83 +43,74 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "=6.2.3"
-sp1-zkvm = "=6.2.3"
-sp1-build = "=6.2.3"
+sp1-sdk = "=6.2.4"
+sp1-zkvm = "=6.2.4"
+sp1-build = "=6.2.4"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-1.9.3-sp1-6.2.3" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.2.4" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.2.4" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.2.4" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.2.4" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.2.4" }
 
 # reth
-reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
-    "alloy-compat",
+reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = ["serde"] }
+reth-primitives-traits = { version = "0.3.2", default-features = false }
+reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = [
     "std",
 ] }
-reth-codecs = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-optimism-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-optimism-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-optimism-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-optimism-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
+reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = [
     "std",
 ] }
-reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
+reth-storage-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = [
     "std",
 ] }
-reth-storage-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false, features = [
-    "std",
-] }
-reth-trie = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-execution-types = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
-reth-ethereum-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.9.3", default-features = false }
+reth-trie = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-execution-types = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-db = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-ethereum-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
 
 # revm
-revm = { version = "31.0.2", features = [
+revm = { version = "38.0.0", features = [
     "std",
     "optional_balance_check",
     "optional_fee_charge"
 ], default-features = false }
-revm-primitives = { version = "21.0.2", features = [
+revm-primitives = { version = "23.0.0", features = [
     "std",
 ], default-features = false }
-op-revm = { version = "12.0.2", default-features = false }
 
 # alloy
-alloy-primitives = "1.3.1"
-alloy-consensus = { version = "1.0.37", default-features = false }
-alloy-contract = { version = "1.0.37", default-features = false }
-alloy-eips = { version = "1.0.37", default-features = false }
-alloy-node-bindings = { version = "1.0.37", default-features = false }
-alloy-provider = { version = "1.0.37", default-features = false, features = [
+alloy-primitives = "1.5.6"
+alloy-consensus = { version = "2.0.5", default-features = false }
+alloy-contract = { version = "2.0.5", default-features = false }
+alloy-eips = { version = "2.0.5", default-features = false }
+alloy-node-bindings = { version = "2.0.5", default-features = false }
+alloy-provider = { version = "2.0.5", default-features = false, features = [
     "reqwest",
 ] }
-alloy-rpc-client = { version = "1.0.37", default-features = false }
-alloy-rpc-types = { version = "1.0.37", default-features = false, features = [
+alloy-rpc-client = { version = "2.0.5", default-features = false }
+alloy-rpc-types = { version = "2.0.5", default-features = false, features = [
     "eth",
 ] }
-alloy-rpc-types-eth = { version = "1.0.37", default-features = false }
-alloy-serde = { version = "1.0.37" }
-alloy-transport = { version = "1.0.37" }
+alloy-rpc-types-eth = { version = "2.0.5", default-features = false }
+alloy-serde = { version = "2.0.5" }
+alloy-transport = { version = "2.0.5" }
 
-alloy-rlp = "0.3.10"
-alloy-trie = "0.9.1"
+alloy-rlp = "0.3.12"
+alloy-trie = "0.9.4"
 alloy-sol-types = { version = "1.3.1" }
 alloy-sol-macro = { version = "1.3.1" }
-alloy = { version = "1.0.37" }
+alloy = { version = "2.0.5" }
 
-alloy-evm = { version = "0.23.1", default-features = false }
-alloy-op-evm = { version = "0.23.1", default-features = false }
+alloy-evm = { version = "0.34.0", default-features = false }
 
 sha2 = "0.10.9"
 # We've forked ethereum-consensus because upstream has incomplete Electra support and outdated Alloy version
@@ -138,7 +127,7 @@ rustdoc.all = "warn"
 
 [patch.crates-io]
 sha2-v0-10-9 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha2", tag = "patch-sha2-0.10.9-sp1-6.0.0" }
-sha3-v0-10-8 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha3", tag = "patch-sha3-0.10.8-sp1-6.0.0" }
+sha3-v0-11-0 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha3", tag = "patch-sha3-0.11.0-sp1-6.0.0" }
 crypto-bigint = { git = "https://github.com/sp1-patches/RustCrypto-bigint", tag = "patch-0.5.5-sp1-6.0.0" }
 tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", tag = "patch-2.0.2-sp1-6.0.0" }
 secp256k1  = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.30.0-sp1-6.0.0" }

@@ -10,14 +10,15 @@
 
 use std::{fmt::Debug, iter::once, sync::Arc};
 
-use alloy_consensus::ReceiptEnvelope;
+use alloy_consensus::{Header, ReceiptEnvelope};
 use alloy_evm::{Database, Evm};
 use reth_chainspec::{ChainSpec, EthChainSpec};
 use reth_consensus::{ConsensusError, HeaderValidator};
 use reth_ethereum_consensus::EthBeaconConsensus;
+use reth_ethereum_primitives::EthPrimitives;
 use reth_evm::{ConfigureEvm, EthEvm, EvmEnv};
 use reth_evm_ethereum::EthEvmConfig;
-use reth_primitives::{EthPrimitives, Header, NodePrimitives, SealedHeader};
+use reth_primitives_traits::{NodePrimitives, SealedHeader};
 use revm::{
     context::result::{HaltReason, ResultAndState},
     inspector::NoOpInspector,
@@ -154,64 +155,6 @@ impl Primitives for EthPrimitives {
 
     fn active_fork_name(chain_spec: &Self::ChainSpec, header: &Header) -> String {
         let spec = reth_evm_ethereum::revm_spec(chain_spec, header);
-
-        spec.to_string()
-    }
-}
-
-#[cfg(feature = "optimism")]
-impl Primitives for reth_optimism_primitives::OpPrimitives {
-    type ChainSpec = reth_optimism_chainspec::OpChainSpec;
-    type HaltReason = op_revm::OpHaltReason;
-
-    fn build_spec(genesis: &Genesis) -> Result<Arc<Self::ChainSpec>, ClientError> {
-        Ok(Arc::new(reth_optimism_chainspec::OpChainSpec::try_from(genesis).unwrap()))
-    }
-
-    fn validate_header(
-        header: &SealedHeader,
-        chain_spec: Arc<Self::ChainSpec>,
-    ) -> Result<(), ConsensusError> {
-        let validator = reth_optimism_consensus::OpBeaconConsensus::new(chain_spec);
-        validator.validate_header(header)
-    }
-
-    fn transact<DB: Database>(
-        input: &ContractInput,
-        db: DB,
-        header: &Header,
-        difficulty: U256,
-        chain_spec: Arc<Self::ChainSpec>,
-    ) -> Result<ResultAndState<Self::HaltReason>, String> {
-        use op_revm::{DefaultOp, OpBuilder};
-
-        let EvmEnv { mut cfg_env, mut block_env, .. } =
-            reth_optimism_evm::OpEvmConfig::optimism(chain_spec).evm_env(header).unwrap();
-
-        // Set the base fee to 0 to enable 0 gas price transactions.
-        block_env.basefee = 0;
-        block_env.difficulty = difficulty;
-        cfg_env.disable_nonce_check = true;
-        cfg_env.disable_balance_check = true;
-        cfg_env.disable_fee_charge = true;
-
-        let evm = op_revm::OpContext::op()
-            .with_db(db)
-            .with_cfg(cfg_env)
-            .with_block(block_env)
-            .modify_tx_chained(|tx_env| {
-                tx_env.base.gas_limit = header.gas_limit;
-            })
-            .build_op_with_inspector(NoOpInspector {});
-
-        let mut evm = alloy_op_evm::OpEvm::new(evm, false);
-
-        evm.transact(input).map_err(|err| err.to_string())
-    }
-
-    fn active_fork_name(chain_spec: &Self::ChainSpec, header: &Header) -> String {
-        let spec = reth_optimism_evm::revm_spec(chain_spec, header);
-        let spec: &'static str = spec.into();
 
         spec.to_string()
     }

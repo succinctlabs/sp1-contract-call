@@ -31,7 +31,7 @@ use alloy_trie::root::ordered_trie_root_with_encoder;
 use eyre::bail;
 use io::EvmSketchInput;
 use reth_chainspec::EthChainSpec;
-use reth_primitives::EthPrimitives;
+use reth_ethereum_primitives::EthPrimitives;
 use revm::{
     context::{result::ExecutionResult, TxEnv},
     database::CacheDB,
@@ -131,13 +131,6 @@ impl IntoTxEnv<TxEnv> for &ContractInput {
     }
 }
 
-#[cfg(feature = "optimism")]
-impl IntoTxEnv<op_revm::OpTransaction<TxEnv>> for &ContractInput {
-    fn into_tx_env(self) -> op_revm::OpTransaction<TxEnv> {
-        op_revm::OpTransaction { base: self.into_tx_env(), ..Default::default() }
-    }
-}
-
 sol! {
     #[derive(Debug)]
     enum AnchorType { BlockHash, Timestamp, Slot }
@@ -211,14 +204,6 @@ pub struct ClientExecutor<'a, P: Primitives> {
 impl<'a> ClientExecutor<'a, EthPrimitives> {
     /// Instantiates a new [`ClientExecutor`]
     pub fn eth(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
-        Self::new(state_sketch)
-    }
-}
-
-#[cfg(feature = "optimism")]
-impl<'a> ClientExecutor<'a, reth_optimism_primitives::OpPrimitives> {
-    /// Instantiates a new [`ClientExecutor`]
-    pub fn optimism(state_sketch: &'a EvmSketchInput) -> Result<Self, ClientError> {
         Self::new(state_sketch)
     }
 }
@@ -347,34 +332,12 @@ impl<'a, P: Primitives> ClientExecutor<'a, P> {
     }
 }
 
-/// Verifies a chain config hash.
-///
-/// Note: For OP stack chains, use [`verifiy_chain_config_optimism`].
+/// Verifies an Ethereum chain config hash.
 pub fn verifiy_chain_config_eth(
     chain_config_hash: B256,
     chain_id: u64,
     active_fork: SpecId,
 ) -> Result<(), ClientError> {
-    let chain_config =
-        ChainConfig { chainId: U256::from(chain_id), activeForkName: active_fork.to_string() };
-
-    let hash = keccak256(chain_config.abi_encode_packed());
-
-    if chain_config_hash == hash {
-        Ok(())
-    } else {
-        Err(ClientError::InvalidChainConfig)
-    }
-}
-
-#[cfg(feature = "optimism")]
-/// Verifies a chain config hash on a OP stack chain.
-pub fn verifiy_chain_config_optimism(
-    chain_config_hash: B256,
-    chain_id: u64,
-    active_fork: op_revm::OpSpecId,
-) -> Result<(), ClientError> {
-    let active_fork: &'static str = active_fork.into();
     let chain_config =
         ChainConfig { chainId: U256::from(chain_id), activeForkName: active_fork.to_string() };
 

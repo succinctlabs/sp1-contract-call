@@ -7,7 +7,7 @@ use alloy_provider::{network::AnyNetwork, Provider};
 use alloy_rpc_types::{AnyReceiptEnvelope, Filter, Log as RpcLog};
 use alloy_sol_types::SolCall;
 use eyre::{bail, eyre};
-use reth_primitives::EthPrimitives;
+use reth_ethereum_primitives::EthPrimitives;
 use revm::{context::result::ExecutionResult, database::CacheDB};
 use rsp_mpt::EthereumState;
 use rsp_primitives::{account_proof::eip1186_proof_to_account_proof, genesis::Genesis};
@@ -120,7 +120,7 @@ where
                 .await?
                 .unwrap_or_default()
                 .into_iter()
-                .map(|r| convert_receipt_envelope(r.inner.inner))
+                .map(|r| convert_receipt_envelope(r.inner.inner.clone()))
                 .collect::<Result<_, _>>()?;
 
             self.receipts = Some(receipts);
@@ -204,7 +204,7 @@ fn convert_receipt_envelope(
 
 #[cfg(test)]
 mod tests {
-    use reth_primitives::EthPrimitives;
+    use reth_ethereum_primitives::EthPrimitives;
     use sp1_cc_client_executor::io::EvmSketchInput;
 
     use crate::EvmSketch;

@@ -15,7 +15,7 @@ alloy-sol-macro.workspace = true
 alloy-provider.workspace = true
 
 # reth
-reth-primitives.workspace = true
+reth-ethereum-primitives.workspace = true
 
 # misc:
 url.workspace = true
