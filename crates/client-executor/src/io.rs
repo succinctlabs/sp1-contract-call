@@ -26,7 +26,10 @@ use revm::{
     Context, MainBuilder, MainContext,
 };
 use revm_primitives::{B256, U256};
-use rsp_client_executor::{error::ClientError, io::WitnessInput};
+use rsp_client_executor::{
+    error::ClientError,
+    io::{build_trie_db, TrieDB, WitnessInput},
+};
 use rsp_mpt::EthereumState;
 use rsp_primitives::genesis::Genesis;
 use serde::{Deserialize, Serialize};
@@ -59,12 +62,17 @@ pub struct EvmSketchInput {
     pub receipts: Option<Vec<ReceiptEnvelope>>,
 }
 
-impl WitnessInput for EvmSketchInput {
+impl EvmSketchInput {
     #[inline(always)]
-    fn state(&self) -> &EthereumState {
-        &self.state
+    pub(crate) fn witness_db(
+        &self,
+        sealed_headers: &[SealedHeader],
+    ) -> Result<TrieDB<'_, EthereumState>, ClientError> {
+        build_trie_db(&self.state, self.state_anchor(), self.bytecodes(), sealed_headers)
     }
+}
 
+impl WitnessInput for EvmSketchInput {
     #[inline(always)]
     fn state_anchor(&self) -> B256 {
         self.anchor.header().state_root

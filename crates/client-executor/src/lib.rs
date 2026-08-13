@@ -38,6 +38,7 @@ use revm::{
 };
 use revm_primitives::{hardfork::SpecId, Address, Bytes, TxKind, B256, U256};
 use rsp_client_executor::io::{TrieDB, WitnessInput};
+use rsp_mpt::EthereumState;
 
 mod anchor;
 pub use anchor::{
@@ -193,7 +194,7 @@ pub struct ClientExecutor<'a, P: Primitives> {
     /// The chain specification.
     pub chain_spec: Arc<P::ChainSpec>,
     /// The database that the executor uses to access state.
-    pub witness_db: TrieDB<'a>,
+    pub witness_db: TrieDB<'a, EthereumState>,
     /// All logs in the block.
     pub logs: Option<Vec<Log>>,
     /// The hashed chain config, computed from the chain id and active hardfork hash (following
