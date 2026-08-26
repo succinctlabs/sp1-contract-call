@@ -43,16 +43,16 @@ sp1-cc-client-executor = {path = "./crates/client-executor"}
 sp1-cc-host-executor = {path = "./crates/host-executor"}
 
 # sp1
-sp1-sdk = "=6.4.0"
-sp1-zkvm = "=6.4.0"
-sp1-build = "=6.4.0"
+sp1-sdk = "=6.5.0"
+sp1-zkvm = "=6.5.0"
+sp1-build = "=6.5.0"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.4.0" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.4.0" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.4.0" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.4.0" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.4.0" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "e51610a85892000f22bbf393a58251a4f6b6c3ac" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "e51610a85892000f22bbf393a58251a4f6b6c3ac" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "e51610a85892000f22bbf393a58251a4f6b6c3ac" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "e51610a85892000f22bbf393a58251a4f6b6c3ac" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "e51610a85892000f22bbf393a58251a4f6b6c3ac" }
 
 # reth
 reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = ["serde"] }
