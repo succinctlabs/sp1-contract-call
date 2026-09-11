@@ -54,7 +54,7 @@ async fn main() -> eyre::Result<()> {
     let rpc_url = std::env::var("ETH_SEPOLIA_RPC_URL")
         .unwrap_or_else(|_| panic!("Missing ETH_SEPOLIA_RPC_URL in env"));
     let sketch = EvmSketch::builder()
-        .at_block(BlockNumberOrTag::Latest)
+        .at_block(BlockNumberOrTag::Safe)
         .with_genesis(Genesis::Sepolia)
         .el_rpc_url(Url::parse(&rpc_url)?)
         .build()
