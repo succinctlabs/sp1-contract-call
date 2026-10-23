@@ -2,6 +2,8 @@
 version = "0.1.0"
 name = "uniswap"
 edition = "2021"
+license.workspace = true
+publish.workspace = true
 
 [[bin]]
 name = "uniswap-basic"
