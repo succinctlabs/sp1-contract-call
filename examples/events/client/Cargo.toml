@@ -2,6 +2,8 @@
 name = "events-client"
 description = ""
 edition = "2021"
+license.workspace = true
+publish.workspace = true
 
 [dependencies]
 # workspace
