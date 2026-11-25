@@ -49,11 +49,11 @@ sp1-zkvm = "=6.10.0"
 sp1-build = "=6.10.0"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0-patch.1" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0-patch.1" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0-patch.1" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0-patch.1" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0-patch.1" }
 
 # reth
 reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = ["serde"] }
