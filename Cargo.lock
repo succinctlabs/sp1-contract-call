@@ -2117,7 +2117,7 @@ dependencies = [
 [[package]]
 name = "crypto-bigint"
 version = "0.5.5"
-source = "git+https://github.com/sp1-patches/RustCrypto-bigint?tag=patch-0.5.5-sp1-6.10.0#e67beeeba9c5cb054fa2c5c83e0384442a61e985"
+source = "git+https://github.com/sp1-patches/RustCrypto-bigint?tag=patch-0.5.5-sp1-6.10.0-r1#802362f306944944b5b251570e3c62c745f92c71"
 dependencies = [
  "generic-array 0.14.9",
  "rand_core 0.6.4",
@@ -6368,7 +6368,7 @@ dependencies = [
 [[package]]
 name = "rsp-client-executor"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?tag=reth-2.2.0-sp1-6.10.0#5afe72eb12a2d6accd9d7fdff66785d91cbc8e72"
+source = "git+https://github.com/succinctlabs/rsp?rev=c97f16836ce18f5af84f07bb8f9397e081ba0fdf#c97f16836ce18f5af84f07bb8f9397e081ba0fdf"
 dependencies = [
  "alloy-consensus",
  "alloy-evm",
@@ -6402,7 +6402,7 @@ dependencies = [
 [[package]]
 name = "rsp-mpt"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?tag=reth-2.2.0-sp1-6.10.0#5afe72eb12a2d6accd9d7fdff66785d91cbc8e72"
+source = "git+https://github.com/succinctlabs/rsp?rev=c97f16836ce18f5af84f07bb8f9397e081ba0fdf#c97f16836ce18f5af84f07bb8f9397e081ba0fdf"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -6421,7 +6421,7 @@ dependencies = [
 [[package]]
 name = "rsp-primitives"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?tag=reth-2.2.0-sp1-6.10.0#5afe72eb12a2d6accd9d7fdff66785d91cbc8e72"
+source = "git+https://github.com/succinctlabs/rsp?rev=c97f16836ce18f5af84f07bb8f9397e081ba0fdf#c97f16836ce18f5af84f07bb8f9397e081ba0fdf"
 dependencies = [
  "alloy-eips 2.0.5",
  "alloy-genesis",
@@ -6438,7 +6438,7 @@ dependencies = [
 [[package]]
 name = "rsp-rpc-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?tag=reth-2.2.0-sp1-6.10.0#5afe72eb12a2d6accd9d7fdff66785d91cbc8e72"
+source = "git+https://github.com/succinctlabs/rsp?rev=c97f16836ce18f5af84f07bb8f9397e081ba0fdf#c97f16836ce18f5af84f07bb8f9397e081ba0fdf"
 dependencies = [
  "alloy-consensus",
  "alloy-primitives",
@@ -6462,7 +6462,7 @@ dependencies = [
 [[package]]
 name = "rsp-witness-db"
 version = "0.1.0"
-source = "git+https://github.com/succinctlabs/rsp?tag=reth-2.2.0-sp1-6.10.0#5afe72eb12a2d6accd9d7fdff66785d91cbc8e72"
+source = "git+https://github.com/succinctlabs/rsp?rev=c97f16836ce18f5af84f07bb8f9397e081ba0fdf#c97f16836ce18f5af84f07bb8f9397e081ba0fdf"
 dependencies = [
  "alloy-primitives",
  "reth-storage-errors",
@@ -6765,7 +6765,7 @@ dependencies = [
 [[package]]
 name = "secp256k1"
 version = "0.30.0"
-source = "git+https://github.com/sp1-patches/rust-secp256k1?tag=patch-0.30.0-sp1-6.10.0#3b88e14f88b6ca00c12fb5e7e3431b104ab39877"
+source = "git+https://github.com/sp1-patches/rust-secp256k1?tag=patch-0.30.0-sp1-6.10.0-r1#046080d207a4064773cdfa609856f26f92a7ca81"
 dependencies = [
  "bitcoin_hashes",
  "cfg-if",
@@ -6789,7 +6789,7 @@ dependencies = [
 [[package]]
 name = "secp256k1-sys"
 version = "0.10.0"
-source = "git+https://github.com/sp1-patches/rust-secp256k1?tag=patch-0.30.0-sp1-6.10.0#3b88e14f88b6ca00c12fb5e7e3431b104ab39877"
+source = "git+https://github.com/sp1-patches/rust-secp256k1?tag=patch-0.30.0-sp1-6.10.0-r1#046080d207a4064773cdfa609856f26f92a7ca81"
 dependencies = [
  "cc",
 ]
@@ -8366,7 +8366,7 @@ dependencies = [
 [[package]]
 name = "substrate-bn"
 version = "0.6.0"
-source = "git+https://github.com/sp1-patches/bn?tag=patch-0.6.0-sp1-6.10.0-substrate-bn#ab4d0085567695967cf34c23b3090f1ae02a03d1"
+source = "git+https://github.com/sp1-patches/bn?tag=patch-0.6.0-sp1-6.10.0-substrate-bn-r1#2bc7d524f4e799031701dd7e31c1d7b0011cdfc4"
 dependencies = [
  "bytemuck",
  "byteorder",
@@ -8381,9 +8381,9 @@ dependencies = [
 
 [[package]]
 name = "substrate-bn-succinct-rs"
-version = "0.6.1"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5ad6ccb8ae10730213d4d5bdb0a9c4ddf351210e7c6ad9c66c02f2ad0b4256"
+checksum = "e96045ac8bc2bc3b1dbb0d3c94adc4913d61e52400cd9ba03a8e90cc52fc1753"
 dependencies = [
  "bytemuck",
  "byteorder",

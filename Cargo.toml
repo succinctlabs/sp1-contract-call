@@ -49,11 +49,11 @@ sp1-zkvm = "=6.10.0"
 sp1-build = "=6.10.0"
 
 # rsp
-rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0" }
-rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0" }
-rsp-primitives = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0" }
-rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0" }
-rsp-mpt = { git = "https://github.com/succinctlabs/rsp", tag = "reth-2.2.0-sp1-6.10.0" }
+rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
+rsp-witness-db = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
+rsp-primitives = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
+rsp-client-executor = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
+rsp-mpt = { git = "https://github.com/succinctlabs/rsp", rev = "c97f16836ce18f5af84f07bb8f9397e081ba0fdf" }
 
 # reth
 reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = ["serde"] }
@@ -129,9 +129,9 @@ rustdoc.all = "warn"
 [patch.crates-io]
 sha2-v0-10-9 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha2", tag = "patch-sha2-0.10.9-sp1-6.10.0" }
 sha3-v0-11-0 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha3", tag = "patch-sha3-0.11.0-sp1-6.0.0" }
-crypto-bigint = { git = "https://github.com/sp1-patches/RustCrypto-bigint", tag = "patch-0.5.5-sp1-6.10.0" }
+crypto-bigint = { git = "https://github.com/sp1-patches/RustCrypto-bigint", tag = "patch-0.5.5-sp1-6.10.0-r1" }
 tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", tag = "patch-2.0.2-sp1-6.10.0" }
-secp256k1  = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.30.0-sp1-6.10.0" }
-substrate-bn = { git = "https://github.com/sp1-patches/bn", tag = "patch-0.6.0-sp1-6.10.0-substrate-bn" }
+secp256k1  = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.30.0-sp1-6.10.0-r1" }
+substrate-bn = { git = "https://github.com/sp1-patches/bn", tag = "patch-0.6.0-sp1-6.10.0-substrate-bn-r1" }
 k256 = { git = "https://github.com/sp1-patches/elliptic-curves", tag = "patch-k256-13.4-sp1-6.10.0" }
 p256 = { git = "https://github.com/sp1-patches/elliptic-curves", tag = "patch-p256-13.2-sp1-6.10.0" }
