@@ -116,7 +116,7 @@ alloy-evm = { version = "0.34.0", default-features = false }
 sha2 = "0.10.9"
 # We've forked ethereum-consensus because upstream has incomplete Electra support and outdated Alloy version
 beacon-api-client = { git = "https://github.com/succinctlabs/ethereum-consensus", branch = "dev" }
-ethereum-consensus = { git = "https://github.com/succinctlabs/ethereum-consensus", branch = "dev" }
+ethereum-consensus = { git = "https://github.com/succinctlabs/ethereum-consensus", rev = "9ef57a9bf39431b9023fab2460be19df58dd4205", default-features = false, features = ["serde", "async"] }
 async-trait = "0.1.88"
 
 [workspace.lints]
