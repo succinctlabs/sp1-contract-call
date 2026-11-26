@@ -2727,7 +2727,7 @@ dependencies = [
 [[package]]
 name = "ethereum-consensus"
 version = "0.1.1"
-source = "git+https://github.com/succinctlabs/ethereum-consensus?rev=f273376e03de288899deba10fd5076fb97bbaa6c#f273376e03de288899deba10fd5076fb97bbaa6c"
+source = "git+https://github.com/succinctlabs/ethereum-consensus?rev=9ef57a9bf39431b9023fab2460be19df58dd4205#9ef57a9bf39431b9023fab2460be19df58dd4205"
 dependencies = [
  "blst",
  "bs58 0.4.0",
